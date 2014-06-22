@@ -931,7 +931,11 @@ function data () {
             var data = this;
             var deferreds = [];
             for (var i in this.opts.src) {
-                deferreds.push(this.fetch(this.opts.src[i]));
+                if (typeof this.opts.src[i] !== 'string') {
+                    this.fetch(this.opts.src[i]);
+                } else {
+                    deferreds.push(this.fetch(this.opts.src[i]));
+                }
             }
             $.when.apply($, deferreds).done(function () {
                 data.opts.src = [];
@@ -1057,6 +1061,60 @@ st.data.set = function () {
      */
     set.fetch = function (src) {
         var set = this;
+        if (typeof src !== 'string') {
+            var json = src;
+            var id = st.util.hashcode(src); // model id
+            var xlim = [];                  // model x limits
+            var ylim = [];                  // model y limits
+            var size = [];                  // model size: min, max, nBins
+            var xacc = set.opts.x;          // model x accessor
+            var yacc = set.opts.y;          // model y accessor
+            
+            var acc = '';                   // resolve accessor stub
+            if (xacc.lastIndexOf('.') !== -1) {
+                acc = xacc.substr(0, xacc.lastIndexOf('.'))
+                xacc = xacc.substr(xacc.lastIndexOf('.') + 1)
+                yacc = yacc.substr(yacc.lastIndexOf('.') + 1)
+            }
+
+            var data = (acc === '') ? json : json[acc];
+            // resolve limits
+            xlim = fetch_limits(data, json, set.opts.xlimits, xacc);
+            ylim = fetch_limits(data, json, set.opts.ylimits, yacc);
+            size = [0, data.length, 0];
+            
+            // replace global limits if required
+            if (xlim[0] < set.raw.gxlim[0]) {
+                set.raw.gxlim[0] = xlim[0];
+            }
+            if (ylim[0] < set.raw.gylim[0]) {
+                set.raw.gylim[0] = ylim[0];
+            }
+            if (xlim[1] > set.raw.gxlim[1]) {
+                set.raw.gxlim[1] = xlim[1];
+            }
+            if (ylim[1] > set.raw.gylim[1]) {
+                set.raw.gylim[1] = ylim[1];
+            }                
+            
+            // add model as raw entry
+            set.raw.series.push({
+                id: id,
+                xlim: xlim,
+                ylim: ylim,
+                accs: [xacc, yacc],
+                size: size,
+                data: data,
+                x: function (i) { // x accessor function
+                    return this.data[i][this.accs[0]];
+                },
+                y: function (i) {   // y accessor function
+                    return this.data[i][this.accs[1]];
+                }
+            });
+            return;
+        }
+        
         return $.getJSON(src, function (json) {
             var id = st.util.hashcode(src); // model id
             var xlim = [];                  // model x limits

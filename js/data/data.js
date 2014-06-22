@@ -79,7 +79,11 @@ function data () {
             var data = this;
             var deferreds = [];
             for (var i in this.opts.src) {
-                deferreds.push(this.fetch(this.opts.src[i]));
+                if (typeof this.opts.src[i] !== 'string') {
+                    this.fetch(this.opts.src[i]);
+                } else {
+                    deferreds.push(this.fetch(this.opts.src[i]));
+                }
             }
             $.when.apply($, deferreds).done(function () {
                 data.opts.src = [];
