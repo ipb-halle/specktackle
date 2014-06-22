@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>SpeckTackle Development</title>
+    <meta charset="UTF-8">
+    
+    <!-- Main page CSS -->
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <!-- SpeckTackle CSS containing chart stylings -->
+    <link rel="stylesheet" type="text/css" href="css/st.css">
+    
+    <!-- SpeckTackle library -->
+    <script type="text/javascript", src="st.js"></script>
+    <!-- SpeckTackle dependencies -->
+    <script type="text/javascript", src="libs/d3/d3.js"></script>
+    <script type="text/javascript", src="libs/jquery/jquery.js"></script>
+
+    <script type="text/javascript">
+        // demonstration of SpeckTackle charts
+        var chart;
+        function ms () {                        // MS stub
+            $("#stgraph").empty();              // clear DOM child elements
+            $("#adddata").removeAttr("disabled")// enable 'Add Data' button
+                .attr("onclick","load(0)");     // point to data loader
+            chart = st.chart                    // create a new MS chart
+                .ms()                           // chart type
+                .legend(true)                   // options
+                .xlabel("m/z")
+                .ylabel("Abundance")
+                .margins([80, 80, 80, 120]);
+            chart.render("#stgraph");           // render chart to id 'stgraph'
+        };
+        function nmr () {                       // NMR stub
+            $("#stgraph").empty();
+            $("#adddata").removeAttr("disabled")
+                .attr("onclick","load(1)");
+            chart = st.chart
+                .nmr()
+                .legend(true)
+                .xlabel("ppm")
+                .margins([80, 80, 80, 80]);
+            chart.render("#stgraph");
+        };
+        function nmr2d () {                     // NMR 2D stub
+            $("#stgraph").empty();
+            $("#adddata").removeAttr("disabled")
+                .attr("onclick","load(2)");
+            chart = st.chart
+                .nmr2d()
+                .xlabel("Chemical Shift (ppm)")
+                .ylabel("Chemical Shift (ppm)")
+                .margins([80, 120, 80, 80]);
+            chart.render("#stgraph");
+        };
+        function series () {                    // Chromatogram stub
+            $("#stgraph").empty();
+            $("#adddata").removeAttr("disabled")
+                .attr("onclick","load(3)");
+            chart = st.chart
+                .series()
+                .legend(true)
+                .xlabel("Time [s]")
+                .ylabel("Abundance")
+                .title("Chromatogram")
+                .margins([80, 80, 80, 120]);
+            chart.render("#stgraph");
+        };
+        function load (x) {                         // load chart data
+            switch (x) {
+                case 0:                             // MS
+                    var set = st.data.set()         // data type (set)
+                        .url([                      // input array
+                            "resources/data1.json",
+                            "resources/data2.json",
+                            "resources/data3.json"
+                        ])
+                        .ylimits([0, 1000])         // y-axis limits
+                        .x("peaks.mz")
+                        .y("peaks.intensity");
+                    chart.load(set);                // load the data
+                    break;
+                case 1:                             // NMR
+                    var array = st.data.array()     // data type (array)
+                        .url([
+                            "resources/nmr1.json",
+                            "resources/nmr2.json"
+                        ])
+                        .xlimits(["xMin", "xMax"])
+                        .ylimits(["yMin", "yMax"])
+                        .y("data");                 // array is one dimensional
+                    chart.load(array);
+                    break;  
+                case 2:                             // NMR 2D
+                    var set = st.data.set()
+                        .url("resources/nmr2d.json")
+                        .x("data.x")
+                        .y("data.y");
+                    chart.load(set);
+                    break;
+                case 3:                             // Chromatogram
+                    var set = st.data.set()
+                        .url([
+                            "resources/data1.json",
+                            "resources/data2.json",
+                            "resources/data3.json"
+                        ])
+                        .x("peaks.mz")
+                        .y("peaks.intensity");
+                    chart.load(set);
+                    break;
+            };
+            $("#adddata").attr('disabled','disabled');
+        };
+    </script>
+
+</head>
+<body>
+    <div id="wrap">
+        <h2>SpeckTackle</h2>
+        <ul>
+            <li><button onclick="ms()">MS</button></li>
+            <li><button onclick="nmr()">NMR</button></li>
+            <li><button onclick="nmr2d()">NMR2D</button></li>
+            <li><button onclick="series()">Chromatogram</button></li>
+            <li><button id="adddata" onclick="load()" 
+                        disabled="disabled">Add Data</button></li>
+        </ul>
+        <!-- Container for all charts: '#stgraph' -->
+        <div id="stgraph" class="stgraph"></div> 
+    </div>
+</body>
+</html>
