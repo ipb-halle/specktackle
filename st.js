@@ -1067,7 +1067,7 @@ st.data.set = function () {
                 set_fetch(json, src, set);
             });
         } else {
-            set_fetch(src, '', set);
+            set_fetch(src, '' + new Date().getTime(), set);
         }
         return jqxhr;
     };
@@ -1283,7 +1283,7 @@ st.data.array = function () {
                 array_fetch(json, src, array);
             });
         } else {
-            array_fetch(src, '', array);
+            array_fetch(src, '' + new Date().getTime(), array);
         }
         return jqxhr;
     };

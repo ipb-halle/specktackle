@@ -71,7 +71,7 @@ st.data.set = function () {
                 set_fetch(json, src, set);
             });
         } else {
-            set_fetch(src, '', set);
+            set_fetch(src, '' + new Date().getTime(), set);
         }
         return jqxhr;
     };
