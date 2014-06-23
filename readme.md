@@ -3,10 +3,10 @@
 Implemented charts exist for mass spectrometry, one- and two-dimensional NMR, and time series data such as chromatograms.
 
 ## JSFiddle
-* [MS](http://jsfiddle.net/fw5Fm/12/)
+* [MS](http://jsfiddle.net/fw5Fm/13/)
 * [NMR]()
-* [NMR 2D]()
-* [Chromatogram]()
+* [NMR 2D](http://jsfiddle.net/fw5Fm/15/)
+* [Chromatogram](http://jsfiddle.net/fw5Fm/16/)
 
 ## Dependencies
 * jquery
