@@ -58,7 +58,7 @@ st.data.array = function () {
                 array_fetch(json, src, array);
             });
         } else {
-            array_fetch(src, '' + new Date().getTime(), array);
+            array_fetch(src, '' + (new Date().getTime() * Math.random()), array);
         }
         return jqxhr;
     };
