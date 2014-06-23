@@ -5,8 +5,8 @@ Implemented charts exist for mass spectrometry, one- and two-dimensional NMR, an
 ## JSFiddle
 * [MS](http://jsfiddle.net/fw5Fm/13/)
 * [NMR]()
-* [NMR 2D]()
-* [Chromatogram]()
+* [NMR 2D](http://jsfiddle.net/fw5Fm/15/)
+* [Chromatogram](http://jsfiddle.net/fw5Fm/16/)
 
 ## Dependencies
 * jquery
