@@ -1062,12 +1062,28 @@ st.data.set = function () {
     set.fetch = function (src) {
         var set = this;
         var jqxhr = null;
+        var id = new Date().getTime() * Math.random();
         if (typeof src === 'string') {
             jqxhr = $.getJSON(src, function (json) {
-                set_fetch(json, src, set);
+                if (json instanceof Array) {
+                    for (var i in json) {
+                        set_fetch(json[i], src + id, set);
+                        id = new Date().getTime() * Math.random();
+                    }
+                } else {
+                    set_fetch(json, src, set);
+                }
             });
         } else {
-            set_fetch(src, '' + (new Date().getTime() * Math.random()), set);
+            
+            if (src instanceof Array) {
+                for (var i in src) {
+                    set_fetch(src[i], '' + id, set);
+                    id = new Date().getTime() * Math.random();
+                }
+            } else {
+                set_fetch(src, '' + id, set);
+            }
         }
         return jqxhr;
     };

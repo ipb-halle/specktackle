@@ -70,13 +70,18 @@
                 case 0:                             // MS
                     var set = st.data.set()         // data type (set)
                         .url([                      // input array
-                            "resources/data1.json",
-                            "resources/data2.json",
-                            "resources/data3.json"
+                            //"resources/data1.json",
+                            //"resources/data2.json",
+                            //"resources/data3.json"
+                            "resources/multiple.json"
+                            //"http://www.ebi.ac.uk/metabolights/spectra/15769/json"
                         ])
-                        .ylimits([0, 1000])         // y-axis limits
-                        .x("peaks.mz")
-                        .y("peaks.intensity");
+                        //.ylimits([0, 1000])         // y-axis limits
+                        //.x("peaks.mz")
+                        //.y("peaks.intensity
+                        .ylimits([0, 10000])         // y-axis limits
+                        .x("data.x")
+                        .y("data.y");
                     chart.load(set);                // load the data
                     break;
                 case 1:                             // NMR
