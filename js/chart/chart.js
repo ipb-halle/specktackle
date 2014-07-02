@@ -152,6 +152,16 @@ function chart () {
             // define and render axis
             this.renderAxes();
             
+            // draw the title
+            if (this.opts.title && this.opts.title.length !== 0) {
+                d3.select('.st-base').append('text')
+                    .attr('x', margins[3] + (this.width / 2))
+                    .attr('y', margins[0] * 0.75)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 'large')
+                    .text(this.opts.title)
+            }
+            
             // define custom behavior
             if (typeof this.behavior == 'function') {
                 this.behavior();
