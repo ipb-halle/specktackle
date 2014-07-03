@@ -117,6 +117,56 @@
             };
             $("#adddata").attr('disabled','disabled');
         };
+        function dynamicms () {                        // dynamic MS stub
+            ms();
+            $("#adddata").attr('disabled','disabled');
+            var counter = 0;
+            var data = [
+                "resources/data1.json",
+                "resources/data2.json",
+                "resources/data3.json"
+            ]
+            setTimeout(function iter() {
+                if (counter === 6) {
+                    counter = 0;
+                }
+                if (counter < 3) {
+                    $("#dynamicload").html("Loading: " + data[counter]);
+                    var set = st.data.set()
+                        .url(data[counter])
+                        .ylimits([0, 1000])
+                        .x("peaks.mz")
+                        .y("peaks.intensity");
+                    chart.load(set);
+                } else {
+                    $("#dynamicload").html("Removing: " + data[counter - 3]);
+                    chart.remove(set);
+                }
+                counter += 1;
+                setTimeout(iter, 2000);
+            }, 2000);
+        };
+        function dynamicnmr () {                // dynamic NMR stub
+            nmr();
+            $("#adddata").attr('disabled','disabled');
+            var counter = 0;
+            var data = [
+                "resources/nmr1.json",
+                "resources/nmr2.json"
+            ];
+            setTimeout(function iter() {
+                if (counter === 4) {
+                    counter = 0;
+                }
+                if (counter < 2) {
+                    $("#dynamicload").html("Loading: " + data[counter]);
+                } else {
+                    $("#dynamicload").html("Removing: " + data[counter - 2]);
+                }
+                counter += 1;
+                setTimeout(iter, 2000);
+            }, 2000);
+        };
     </script>
 
 </head>
@@ -128,9 +178,17 @@
             <li><button onclick="nmr()">NMR</button></li>
             <li><button onclick="nmr2d()">NMR2D</button></li>
             <li><button onclick="series()">Chromatogram</button></li>
+            <li>&nbsp;&rarr;&nbsp;</li>
             <li><button id="adddata" onclick="load()" 
                         disabled="disabled">Add Data</button></li>
         </ul>
+        <hr>
+        <ul>
+            <li><button onclick="dynamicms()">Dynamic MS</button></li>
+            <li><button onclick="dynamicnmr()">Dynamic NMR</button></li>
+            <li id="dynamicload"></li>
+        </ul>
+        <hr>
         <!-- Container for all charts: '#stgraph' -->
         <div id="stgraph" class="stgraph"></div> 
     </div>
