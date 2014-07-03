@@ -90,6 +90,16 @@ function data () {
         },
         
         /**
+         * Gets the title for a data series at a given index.
+         *
+         * @param {int} index - a data model index 
+         * @returns the title of the data model
+         */
+        titleat: function (index) {
+            return this.raw.series[index].title;
+        },
+        
+        /**
          * Gets the x and y accessors for a data model at a given index.
          *
          * @param {int} index - a data model index 

@@ -284,6 +284,7 @@ st.chart.nmr = function () {
         for (var i = 0; i < data.length; i++) {
             var series = data[i];
             var id = this.data.id(i);
+            var title = this.data.titleat(i);
             var accs = this.data.accs(i);
             var line = d3.svg.line()
                 .x(function (d) {
@@ -297,7 +298,7 @@ st.chart.nmr = function () {
                 .attr('class', id);
             g.append('svg:path')
                 .attr('clip-path', 'url(#clip)')
-                .style('stroke', this.colors.get(i))
+                .style('stroke', this.colors.get(title))
                 .attr('d', line(series));
         }
     };

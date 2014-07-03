@@ -66,6 +66,7 @@ st.chart.ms = function () {
         for (var i = 0; i < data.length; i++) {
             var series = data[i];
             var id = this.data.id(i);
+            var title = this.data.titleat(i);
             var accs = this.data.accs(i);
             this.canvas.selectAll('.' + id).remove();
             var g = this.canvas.append('g')
@@ -84,7 +85,7 @@ st.chart.ms = function () {
                     return chart.scales.x(d[accs[0]])  
                 })
                 .attr('y2', this.height)
-                .style('stroke', this.colors.get(i))
+                .style('stroke', this.colors.get(title))
             .on('mouseover', function (d) {
                 d3.select(this).style('stroke-width', 2);
                 chart.tooltips
