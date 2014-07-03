@@ -13,6 +13,17 @@ st.data.array = function () {
     var array = data();
     
     /**
+     * Sets the title accessor.
+     *
+     * @param {string} x - a title accessor
+     * @returns the data object
+     */
+    array.title = function (x) {
+        this.opts.title = x;
+        return this;
+    };
+    
+    /**
      * Sets the y accessor.
      *
      * @param {string} y - a y accessor
@@ -55,10 +66,10 @@ st.data.array = function () {
         var jqxhr = null;
         if (typeof src === 'string') {
             jqxhr = $.getJSON(src, function (json) {
-                array_fetch(json, src, array);
+                array_fetch(json, array);
             });
         } else {
-            array_fetch(src, '' + (new Date().getTime() * Math.random()), array);
+            array_fetch(src, array);
         }
         return jqxhr;
     };
@@ -200,14 +211,25 @@ st.data.array = function () {
     return array;
 };
 
-function array_fetch (json, src, array) {
-    var id = st.util.hashcode(src); // model id
+function array_fetch (json, array) {
+    var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+    id = 'st' + id;                       // model id
+    var title = json[array.opts.title];   // model title
     var xlim = [];                  // model x limits
     var ylim = [];                  // model y limits
     var size = [];                  // model size: min, max, nBins
     var xacc = 'x';                 // model x accessor
     var yacc = array.opts.y;        // model y accessor
 
+    if (!title || title.length === 0) {
+        title = id;
+    }
+    
+    if (id in array.raw.ids) {
+        console.log("SpeckTackle: Non unique identifier: " + id);
+        return;
+    }
+    
     var data = (yacc === '') ? json : json[yacc];
     xlim = fetch_limits(data, json, array.opts.xlimits, xacc);
     ylim = fetch_limits(data, json, array.opts.ylimits, yacc);
@@ -224,11 +246,14 @@ function array_fetch (json, src, array) {
     }
     if (ylim[1] > array.raw.gylim[1]) {
         array.raw.gylim[1] = ylim[1];
-    }                
+    }   
+
+    array.raw.ids[id] = true;    
 
     // add model as raw entry
     array.raw.series.push({
-        id: id,             
+        id: id,        
+        title: title,
         xlim: xlim,
         ylim: ylim,
         accs: [xacc, yacc],

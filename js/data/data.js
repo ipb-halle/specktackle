@@ -21,7 +21,7 @@ st.data = {};
 function data () {
     return {
         opts: {
-            id: '',
+            title: '',
             src: [],    // JSON URLs
             x: '',      // x accessor
             y: '',      // y accessor

@@ -82,7 +82,8 @@
                         //.y("peaks.intensity
                         .ylimits([0, 10000])         // y-axis limits
                         .x("data.x")
-                        .y("data.y");
+                        .y("data.y")
+                        .title("id");
                     chart.load(set);                // load the data
                     break;
                 case 1:                             // NMR
@@ -93,7 +94,8 @@
                         ])
                         .xlimits(["xMin", "xMax"])
                         .ylimits(["yMin", "yMax"])
-                        .y("data");                 // array is one dimensional
+                        .y("data")                  // array is one dimensional
+                        .title("id");
                     chart.load(array);
                     break;  
                 case 2:                             // NMR 2D
@@ -111,7 +113,8 @@
                             "resources/data3.json"
                         ])
                         .x("peaks.mz")
-                        .y("peaks.intensity");
+                        .y("peaks.intensity")
+                        .title("spectrumId");
                     chart.load(set);
                     break;
             };

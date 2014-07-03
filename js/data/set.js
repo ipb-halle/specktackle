@@ -15,13 +15,13 @@ st.data.set = function () {
     var set = data();
     
     /**
-     * Sets the identifier accessor.
+     * Sets the title accessor.
      *
-     * @param {string} x - a identifier accessor
+     * @param {string} x - a title accessor
      * @returns the data object
      */
-    set.uid = function (x) {
-        this.opts.id = x;
+    set.title = function (x) {
+        this.opts.title = x;
         return this;
     };
     
@@ -203,23 +203,21 @@ st.data.set = function () {
 };
 
 function set_fetch (json, set) {
-    var id = json[set.opts.id];     // model id
+    var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+    id = 'st' + id;                     // model id
+    var title = json[set.opts.title];   // model title
     var xlim = [];                  // model x limits
     var ylim = [];                  // model y limits
     var size = [];                  // model size: min, max, nBins
     var xacc = set.opts.x;          // model x accessor
     var yacc = set.opts.y;          // model y accessor
     
-    if (!id) {
-        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
-        id = 'st' + id;
-    } else if (!/^[A-Za-z][-A-Za-z0-9_:.]*$/.test(id)) {
-        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
-        id = 'st' + id;
+    if (!title || title.length === 0) {
+        title = id;
     }
     
     if (id in set.raw.ids) {
-        console.log("Non unique identifier: " + id);
+        console.log("SpeckTackle: Non unique identifier: " + id);
         return;
     }
     
@@ -255,6 +253,7 @@ function set_fetch (json, set) {
     // add model as raw entry
     set.raw.series.push({
         id: id,
+        title: title,
         xlim: xlim,
         ylim: ylim,
         accs: [xacc, yacc],

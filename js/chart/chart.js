@@ -341,24 +341,47 @@ function chart () {
          */
         renderLegend: function () {
             var legend = this.canvas.append('g')
-                .attr('class', 'st-legend');
+                .attr('class', 'st-legend')
+                .style('cursor', 'pointer');
             var colors = this.colors;
+            var chart = this;
             for (var i = 0; i < this.data.raw.series.length; i++) {
-                legend.append('svg:rect')
+                var id = this.data.raw.series[i].id;
+                var title = this.data.raw.series[i].title;
+                var lg = legend.append('g').attr('stid', id);
+                lg.append('svg:rect')
                     .attr('x', this.width + 5)
                     .attr('y', function () { return i * 20; })
                     .attr('width', 10)
                     .attr('height', 10)
                     .style('fill', function () { return colors.get(i); });
-
-                var id = this.data.raw.series[i].id;
-                legend.append('text')
+                lg.append('text')
                     .attr('x', this.width + 20)
                     .attr('y', function () { return i * 20 + 9; })
                     .text(function () {
-                        var text = id;
+                        var text = title;
                         return text;
                     });
+                lg.on('mouseover', function() {
+                    d3.select(this).style('fill', 'red');
+                    var selectid = d3.select(this).attr('stid');
+                    chart.canvas.selectAll('.' + selectid).style('stroke-width', 2);
+                    for (var dataid in chart.data.raw.ids) {
+                        if (dataid !== selectid) {
+                            chart.canvas.selectAll('.' + dataid).style('opacity', 0.1);
+                        }
+                    }
+                })
+                lg.on('mouseout', function() {
+                    d3.select(this).style('fill', 'black');
+                    var selectid = d3.select(this).attr('stid');
+                    chart.canvas.selectAll('.' + selectid).style('stroke-width', 1);
+                    for (var dataid in chart.data.raw.ids) {
+                        if (dataid !== selectid) {
+                            chart.canvas.selectAll('.' + dataid).style('opacity', 1);
+                        }
+                    }
+                })
             }
         },
         

@@ -873,7 +873,7 @@ st.data = {};
 function data () {
     return {
         opts: {
-            id: '',
+            title: '',
             src: [],    // JSON URLs
             x: '',      // x accessor
             y: '',      // y accessor
@@ -1013,13 +1013,13 @@ st.data.set = function () {
     var set = data();
     
     /**
-     * Sets the identifier accessor.
+     * Sets the title accessor.
      *
-     * @param {string} x - a identifier accessor
+     * @param {string} x - a title accessor
      * @returns the data object
      */
-    set.uid = function (x) {
-        this.opts.id = x;
+    set.title = function (x) {
+        this.opts.title = x;
         return this;
     };
     
@@ -1201,23 +1201,21 @@ st.data.set = function () {
 };
 
 function set_fetch (json, set) {
-    var id = json[set.opts.id];     // model id
+    var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+    id = 'st' + id;                     // model id
+    var title = json[set.opts.title];   // model title
     var xlim = [];                  // model x limits
     var ylim = [];                  // model y limits
     var size = [];                  // model size: min, max, nBins
     var xacc = set.opts.x;          // model x accessor
     var yacc = set.opts.y;          // model y accessor
     
-    if (!id) {
-        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
-        id = 'st' + id;
-    } else if (!/^[A-Za-z][-A-Za-z0-9_:.]*$/.test(id)) {
-        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
-        id = 'st' + id;
+    if (!title || title.length === 0) {
+        title = id;
     }
     
     if (id in set.raw.ids) {
-        console.log("Non unique identifier: " + id);
+        console.log("SpeckTackle: Non unique identifier: " + id);
         return;
     }
     
@@ -1253,6 +1251,7 @@ function set_fetch (json, set) {
     // add model as raw entry
     set.raw.series.push({
         id: id,
+        title: title,
         xlim: xlim,
         ylim: ylim,
         accs: [xacc, yacc],
@@ -1279,13 +1278,13 @@ st.data.array = function () {
     var array = data();
     
     /**
-     * Sets the identifier accessor.
+     * Sets the title accessor.
      *
-     * @param {string} x - a identifier accessor
+     * @param {string} x - a title accessor
      * @returns the data object
      */
-    array.uid = function (x) {
-        this.opts.id = x;
+    array.title = function (x) {
+        this.opts.title = x;
         return this;
     };
     
@@ -1478,23 +1477,21 @@ st.data.array = function () {
 };
 
 function array_fetch (json, array) {
-    var id = json[array.opts.id];   // model id
+    var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+    id = 'st' + id;                       // model id
+    var title = json[array.opts.title];   // model title
     var xlim = [];                  // model x limits
     var ylim = [];                  // model y limits
     var size = [];                  // model size: min, max, nBins
     var xacc = 'x';                 // model x accessor
     var yacc = array.opts.y;        // model y accessor
 
-    if (!id) {
-        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
-        id = 'st' + id;
-    } else if (!/^[A-Za-z][-A-Za-z0-9_:.]*$/.test(id)) {
-        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
-        id = 'st' + id;
+    if (!title || title.length === 0) {
+        title = id;
     }
     
     if (id in array.raw.ids) {
-        console.log("Non unique identifier: " + id);
+        console.log("SpeckTackle: Non unique identifier: " + id);
         return;
     }
     
@@ -1520,7 +1517,8 @@ function array_fetch (json, array) {
 
     // add model as raw entry
     array.raw.series.push({
-        id: id,             
+        id: id,        
+        title: title,
         xlim: xlim,
         ylim: ylim,
         accs: [xacc, yacc],
@@ -1872,24 +1870,47 @@ function chart () {
          */
         renderLegend: function () {
             var legend = this.canvas.append('g')
-                .attr('class', 'st-legend');
+                .attr('class', 'st-legend')
+                .style('cursor', 'pointer');
             var colors = this.colors;
+            var chart = this;
             for (var i = 0; i < this.data.raw.series.length; i++) {
-                legend.append('svg:rect')
+                var id = this.data.raw.series[i].id;
+                var title = this.data.raw.series[i].title;
+                var lg = legend.append('g').attr('stid', id);
+                lg.append('svg:rect')
                     .attr('x', this.width + 5)
                     .attr('y', function () { return i * 20; })
                     .attr('width', 10)
                     .attr('height', 10)
                     .style('fill', function () { return colors.get(i); });
-
-                var id = this.data.raw.series[i].id;
-                legend.append('text')
+                lg.append('text')
                     .attr('x', this.width + 20)
                     .attr('y', function () { return i * 20 + 9; })
                     .text(function () {
-                        var text = id;
+                        var text = title;
                         return text;
                     });
+                lg.on('mouseover', function() {
+                    d3.select(this).style('fill', 'red');
+                    var selectid = d3.select(this).attr('stid');
+                    chart.canvas.selectAll('.' + selectid).style('stroke-width', 2);
+                    for (var dataid in chart.data.raw.ids) {
+                        if (dataid !== selectid) {
+                            chart.canvas.selectAll('.' + dataid).style('opacity', 0.1);
+                        }
+                    }
+                })
+                lg.on('mouseout', function() {
+                    d3.select(this).style('fill', 'black');
+                    var selectid = d3.select(this).attr('stid');
+                    chart.canvas.selectAll('.' + selectid).style('stroke-width', 1);
+                    for (var dataid in chart.data.raw.ids) {
+                        if (dataid !== selectid) {
+                            chart.canvas.selectAll('.' + dataid).style('opacity', 1);
+                        }
+                    }
+                })
             }
         },
         
@@ -2107,7 +2128,6 @@ st.chart.ms = function () {
         for (var i = 0; i < data.length; i++) {
             var series = data[i];
             var id = this.data.id(i);
-            console.log(this.data.id(i));
             var accs = this.data.accs(i);
             this.canvas.selectAll('.' + id).remove();
             var g = this.canvas.append('g')
