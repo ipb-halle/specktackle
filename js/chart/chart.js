@@ -340,6 +340,7 @@ function chart () {
          * Draws the chart legend in the top right corner.
          */
         renderLegend: function () {
+            $('.st-legend').empty();
             var legend = this.canvas.append('g')
                 .attr('class', 'st-legend')
                 .style('cursor', 'pointer');
@@ -391,18 +392,32 @@ function chart () {
          * @param {object} data - the data container
          */
         load: function (data) {
-            this.data = data;               // associate with the chart
             var chart = this;
-            this.data.push(function () {    // callback
-                chart.xscale();             // rescale x
-                chart.yscale();             // rescale y
-                chart.canvas.select('.st-xaxis').call(chart.xaxis); // draw
-                chart.canvas.select('.st-yaxis').call(chart.yaxis); // draw
-                chart.renderdata();         // draw data
+            this.data = data; // associate with the chart
+            var oldadd = data.add;
+            data.add = function() {
+                oldadd.apply(this, arguments);
+                chart.data.push(function () {// callback
+                    chart.xscale();              // rescale x
+                    chart.yscale();              // rescale y
+                    chart.canvas.select('.st-xaxis').call(chart.xaxis); // draw
+                    chart.canvas.select('.st-yaxis').call(chart.yaxis); // draw
+                    chart.renderdata();         // draw data
+                    if (chart.opts.legend) {
+                        chart.renderLegend();
+                    }
+                });
+            };
+            var oldremove = data.remove;
+            data.remove = function() {
+                var ids = oldremove.apply(this, arguments);
+                for (var i in ids) {
+                    chart.canvas.selectAll('.' + ids[i]).remove();
+                }
                 if (chart.opts.legend) {
                     chart.renderLegend();
                 }
-            });
+            };
         }
     };
 }

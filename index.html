@@ -70,14 +70,7 @@
             switch (x) {
                 case 0:                             // MS
                     var set = st.data.set()         // data type (set)
-                        .url([                      // input array
-                            //"resources/data1.json",
-                            //"resources/data2.json",
-                            //"resources/data3.json"
-                            "resources/multiple.json"
-                            //"http://www.ebi.ac.uk/metabolights/spectra/15769/json"
-                        ])
-                        //.ylimits([0, 1000])         // y-axis limits
+                        //.ylimits([0, 1000])       // y-axis limits
                         //.x("peaks.mz")
                         //.y("peaks.intensity
                         .ylimits([0, 10000])         // y-axis limits
@@ -85,37 +78,44 @@
                         .y("data.y")
                         .title("id");
                     chart.load(set);                // load the data
+                    set.add([                      // input array
+                        //"resources/data1.json",
+                        //"resources/data2.json",
+                        //"resources/data3.json"
+                        "resources/multiple.json"
+                        //"http://www.ebi.ac.uk/metabolights/spectra/15769/json"
+                    ]);
                     break;
                 case 1:                             // NMR
                     var array = st.data.array()     // data type (array)
-                        .url([
-                            "resources/nmr1.json",
-                            "resources/nmr2.json"
-                        ])
                         .xlimits(["xMin", "xMax"])
                         .ylimits(["yMin", "yMax"])
                         .y("data")                  // array is one dimensional
                         .title("id");
-                    chart.load(array);
+                    chart.load(array);   
+                    array.add([
+                        "resources/nmr1.json",
+                        "resources/nmr2.json"
+                    ]);
                     break;  
                 case 2:                             // NMR 2D
                     var set = st.data.set()
-                        .url("resources/nmr2d.json")
                         .x("data.x")
                         .y("data.y");
                     chart.load(set);
+                    set.add("resources/nmr2d.json");
                     break;
                 case 3:                             // Chromatogram
                     var set = st.data.set()
-                        .url([
-                            "resources/data1.json",
-                            "resources/data2.json",
-                            "resources/data3.json"
-                        ])
                         .x("peaks.mz")
                         .y("peaks.intensity")
                         .title("spectrumId");
                     chart.load(set);
+                    set.add([
+                        "resources/data1.json",
+                        "resources/data2.json",
+                        "resources/data3.json"
+                    ]);
                     break;
             };
             $("#adddata").attr('disabled','disabled');
@@ -129,21 +129,22 @@
                 "resources/data2.json",
                 "resources/data3.json"
             ]
+            var set = st.data.set()
+                .ylimits([0, 1000])
+                .x("peaks.mz")
+                .y("peaks.intensity")
+                .title("spectrumId");
+            chart.load(set);
             setTimeout(function iter() {
                 if (counter === 6) {
                     counter = 0;
                 }
                 if (counter < 3) {
                     $("#dynamicload").html("Loading: " + data[counter]);
-                    var set = st.data.set()
-                        .url(data[counter])
-                        .ylimits([0, 1000])
-                        .x("peaks.mz")
-                        .y("peaks.intensity");
-                    chart.load(set);
+                    set.add(data[counter]);
                 } else {
                     $("#dynamicload").html("Removing: " + data[counter - 3]);
-                    chart.remove(set);
+                    set.remove(0);
                 }
                 counter += 1;
                 setTimeout(iter, 2000);
@@ -157,14 +158,22 @@
                 "resources/nmr1.json",
                 "resources/nmr2.json"
             ];
+            var array = st.data.array()     // data type (array)
+                .xlimits(["xMin", "xMax"])
+                .ylimits(["yMin", "yMax"])
+                .y("data")                  // array is one dimensional
+                .title("id");
+            chart.load(array);
             setTimeout(function iter() {
                 if (counter === 4) {
                     counter = 0;
                 }
                 if (counter < 2) {
                     $("#dynamicload").html("Loading: " + data[counter]);
+                    array.add(data[counter]);
                 } else {
                     $("#dynamicload").html("Removing: " + data[counter - 2]);
+                    array.remove(0);
                 }
                 counter += 1;
                 setTimeout(iter, 2000);

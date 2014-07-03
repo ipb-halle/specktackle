@@ -894,13 +894,41 @@ function data () {
          * @param {string[]} x - an URL array 
          * @returns the data object
          */
-        url: function (urls) {
+        add: function (urls) {
             if (urls instanceof Array) {
                 this.opts.src.push.apply(this.opts.src, urls);
             } else {
                 this.opts.src.push(urls);
             }
-            return this;
+        },
+        
+        /**
+         * Removes a data series by its identifier or index.
+         *
+         * @param {string[]|number[]} x - indices or identifiers to remove
+         * @returns the data object
+         */
+        remove: function (x) {
+            var ids = [];
+            if (x instanceof Array) {
+                // TODO
+            } else {
+                if (isNaN(x)) {
+                    for (var i in this.raw.series) {
+                        if (this.raw.series[i].id === x) {
+                            this.raw.series.splice(i, 1);
+                            ids.push(this.raw.ids[x]);
+                            delete this.raw.ids[x];
+                            break;
+                        }
+                    }
+                } else {
+                    var spliced = this.raw.series.splice(x, 1);
+                    ids.push(spliced[0].id);
+                    delete this.raw.ids[spliced[0].id];
+                }
+            }
+            return ids;
         },
         
         /**
@@ -1869,6 +1897,7 @@ function chart () {
          * Draws the chart legend in the top right corner.
          */
         renderLegend: function () {
+            $('.st-legend').empty();
             var legend = this.canvas.append('g')
                 .attr('class', 'st-legend')
                 .style('cursor', 'pointer');
@@ -1920,18 +1949,32 @@ function chart () {
          * @param {object} data - the data container
          */
         load: function (data) {
-            this.data = data;               // associate with the chart
             var chart = this;
-            this.data.push(function () {    // callback
-                chart.xscale();             // rescale x
-                chart.yscale();             // rescale y
-                chart.canvas.select('.st-xaxis').call(chart.xaxis); // draw
-                chart.canvas.select('.st-yaxis').call(chart.yaxis); // draw
-                chart.renderdata();         // draw data
+            this.data = data; // associate with the chart
+            var oldadd = data.add;
+            data.add = function() {
+                oldadd.apply(this, arguments);
+                chart.data.push(function () {// callback
+                    chart.xscale();              // rescale x
+                    chart.yscale();              // rescale y
+                    chart.canvas.select('.st-xaxis').call(chart.xaxis); // draw
+                    chart.canvas.select('.st-yaxis').call(chart.yaxis); // draw
+                    chart.renderdata();         // draw data
+                    if (chart.opts.legend) {
+                        chart.renderLegend();
+                    }
+                });
+            };
+            var oldremove = data.remove;
+            data.remove = function() {
+                var ids = oldremove.apply(this, arguments);
+                for (var i in ids) {
+                    chart.canvas.selectAll('.' + ids[i]).remove();
+                }
                 if (chart.opts.legend) {
                     chart.renderLegend();
                 }
-            });
+            };
         }
     };
 }
@@ -2225,6 +2268,7 @@ st.chart.nmr = function () {
         // container for x and y scale
         this.scales = { 
             x: d3.scale.linear()
+                .domain([1, 0])
                 .range([0, this.width]),
             y: d3.scale.linear()
                 .range([this.height, 0])
@@ -2444,20 +2488,34 @@ st.chart.nmr = function () {
      * @param {object} data - the data container
      */
     nmr.load = function (data) {
-        this.data = data;
         var chart = this;
-        this.data.push(function () {
-            chart.xscale();
-            chart.yscale();
-            chart.mousewheel.y(chart.scales.y)
-                .center([0, chart.scales.y(0)]);
-        
-            chart.canvas.select('.st-xaxis').call(chart.xaxis);            
-            chart.renderdata();
+        this.data = data;
+        var oldadd = data.add;
+        data.add = function() {
+            oldadd.apply(this, arguments);
+            chart.data.push(function () {
+                chart.xscale();
+                chart.yscale();
+                chart.mousewheel.y(chart.scales.y)
+                    .center([0, chart.scales.y(0)]);
+            
+                chart.canvas.select('.st-xaxis').call(chart.xaxis);            
+                chart.renderdata();
+                if (chart.opts.legend) {
+                    chart.renderLegend();
+                }
+            });
+        };
+        var oldremove = data.remove;
+        data.remove = function() {
+            var ids = oldremove.apply(this, arguments);
+            for (var i in ids) {
+                chart.canvas.selectAll('.' + ids[i]).remove();
+            }
             if (chart.opts.legend) {
                 chart.renderLegend();
             }
-        });
+        };
     };
     
     /**

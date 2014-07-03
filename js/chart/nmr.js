@@ -25,6 +25,7 @@ st.chart.nmr = function () {
         // container for x and y scale
         this.scales = { 
             x: d3.scale.linear()
+                .domain([1, 0])
                 .range([0, this.width]),
             y: d3.scale.linear()
                 .range([this.height, 0])
@@ -244,20 +245,34 @@ st.chart.nmr = function () {
      * @param {object} data - the data container
      */
     nmr.load = function (data) {
-        this.data = data;
         var chart = this;
-        this.data.push(function () {
-            chart.xscale();
-            chart.yscale();
-            chart.mousewheel.y(chart.scales.y)
-                .center([0, chart.scales.y(0)]);
-        
-            chart.canvas.select('.st-xaxis').call(chart.xaxis);            
-            chart.renderdata();
+        this.data = data;
+        var oldadd = data.add;
+        data.add = function() {
+            oldadd.apply(this, arguments);
+            chart.data.push(function () {
+                chart.xscale();
+                chart.yscale();
+                chart.mousewheel.y(chart.scales.y)
+                    .center([0, chart.scales.y(0)]);
+            
+                chart.canvas.select('.st-xaxis').call(chart.xaxis);            
+                chart.renderdata();
+                if (chart.opts.legend) {
+                    chart.renderLegend();
+                }
+            });
+        };
+        var oldremove = data.remove;
+        data.remove = function() {
+            var ids = oldremove.apply(this, arguments);
+            for (var i in ids) {
+                chart.canvas.selectAll('.' + ids[i]).remove();
+            }
             if (chart.opts.legend) {
                 chart.renderLegend();
             }
-        });
+        };
     };
     
     /**

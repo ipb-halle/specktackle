@@ -42,13 +42,41 @@ function data () {
          * @param {string[]} x - an URL array 
          * @returns the data object
          */
-        url: function (urls) {
+        add: function (urls) {
             if (urls instanceof Array) {
                 this.opts.src.push.apply(this.opts.src, urls);
             } else {
                 this.opts.src.push(urls);
             }
-            return this;
+        },
+        
+        /**
+         * Removes a data series by its identifier or index.
+         *
+         * @param {string[]|number[]} x - indices or identifiers to remove
+         * @returns the data object
+         */
+        remove: function (x) {
+            var ids = [];
+            if (x instanceof Array) {
+                // TODO
+            } else {
+                if (isNaN(x)) {
+                    for (var i in this.raw.series) {
+                        if (this.raw.series[i].id === x) {
+                            this.raw.series.splice(i, 1);
+                            ids.push(this.raw.ids[x]);
+                            delete this.raw.ids[x];
+                            break;
+                        }
+                    }
+                } else {
+                    var spliced = this.raw.series.splice(x, 1);
+                    ids.push(spliced[0].id);
+                    delete this.raw.ids[spliced[0].id];
+                }
+            }
+            return ids;
         },
         
         /**
