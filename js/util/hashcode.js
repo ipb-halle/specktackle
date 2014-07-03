@@ -16,5 +16,5 @@ st.util.hashcode = function (str) {
         hash = ((hash << 5) - hash) + chr;
         hash |= 0; // convert to 32bit integer
     }
-    return 'st' + hash;
+    return hash;
 };

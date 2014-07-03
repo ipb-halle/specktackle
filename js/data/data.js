@@ -21,6 +21,7 @@ st.data = {};
 function data () {
     return {
         opts: {
+            id: '',
             src: [],    // JSON URLs
             x: '',      // x accessor
             y: '',      // y accessor
@@ -31,6 +32,7 @@ function data () {
         raw: {          // globals summarising contained data
             gxlim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global x limits
             gylim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global y limits
+            ids: {},
             series: []  // the total data to be displayed (array of data series)
         },
             

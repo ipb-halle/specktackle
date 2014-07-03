@@ -269,7 +269,7 @@ st.util.hashcode = function (str) {
         hash = ((hash << 5) - hash) + chr;
         hash |= 0; // convert to 32bit integer
     }
-    return 'st' + hash;
+    return hash;
 };
 
 /**
@@ -873,6 +873,7 @@ st.data = {};
 function data () {
     return {
         opts: {
+            id: '',
             src: [],    // JSON URLs
             x: '',      // x accessor
             y: '',      // y accessor
@@ -883,6 +884,7 @@ function data () {
         raw: {          // globals summarising contained data
             gxlim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global x limits
             gylim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global y limits
+            ids: {},
             series: []  // the total data to be displayed (array of data series)
         },
             
@@ -1011,6 +1013,17 @@ st.data.set = function () {
     var set = data();
     
     /**
+     * Sets the identifier accessor.
+     *
+     * @param {string} x - a identifier accessor
+     * @returns the data object
+     */
+    set.uid = function (x) {
+        this.opts.id = x;
+        return this;
+    };
+    
+    /**
      * Sets the x accessor.
      *
      * @param {string} x - a x accessor
@@ -1062,27 +1075,24 @@ st.data.set = function () {
     set.fetch = function (src) {
         var set = this;
         var jqxhr = null;
-        var id = new Date().getTime() * Math.random();
         if (typeof src === 'string') {
             jqxhr = $.getJSON(src, function (json) {
                 if (json instanceof Array) {
                     for (var i in json) {
-                        set_fetch(json[i], src + id, set);
-                        id = new Date().getTime() * Math.random();
+                        set_fetch(json[i], set);
                     }
                 } else {
-                    set_fetch(json, src, set);
+                    set_fetch(json, set);
                 }
             });
         } else {
             
             if (src instanceof Array) {
                 for (var i in src) {
-                    set_fetch(src[i], '' + id, set);
-                    id = new Date().getTime() * Math.random();
+                    set_fetch(src[i], set);
                 }
             } else {
-                set_fetch(src, '' + id, set);
+                set_fetch(src, set);
             }
         }
         return jqxhr;
@@ -1190,13 +1200,26 @@ st.data.set = function () {
     return set;
 };
 
-function set_fetch (json, src, set) {
-    var id = st.util.hashcode(src); // model id
+function set_fetch (json, set) {
+    var id = json[set.opts.id];     // model id
     var xlim = [];                  // model x limits
     var ylim = [];                  // model y limits
     var size = [];                  // model size: min, max, nBins
     var xacc = set.opts.x;          // model x accessor
     var yacc = set.opts.y;          // model y accessor
+    
+    if (!id) {
+        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+        id = 'st' + id;
+    } else if (!/^[A-Za-z][-A-Za-z0-9_:.]*$/.test(id)) {
+        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+        id = 'st' + id;
+    }
+    
+    if (id in set.raw.ids) {
+        console.log("Non unique identifier: " + id);
+        return;
+    }
     
     var acc = '';                   // resolve accessor stub
     if (xacc.lastIndexOf('.') !== -1) {
@@ -1225,6 +1248,8 @@ function set_fetch (json, src, set) {
         set.raw.gylim[1] = ylim[1];
     }                
     
+    set.raw.ids[id] = true;
+    
     // add model as raw entry
     set.raw.series.push({
         id: id,
@@ -1252,6 +1277,17 @@ function set_fetch (json, src, set) {
 st.data.array = function () {
     // init base data to be extended
     var array = data();
+    
+    /**
+     * Sets the identifier accessor.
+     *
+     * @param {string} x - a identifier accessor
+     * @returns the data object
+     */
+    array.uid = function (x) {
+        this.opts.id = x;
+        return this;
+    };
     
     /**
      * Sets the y accessor.
@@ -1296,10 +1332,10 @@ st.data.array = function () {
         var jqxhr = null;
         if (typeof src === 'string') {
             jqxhr = $.getJSON(src, function (json) {
-                array_fetch(json, src, array);
+                array_fetch(json, array);
             });
         } else {
-            array_fetch(src, '' + (new Date().getTime() * Math.random()), array);
+            array_fetch(src, array);
         }
         return jqxhr;
     };
@@ -1441,14 +1477,27 @@ st.data.array = function () {
     return array;
 };
 
-function array_fetch (json, src, array) {
-    var id = st.util.hashcode(src); // model id
+function array_fetch (json, array) {
+    var id = json[array.opts.id];   // model id
     var xlim = [];                  // model x limits
     var ylim = [];                  // model y limits
     var size = [];                  // model size: min, max, nBins
     var xacc = 'x';                 // model x accessor
     var yacc = array.opts.y;        // model y accessor
 
+    if (!id) {
+        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+        id = 'st' + id;
+    } else if (!/^[A-Za-z][-A-Za-z0-9_:.]*$/.test(id)) {
+        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+        id = 'st' + id;
+    }
+    
+    if (id in array.raw.ids) {
+        console.log("Non unique identifier: " + id);
+        return;
+    }
+    
     var data = (yacc === '') ? json : json[yacc];
     xlim = fetch_limits(data, json, array.opts.xlimits, xacc);
     ylim = fetch_limits(data, json, array.opts.ylimits, yacc);
@@ -1465,7 +1514,9 @@ function array_fetch (json, src, array) {
     }
     if (ylim[1] > array.raw.gylim[1]) {
         array.raw.gylim[1] = ylim[1];
-    }                
+    }   
+
+    array.raw.ids[id] = true;    
 
     // add model as raw entry
     array.raw.series.push({
@@ -2056,6 +2107,7 @@ st.chart.ms = function () {
         for (var i = 0; i < data.length; i++) {
             var series = data[i];
             var id = this.data.id(i);
+            console.log(this.data.id(i));
             var accs = this.data.accs(i);
             this.canvas.selectAll('.' + id).remove();
             var g = this.canvas.append('g')

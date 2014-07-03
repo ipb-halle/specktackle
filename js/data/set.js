@@ -15,6 +15,17 @@ st.data.set = function () {
     var set = data();
     
     /**
+     * Sets the identifier accessor.
+     *
+     * @param {string} x - a identifier accessor
+     * @returns the data object
+     */
+    set.uid = function (x) {
+        this.opts.id = x;
+        return this;
+    };
+    
+    /**
      * Sets the x accessor.
      *
      * @param {string} x - a x accessor
@@ -66,27 +77,24 @@ st.data.set = function () {
     set.fetch = function (src) {
         var set = this;
         var jqxhr = null;
-        var id = new Date().getTime() * Math.random();
         if (typeof src === 'string') {
             jqxhr = $.getJSON(src, function (json) {
                 if (json instanceof Array) {
                     for (var i in json) {
-                        set_fetch(json[i], src + id, set);
-                        id = new Date().getTime() * Math.random();
+                        set_fetch(json[i], set);
                     }
                 } else {
-                    set_fetch(json, src, set);
+                    set_fetch(json, set);
                 }
             });
         } else {
             
             if (src instanceof Array) {
                 for (var i in src) {
-                    set_fetch(src[i], '' + id, set);
-                    id = new Date().getTime() * Math.random();
+                    set_fetch(src[i], set);
                 }
             } else {
-                set_fetch(src, '' + id, set);
+                set_fetch(src, set);
             }
         }
         return jqxhr;
@@ -194,13 +202,26 @@ st.data.set = function () {
     return set;
 };
 
-function set_fetch (json, src, set) {
-    var id = st.util.hashcode(src); // model id
+function set_fetch (json, set) {
+    var id = json[set.opts.id];     // model id
     var xlim = [];                  // model x limits
     var ylim = [];                  // model y limits
     var size = [];                  // model size: min, max, nBins
     var xacc = set.opts.x;          // model x accessor
     var yacc = set.opts.y;          // model y accessor
+    
+    if (!id) {
+        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+        id = 'st' + id;
+    } else if (!/^[A-Za-z][-A-Za-z0-9_:.]*$/.test(id)) {
+        id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+        id = 'st' + id;
+    }
+    
+    if (id in set.raw.ids) {
+        console.log("Non unique identifier: " + id);
+        return;
+    }
     
     var acc = '';                   // resolve accessor stub
     if (xacc.lastIndexOf('.') !== -1) {
@@ -228,6 +249,8 @@ function set_fetch (json, src, set) {
     if (ylim[1] > set.raw.gylim[1]) {
         set.raw.gylim[1] = ylim[1];
     }                
+    
+    set.raw.ids[id] = true;
     
     // add model as raw entry
     set.raw.series.push({
