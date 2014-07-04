@@ -19,6 +19,11 @@ path {
     pointer-events: all;
 }
 
+.st-base {
+    font-family: Verdana, sans-serif;
+    color: #333333;
+}
+
 .st-circle {
     stroke-width: 1;
     stroke: black;
@@ -29,9 +34,15 @@ path {
     fill: none;
 }
 
+.st-xaxis {
+    font-family: Verdana, sans-serif;
+    font-size: small;
+    color: #333333;
+}
+
 .st-xaxis path {
     fill: none;
-    stroke: black;
+    stroke: #333333;
 }
 
 .st-xaxis line {
@@ -39,9 +50,14 @@ path {
     stroke: lightgray;
 }
 
+.st-yaxis {
+    font-family: Verdana, sans-serif;
+    font-size: small;
+}
+
 .st-yaxis path {
     fill: none;
-    stroke: black;
+    stroke: #333333;;
 }
 
 .st-yaxis line {
@@ -50,13 +66,11 @@ path {
 }
 
 .st-label {
-    font-family: sans-serif;
-    font-size: x-small;
     text-anchor: middle;
 }
 
 .st-grid line {
-    stroke: black;
+    stroke: #333333;;
 }
 
 .st-grid text {
@@ -77,8 +91,14 @@ path {
 
 .st-legend {
     padding: 5px;
-    font: 10px sans-serif;
+    font-family: Verdana, sans-serif;
+    font-size: x-small;
     box-shadow: 2px 2px 1px #888;
+}
+
+.st-tooltips {
+    font-family: Verdana, sans-serif;
+    font-size: small;
 }
 
 .st-spinner {
@@ -87,28 +107,28 @@ path {
     text-align: center;
 }
 
-    .st-spinner > div {
-        width: 10px;
-        height: 10px;
-        background-color: #333;
-        border-radius: 100%;
-        display: inline-block;
-        -webkit-animation: bouncedelay 1.4s infinite ease-in-out;
-        animation: bouncedelay 1.4s infinite ease-in-out;
-        /* Prevent first frame from flickering when animation starts */
-        -webkit-animation-fill-mode: both;
-        animation-fill-mode: both;
-    }
+.st-spinner > div {
+    width: 10px;
+    height: 10px;
+    background-color: #333;
+    border-radius: 100%;
+    display: inline-block;
+    -webkit-animation: bouncedelay 1.4s infinite ease-in-out;
+    animation: bouncedelay 1.4s infinite ease-in-out;
+    /* Prevent first frame from flickering when animation starts */
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+}
 
-    .st-spinner .st-bounce1 {
-        -webkit-animation-delay: -0.32s;
-        animation-delay: -0.32s;
-    }
+.st-spinner .st-bounce1 {
+    -webkit-animation-delay: -0.32s;
+    animation-delay: -0.32s;
+}
 
-    .st-spinner .st-bounce2 {
-        -webkit-animation-delay: -0.16s;
-        animation-delay: -0.16s;
-    }
+.st-spinner .st-bounce2 {
+    -webkit-animation-delay: -0.16s;
+    animation-delay: -0.16s;
+}
 
 @-webkit-keyframes bouncedelay {
     0%, 80%, 100% {
