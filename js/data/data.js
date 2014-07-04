@@ -182,6 +182,8 @@ function fetch_limits (series, json, limits, acc) {
                 return d[acc];
         });
     }
+    lim[0] = parseFloat(lim[0]);
+    lim[1] = parseFloat(lim[1]);
     return lim;
 }
 

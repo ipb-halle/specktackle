@@ -66,6 +66,19 @@
                 .margins([80, 80, 80, 120]);
             chart.render("#stgraph");
         };
+        function irjdx () {                     // IR (JDX) stub
+            $("#stgraph").empty();
+            $("#adddata").removeAttr("disabled")
+                .attr("onclick","load(4)");
+            chart = st.chart
+                .series()
+                .legend(true)
+                .xlabel("1/cm")
+                .ylabel("Transmittance")
+                .title("Infrared Spectrum")
+                .margins([80, 80, 80, 120]);
+            chart.render("#stgraph");
+        };
         function load (x) {                         // load chart data
             switch (x) {
                 case 0:                             // MS
@@ -116,6 +129,17 @@
                         "resources/data2.json",
                         "resources/data3.json"
                     ]);
+                    break;
+                case 4:                             // IR (JDX)
+                    var array = st.data.array()
+                        .xlimits(["FIRSTX", "LASTX"])
+                        .ylimits(["MINY", "MAXY"])
+                        .y("XYDATA")
+                        .title("TITLE");
+                    chart.load(array);
+                    st.parser.jdx("resources/jtpolys.jdx", function (jdx) {
+                        array.add(jdx);
+                    });
                     break;
             };
             $("#adddata").attr('disabled','disabled');
@@ -245,6 +269,7 @@
             <li><button onclick="nmr()">NMR</button></li>
             <li><button onclick="nmr2d()">NMR2D</button></li>
             <li><button onclick="series()">Chromatogram</button></li>
+            <li><button onclick="irjdx()">IR (JDX)</button></li>
             <li>&nbsp;&rarr;&nbsp;</li>
             <li><button id="adddata" onclick="load()" 
                         disabled="disabled">Add Data</button></li>
