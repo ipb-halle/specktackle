@@ -133,9 +133,10 @@ st.data.set = function () {
      *
      * @param {int} width - the chart width
      * @param {function} xscale - the d3 x axis scale
+     * @param {boolean} invert - whether to bin using min
      * @returns the binned data array
      */
-    set.bin = function (width, xscale) {
+    set.bin = function (width, xscale, invert) {
         var rawbinned = [];
         var ext = [
             xscale.invert(0),
@@ -180,10 +181,18 @@ st.data.set = function () {
                 var dpb = binned[bin];
                 var dps = series.data[j];
                 if (dpb) {
-                    if (dpb[series.accs[1]] > dps[series.accs[1]]) {
-                        binned[bin - cor] = dpb;
+                    if (invert) {
+                        if (dpb[series.accs[1]] < dps[series.accs[1]]) {
+                            binned[bin - cor] = dpb;
+                        } else {
+                            binned[bin - cor] = dps;
+                        }                    
                     } else {
-                        binned[bin - cor] = dps;
+                        if (dpb[series.accs[1]] > dps[series.accs[1]]) {
+                            binned[bin - cor] = dpb;
+                        } else {
+                            binned[bin - cor] = dps;
+                        }
                     }
                 } else {
                     cor = bin - binned.length;

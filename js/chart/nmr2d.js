@@ -38,6 +38,8 @@ st.chart.nmr2d = function () {
      * Adds utilities for custom behavior.
      */
     nmr2d.behavior = function () {
+        this.scales.x.domain([1, 0]);
+        this.scales.y.domain([1, 0]);
         var selX = this.canvas.append('svg:rect')
             .attr('class', 'st-selection')
             .attr('y', 0)

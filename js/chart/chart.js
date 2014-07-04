@@ -150,7 +150,12 @@ function chart () {
                 y: d3.scale.linear()
                     .range([this.height, 0])
             };
-                
+            
+            // define custom behavior
+            if (typeof this.behavior == 'function') {
+                this.behavior();
+            }
+            
             // define and render axis
             this.renderAxes();
             
@@ -162,11 +167,6 @@ function chart () {
                     .attr('text-anchor', 'middle')
                     .attr('font-size', 'large')
                     .text(this.opts.title)
-            }
-            
-            // define custom behavior
-            if (typeof this.behavior == 'function') {
-                this.behavior();
             }
         },
         
