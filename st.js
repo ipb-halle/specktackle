@@ -1669,7 +1669,7 @@ function chart () {
         
             var chart = this;
             
-            this.canvas = d3.select(x)
+            this.panel = d3.select(x)
                 .append('svg:svg')
                 .attr('class', 'st-base')
                 .attr('width', this.width + margins[1] + margins[3])
@@ -1685,7 +1685,9 @@ function chart () {
                 })
                 .on('dblclick.zoom', function () {  // --- mouse options ---
                     chart.mouseDbl();
-                })
+                });
+                
+            this.canvas = this.panel
                 .append('svg:g') // append plot group within chart canvas
                 .attr('transform', 'translate(' + margins[3] + ',' + margins[0] + ')');
 
@@ -1721,7 +1723,7 @@ function chart () {
             
             // draw the title
             if (this.opts.title && this.opts.title.length !== 0) {
-                d3.select('.st-base').append('text')
+                this.panel.append('text')
                     .attr('x', margins[3] + (this.width / 2))
                     .attr('y', margins[0] * 0.75)
                     .attr('text-anchor', 'middle')
@@ -1765,14 +1767,14 @@ function chart () {
                 .call(this.yaxis);
 
             if (this.opts.xlabel !== '') {
-                d3.select('.st-xaxis').append('text')
+                this.panel.select('.st-xaxis').append('text')
                     .text(this.opts.xlabel)
                     .attr('text-anchor', 'middle')
                     .attr('x', this.width / 2)
                     .attr('y', margins[2] / 2);
             }
             if (this.opts.ylabel !== '') {
-                d3.select('.st-yaxis').append('text')
+                this.panel.select('.st-yaxis').append('text')
                     .text(this.opts.ylabel)
                     .attr('transform', 'rotate (-90)')
                     .attr('text-anchor', 'middle')
@@ -1790,7 +1792,7 @@ function chart () {
             var p = d3.mouse(event);
             var left = this.opts.margins[3];
             var top = this.opts.margins[0];
-            d3.select('.st-selection')
+            this.panel.select('.st-selection')
                 .attr('x', p[0] - left)
                 .attr('xs', p[0] - left)
                 .attr('y', p[1] - top)
@@ -1808,7 +1810,7 @@ function chart () {
          * @param event - mouse event
          */
         mouseMove: function (event) {
-            var s = d3.select('.st-selection')
+            var s = this.panel.select('.st-selection')
             if (s.attr('display') === 'inline') {
                 var pointerX = d3.mouse(event)[0] - this.opts.margins[3],
                     pointerY = d3.mouse(event)[1] - this.opts.margins[0],
@@ -1850,7 +1852,7 @@ function chart () {
          */
         mouseUp: function () {
             var tolerance = 5; // px threshold for selections
-            var selection = d3.select('.st-selection');
+            var selection = this.panel.select('.st-selection');
             if (parseInt(selection.attr('width')) > tolerance
                 && parseInt(selection.attr('height')) > tolerance) {
                 var x = parseFloat(selection.attr('x'));
@@ -1875,7 +1877,7 @@ function chart () {
                 this.canvas.select('.st-xaxis').call(this.xaxis);
                 this.canvas.select('.st-yaxis').call(this.yaxis);
                 
-                if (typeof this.renderdata == 'function') {
+                if (typeof this.renderdata == 'function' && this.data !== null) {
                     this.renderdata();
                 }
             } else {
@@ -1889,6 +1891,14 @@ function chart () {
          * Resets the chart zoom in x and y to 100%.
          */
         mouseDbl: function () {
+            if (this.data === null) {
+                this.scales.x.domain([0, 1]).nice();
+                this.scales.y.domain([0, 1]).nice();
+                this.canvas.select('.st-xaxis').call(this.xaxis);
+                this.canvas.select('.st-yaxis').call(this.yaxis);
+                return;
+            }
+            
             var gxlim = st.util.domain(this.scales.x, this.data.raw.gxlim);
             var gylim = st.util.domain(this.scales.y, this.data.raw.gylim);
             this.scales.x.domain(gxlim).nice();
@@ -2293,7 +2303,7 @@ st.chart.nmr = function () {
                 chart.renderdata();
             });
         
-        this.canvas = d3.select(x)
+        this.panel = d3.select(x)
             .append('svg:svg')
             .attr('class', 'st-base')
             .attr('width', this.width + margins[1] + margins[3])
@@ -2310,7 +2320,9 @@ st.chart.nmr = function () {
             })
             .on('dblclick.zoom', function () {  // --- mouse options ---
                 chart.mouseDbl();
-            })
+            });
+            
+        this.canvas = this.panel
             .append('svg:g') // append plot group within chart canvas
             .attr('transform', 'translate(' + margins[3] + ',' + margins[0] + ')');
 
@@ -2338,7 +2350,7 @@ st.chart.nmr = function () {
         
         // draw the title
         if (this.opts.title && this.opts.title.length !== 0) {
-            d3.select('.st-base').append('text')
+            this.panel.append('text')
                 .attr('x', margins[3] + (this.width / 2))
                 .attr('y', margins[0] * 0.75)
                 .attr('text-anchor', 'middle')
@@ -2396,7 +2408,7 @@ st.chart.nmr = function () {
             .call(this.xaxis);
 
         if (this.opts.xlabel !== '') {
-            d3.select('.st-xaxis').append('text')
+            this.panel.select('.st-xaxis').append('text')
                 .text(this.opts.xlabel)
                 .attr('text-anchor', 'middle')
                 .attr('x', this.width / 2)
@@ -2412,7 +2424,7 @@ st.chart.nmr = function () {
     nmr.mouseDown = function (event) {
         var p = d3.mouse(event);
         var left = this.opts.margins[3];
-        d3.select('.st-selection')
+        this.panel.select('.st-selection')
             .attr('x', p[0] - left)
             .attr('xs', p[0] - left)
             .attr('width', 1)
@@ -2428,7 +2440,7 @@ st.chart.nmr = function () {
      * @param event - mouse event
      */
     nmr.mouseMove = function (event) {
-        var s = d3.select('.st-selection')
+        var s = this.panel.select('.st-selection')
         if (s.attr('display') === 'inline') {
             var pointerX = d3.mouse(event)[0] - this.opts.margins[3],
                 anchorWidth = parseInt(s.attr('width'), 10),
@@ -2453,7 +2465,7 @@ st.chart.nmr = function () {
      */
     nmr.mouseUp = function () {
         var tolerance = 5; // px threshold for selections
-        var selection = d3.select('.st-selection');
+        var selection = this.panel.select('.st-selection');
         if (parseInt(selection.attr('width')) > tolerance) {
             var x = parseFloat(selection.attr('x'));
             var width = parseFloat(selection.attr('width'));
@@ -2466,7 +2478,7 @@ st.chart.nmr = function () {
             selection.attr('display', 'none');
             this.canvas.select('.st-xaxis').call(this.xaxis);
             
-            if (typeof this.renderdata == 'function') {
+            if (typeof this.renderdata == 'function' && this.data !== null) {
                 this.renderdata();
             }
         } else {
@@ -2480,6 +2492,13 @@ st.chart.nmr = function () {
      * Resets the chart zoom in x and y to 100%.
      */
     nmr.mouseDbl = function () {
+        if (this.data === null) {
+            this.scales.x.domain([1, 0]).nice();
+            this.scales.y.domain([0, 1]).nice();
+            this.canvas.select('.st-xaxis').call(this.xaxis);
+            return;
+        }
+    
         this.scales.x.domain([
             this.data.raw.gxlim[1],
             this.data.raw.gxlim[0]

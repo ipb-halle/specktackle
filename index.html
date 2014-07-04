@@ -70,19 +70,19 @@
             switch (x) {
                 case 0:                             // MS
                     var set = st.data.set()         // data type (set)
-                        //.ylimits([0, 1000])       // y-axis limits
-                        //.x("peaks.mz")
-                        //.y("peaks.intensity
-                        .ylimits([0, 10000])         // y-axis limits
-                        .x("data.x")
-                        .y("data.y")
-                        .title("id");
+                        .ylimits([0, 1000])       // y-axis limits
+                        .x("peaks.mz")
+                        .y("peaks.intensity")
+                        //.ylimits([0, 10000])         // y-axis limits
+                        //.x("data.x")
+                        //.y("data.y")
+                        .title("spectrumId");
                     chart.load(set);                // load the data
                     set.add([                      // input array
-                        //"resources/data1.json",
-                        //"resources/data2.json",
-                        //"resources/data3.json"
-                        "resources/multiple.json"
+                        "resources/data1.json",
+                        "resources/data2.json",
+                        "resources/data3.json"
+                        //"resources/multiple.json"
                         //"http://www.ebi.ac.uk/metabolights/spectra/15769/json"
                     ]);
                     break;
@@ -179,6 +179,61 @@
                 setTimeout(iter, 2000);
             }, 2000);
         };
+        function multiplecharts () {
+            $("#stgraph").css("display", "none");
+            $("#stgraphm1").empty();
+            $("#stgraphm2").empty();
+            $("#stgraphm3").empty();
+            var chart1 = st.chart
+                .ms()
+                .legend(true)
+                .xlabel("m/z")
+                .ylabel("Abundance")
+                .title("Mass Spectrum")
+                .margins([80, 80, 80, 120]);
+            var chart2 = st.chart
+                .series()
+                .legend(true)
+                .xlabel("Time [s]")
+                .ylabel("Abundance")
+                .title("Chromatogram")
+                .margins([80, 80, 80, 120]);
+            var chart3 = st.chart
+                .nmr()
+                .legend(true)
+                .title("NMR")
+                .xlabel("ppm")
+                .margins([80, 80, 80, 80]);
+            chart1.render("#stgraphm1");
+            chart2.render("#stgraphm2");
+            chart3.render("#stgraphm3");
+            var set1 = st.data.set()
+                .ylimits([0, 1000])
+                .x("peaks.mz")
+                .y("peaks.intensity")
+                .title("spectrumId");
+            var set2 = st.data.set()
+                .ylimits([0, 1000])
+                .x("peaks.mz")
+                .y("peaks.intensity")
+                .title("spectrumId");
+            var set3 = st.data.set()
+                .ylimits([0, 1000])
+                .x("peaks.mz")
+                .y("peaks.intensity")
+                .title("spectrumId");
+            chart1.load(set1);
+            chart2.load(set2);
+            chart3.load(set3);
+            var data = [
+                "resources/data1.json",
+                "resources/data2.json",
+                "resources/data3.json"
+            ];
+            set1.add(data);
+            set2.add(data);
+            set3.add(data);
+        };
     </script>
 
 </head>
@@ -196,13 +251,17 @@
         </ul>
         <hr>
         <ul>
+            <li><button onclick="multiplecharts()">Multiple Charts (refresh)</button></li>
             <li><button onclick="dynamicms()">Dynamic MS</button></li>
             <li><button onclick="dynamicnmr()">Dynamic NMR</button></li>
             <li id="dynamicload"></li>
         </ul>
         <hr>
         <!-- Container for all charts: '#stgraph' -->
-        <div id="stgraph" class="stgraph"></div> 
+        <div id="stgraph" class="stgraph"></div>
+        <div id="stgraphm1" class="stgraphm"></div>
+        <div id="stgraphm2" class="stgraphm"></div>
+        <div id="stgraphm3" class="stgraphm"></div>
     </div>
 </body>
 </html>
