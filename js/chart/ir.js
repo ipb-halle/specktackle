@@ -56,7 +56,6 @@ st.chart.ir = function () {
         this.xpointer = this.panel.append('text')
             .attr('x', this.opts.margins[3])
             .attr('y', this.opts.margins[0])
-            //.attr('text-anchor', 'left')
             .attr('font-size', 'x-small')
             .text('')
         var chart = this;
@@ -65,17 +64,15 @@ st.chart.ir = function () {
         this.panel.on('mousemove', function () {
             var mousex = d3.mouse(this)[0] - chart.opts.margins[3];
             var plotx = chart.scales.x.invert(mousex);
-            chart.xpointer.text('x = ' + xFormat(plotx));
             var plotdomain = chart.scales.x.domain();
             if (plotx < plotdomain[0] && plotx >= plotdomain[1]) {
+                chart.xpointer.text('x = ' + xFormat(plotx));
                 for (var i = 0; i < chart.plotted.length; i++) {
                     var accs = chart.data.accs(i);
                     var bisector = d3.bisector(function (d) {
                         return d[accs[0]];
                     }).left;
                     var j = bisector(chart.plotted[i], plotx);
-                    // translate existing element
-                    // http://bl.ocks.org/gniemetz/4618602
                     if (j > chart.plotted[i].length - 1) {
                         j = chart.plotted[i].length - 1;
                     }
@@ -85,6 +82,12 @@ st.chart.ir = function () {
                         .attr('transform', 'translate(' + 
                         chart.scales.x(dp[accs[0]]) + ',' + 
                         chart.scales.y(dp[accs[1]]) + ')');
+                }
+            } else {
+                chart.xpointer.text('');
+                for (var i = 0; i < chart.plotted.length; i++) {
+                    chart.canvas.select('.' + chart.data.id(i) + 'focus')
+                        .attr('display', 'none');
                 }
             }
         });

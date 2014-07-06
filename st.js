@@ -2191,6 +2191,54 @@ st.chart.series = function () {
             .attr('id', 'tooltips-mol')
             .style('height', '50%')
             .style('width', '100%');
+            
+        this.xpointer = this.panel.append('text')
+            .attr('x', this.opts.margins[3])
+            .attr('y', this.opts.margins[0])
+            .attr('font-size', 'x-small')
+            .text('')
+        var chart = this;
+        var xFormat = d3.format('.4g');
+        this.plotted = [];
+        this.panel.on('mousemove', function () {
+            var mousex = d3.mouse(this)[0] - chart.opts.margins[3];
+            var plotx = chart.scales.x.invert(mousex);
+            var plotdomain = chart.scales.x.domain();
+            if (chart.opts.xreverse) {
+                var within = function () {
+                    return plotx < plotdomain[0] && plotx >= plotdomain[1];
+                }
+            } else {
+                var within = function () {
+                    return plotx >= plotdomain[0] && plotx < plotdomain[1];
+                }
+            }
+            if (within()) {
+                chart.xpointer.text('x = ' + xFormat(plotx));
+                for (var i = 0; i < chart.plotted.length; i++) {
+                    var accs = chart.data.accs(i);
+                    var bisector = d3.bisector(function (d) {
+                        return d[accs[0]];
+                    }).left;
+                    var j = bisector(chart.plotted[i], plotx);
+                    if (j > chart.plotted[i].length - 1) {
+                        j = chart.plotted[i].length - 1;
+                    }
+                    var dp = chart.plotted[i][j];
+                    chart.canvas.select('.' + chart.data.id(i) + 'focus')
+                        .attr('display', 'inline')
+                        .attr('transform', 'translate(' + 
+                        chart.scales.x(dp[accs[0]]) + ',' + 
+                        chart.scales.y(dp[accs[1]]) + ')');
+                }
+            } else {
+                chart.xpointer.text('');
+                for (var i = 0; i < chart.plotted.length; i++) {
+                    chart.canvas.select('.' + chart.data.id(i) + 'focus')
+                        .attr('display', 'none');
+                }
+            }
+        });
     };
     
     /**
@@ -2198,6 +2246,7 @@ st.chart.series = function () {
      */
     series.renderdata = function () {
         var data = this.data.bin(this.width, this.scales.x);
+        this.plotted = data;
         var chart = this;
         var format = d3.format('.2f');
         for (var i = 0; i < data.length; i++) {
@@ -2220,6 +2269,14 @@ st.chart.series = function () {
                 .attr('clip-path', 'url(#clip)')
                 .style('stroke', this.colors.get(title))
                 .attr('d', line(series));
+            g.append('svg:circle')
+                .attr('class', id + 'focus')
+                .style('stroke', this.colors.get(title))
+                .style('fill', 'none')
+                .attr('r', 3)
+                .attr('cx', 0)
+                .attr('cy', 0)
+                .attr('display', 'none')
             g.selectAll('.' + id + '.circle').data(series)
                 .enter()
                 .append('svg:circle')
@@ -2466,7 +2523,6 @@ st.chart.ir = function () {
         this.xpointer = this.panel.append('text')
             .attr('x', this.opts.margins[3])
             .attr('y', this.opts.margins[0])
-            //.attr('text-anchor', 'left')
             .attr('font-size', 'x-small')
             .text('')
         var chart = this;
@@ -2475,17 +2531,15 @@ st.chart.ir = function () {
         this.panel.on('mousemove', function () {
             var mousex = d3.mouse(this)[0] - chart.opts.margins[3];
             var plotx = chart.scales.x.invert(mousex);
-            chart.xpointer.text('x = ' + xFormat(plotx));
             var plotdomain = chart.scales.x.domain();
             if (plotx < plotdomain[0] && plotx >= plotdomain[1]) {
+                chart.xpointer.text('x = ' + xFormat(plotx));
                 for (var i = 0; i < chart.plotted.length; i++) {
                     var accs = chart.data.accs(i);
                     var bisector = d3.bisector(function (d) {
                         return d[accs[0]];
                     }).left;
                     var j = bisector(chart.plotted[i], plotx);
-                    // translate existing element
-                    // http://bl.ocks.org/gniemetz/4618602
                     if (j > chart.plotted[i].length - 1) {
                         j = chart.plotted[i].length - 1;
                     }
@@ -2495,6 +2549,12 @@ st.chart.ir = function () {
                         .attr('transform', 'translate(' + 
                         chart.scales.x(dp[accs[0]]) + ',' + 
                         chart.scales.y(dp[accs[1]]) + ')');
+                }
+            } else {
+                chart.xpointer.text('');
+                for (var i = 0; i < chart.plotted.length; i++) {
+                    chart.canvas.select('.' + chart.data.id(i) + 'focus')
+                        .attr('display', 'none');
                 }
             }
         });
