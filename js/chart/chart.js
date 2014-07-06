@@ -325,8 +325,10 @@ function chart () {
          */
         mouseDbl: function () {
             if (this.data === null) {
-                this.scales.x.domain([0, 1]).nice();
-                this.scales.y.domain([0, 1]).nice();
+                var xdom = st.util.domain(this.scales.x, [0, 1]);
+                var ydom = st.util.domain(this.scales.y, [0, 1]);
+                this.scales.x.domain(xdom).nice();
+                this.scales.y.domain(ydom).nice();
                 this.canvas.select('.st-xaxis').call(this.xaxis);
                 this.canvas.select('.st-yaxis').call(this.yaxis);
                 return;

@@ -54,33 +54,6 @@ st.chart.ir = function () {
     };
     
     /**
-     * Defines default action for mouse double-click events.
-     * 
-     * Resets the chart zoom in x and y to 100%.
-     */
-    ir.mouseDbl = function () {
-        if (this.data === null) {
-            this.scales.x.domain([1, 0]);
-            this.scales.y.domain([0, 1]).nice();
-            this.canvas.select('.st-xaxis').call(this.xaxis);
-            return;
-        }
-    
-        this.scales.x.domain([
-            this.data.raw.gxlim[1],
-            this.data.raw.gxlim[0]
-        ]);
-        this.scales.y.domain(this.data.raw.gylim).nice();
-
-        this.canvas.select('.st-xaxis').call(this.xaxis);
-        
-        if (typeof this.renderdata == 'function') {
-            this.data.reset();
-            this.renderdata();
-        }
-    };
-    
-    /**
      * Renders the data.
      */
     ir.renderdata = function () {

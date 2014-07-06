@@ -1977,8 +1977,10 @@ function chart () {
          */
         mouseDbl: function () {
             if (this.data === null) {
-                this.scales.x.domain([0, 1]).nice();
-                this.scales.y.domain([0, 1]).nice();
+                var xdom = st.util.domain(this.scales.x, [0, 1]);
+                var ydom = st.util.domain(this.scales.y, [0, 1]);
+                this.scales.x.domain(xdom).nice();
+                this.scales.y.domain(ydom).nice();
                 this.canvas.select('.st-xaxis').call(this.xaxis);
                 this.canvas.select('.st-yaxis').call(this.yaxis);
                 return;
@@ -2401,33 +2403,6 @@ st.chart.ir = function () {
             .attr('id', 'tooltips-mol')
             .style('height', '50%')
             .style('width', '100%');
-    };
-    
-    /**
-     * Defines default action for mouse double-click events.
-     * 
-     * Resets the chart zoom in x and y to 100%.
-     */
-    ir.mouseDbl = function () {
-        if (this.data === null) {
-            this.scales.x.domain([1, 0]);
-            this.scales.y.domain([0, 1]).nice();
-            this.canvas.select('.st-xaxis').call(this.xaxis);
-            return;
-        }
-    
-        this.scales.x.domain([
-            this.data.raw.gxlim[1],
-            this.data.raw.gxlim[0]
-        ]);
-        this.scales.y.domain(this.data.raw.gylim).nice();
-
-        this.canvas.select('.st-xaxis').call(this.xaxis);
-        
-        if (typeof this.renderdata == 'function') {
-            this.data.reset();
-            this.renderdata();
-        }
     };
     
     /**
