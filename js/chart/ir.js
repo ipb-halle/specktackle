@@ -84,6 +84,8 @@ st.chart.ir = function () {
                 .enter()
                 .append('svg:circle')
                 .attr('clip-path', 'url(#clip)')
+                .style('fill', this.colors.get(title))
+                .style('stroke', this.colors.get(title))
                 .attr("opacity", 0)
                 .attr("r", 3)
                 .attr("cx", function (d) { 

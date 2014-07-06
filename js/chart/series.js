@@ -83,7 +83,8 @@ st.chart.series = function () {
                 .attr('clip-path', 'url(#clip)')
                 .style('fill', this.colors.get(title))
                 .style('stroke', this.colors.get(title))
-                .attr("r", 2)
+                .attr("opacity", 0)
+                .attr("r", 3)
                 .attr("cx", function (d) { 
                     return chart.scales.x(d[accs[0]]) 
                 })
@@ -91,7 +92,7 @@ st.chart.series = function () {
                     return chart.scales.y(d[accs[1]]) 
                 })
             .on('mouseover', function (d) {
-                d3.select(this).attr('r', 4);
+                d3.select(this).attr('opacity', 0.8);
                 chart.tooltips
                     .style('display', 'inline');
                 chart.tooltips
@@ -115,7 +116,7 @@ st.chart.series = function () {
                 );
             })
             .on('mouseout', function () {
-                d3.select(this).attr('r', '2');
+                d3.select(this).attr('opacity', '0');
                 chart.tooltips
                     .transition()
                     .duration(300)

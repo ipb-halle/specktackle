@@ -871,6 +871,7 @@ st.parser.jdx = function (url, callback) {
             LASTX = 'LASTX',
             NPOINTS = 'NPOINTS';
         
+        var objs = [];
         var obj = {},
             data = false,
             points = [];
@@ -885,6 +886,9 @@ st.parser.jdx = function (url, callback) {
             var line = lines[i];
             if (line.indexOf(LABEL) === 0) {
                 pair = line.split(/=\s(.*)/);
+                if (pair.length < 2) {
+                    continue;
+                }
                 key = pair[0].slice(2);
                 value = pair[1].split(/\$\$(.*)/)[0].trim();
                 if (key === XYDATA && value === YTABLE) {
@@ -892,6 +896,11 @@ st.parser.jdx = function (url, callback) {
                 } else if (key === END) {
                     if (data) {
                         obj[pkey] = points;
+                        objs.push(obj);
+                        // reset
+                        obj = {};
+                        data = false;
+                        points = [];
                     }
                     data = false;
                 } else {
@@ -900,8 +909,8 @@ st.parser.jdx = function (url, callback) {
                 pkey = key;
             } else if (data) {
                 //var deltax = (obj[LASTX] - obj[FIRSTX]) / (obj[NPOINTS] - 1);
-                var entries = line.match(/(\+|-)*\d+/g);
-                var x = obj[XFACTOR] * entries[0];
+                var entries = line.match(/(\+|-)*\d+\.*\d*/g);
+                //var x = obj[XFACTOR] * entries[0];
                 for (var j = 1; j < entries.length; j++) {
                     //x += (j - 1) * deltax;
                     var y = obj[YFACTOR] * entries[j];
@@ -909,7 +918,7 @@ st.parser.jdx = function (url, callback) {
                 }
             }
         }
-        callback(obj);
+        callback(objs);
     });
 };
 /**
@@ -2169,7 +2178,8 @@ st.chart.series = function () {
                 .attr('clip-path', 'url(#clip)')
                 .style('fill', this.colors.get(title))
                 .style('stroke', this.colors.get(title))
-                .attr("r", 2)
+                .attr("opacity", 0)
+                .attr("r", 3)
                 .attr("cx", function (d) { 
                     return chart.scales.x(d[accs[0]]) 
                 })
@@ -2177,7 +2187,7 @@ st.chart.series = function () {
                     return chart.scales.y(d[accs[1]]) 
                 })
             .on('mouseover', function (d) {
-                d3.select(this).attr('r', 4);
+                d3.select(this).attr('opacity', 0.8);
                 chart.tooltips
                     .style('display', 'inline');
                 chart.tooltips
@@ -2201,7 +2211,7 @@ st.chart.series = function () {
                 );
             })
             .on('mouseout', function () {
-                d3.select(this).attr('r', '2');
+                d3.select(this).attr('opacity', '0');
                 chart.tooltips
                     .transition()
                     .duration(300)
@@ -2436,6 +2446,8 @@ st.chart.ir = function () {
                 .enter()
                 .append('svg:circle')
                 .attr('clip-path', 'url(#clip)')
+                .style('fill', this.colors.get(title))
+                .style('stroke', this.colors.get(title))
                 .attr("opacity", 0)
                 .attr("r", 3)
                 .attr("cx", function (d) { 
