@@ -14,8 +14,15 @@ st.chart.series = function () {
      * Rescales the x domain.
      */
     series.xscale = function () {
+        var array = this.data.raw.gxlim;
+        if (this.opts.xreverse) {
+            array = [
+                array[1],
+                array[0]
+            ];
+        }
         this.scales.x
-            .domain(this.data.raw.gxlim)
+            .domain(array)
             .nice();
     };
     

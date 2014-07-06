@@ -36,6 +36,10 @@ st.parser.jdx = function (url, callback) {
                     data = true;
                 } else if (key === END) {
                     if (data) {
+                        if (parseFloat(obj[FIRSTX]) > 
+                            parseFloat(obj[LASTX])) {
+                            points.reverse();
+                        }
                         obj[pkey] = points;
                         objs.push(obj);
                         // reset

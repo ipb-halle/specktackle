@@ -27,6 +27,8 @@ function chart () {
             title: '',
             xlabel: '',
             ylabel: '',
+            xreverse: false,
+            yreverse: false,
             legend: false,
             margins: [80, 80, 80, 120]
         },
@@ -64,6 +66,28 @@ function chart () {
          */
         ylabel: function (x) {
             this.opts.ylabel = x;
+            return this;
+        },
+        
+        /**
+         * Sets the x reverse axis option.
+         *
+         * @param {string} x - whether to reverse the x axis
+         * @returns the chart object
+         */
+        xreverse: function (x) {
+            this.opts.xreverse = x;
+            return this;
+        },
+        
+        /**
+         * Sets the y reverse axis option.
+         *
+         * @param {string} x - whether to reverse the y axis
+         * @returns the chart object
+         */
+        yreverse: function (x) {
+            this.opts.yreverse = x;
             return this;
         },
         
@@ -144,12 +168,25 @@ function chart () {
                 .attr('display', 'none');
 
             // container for x and y scale
-            this.scales = { 
-                x: d3.scale.linear()
-                    .range([0, this.width]),
-                y: d3.scale.linear()
+            this.scales = {};
+            if (this.opts.xreverse) {
+                this.scales.x = d3.scale.linear()
+                    .domain([1, 0])
+                    .range([0, this.width])
+            } else {
+                this.scales.x = d3.scale.linear()
+                    .domain([0, 1])
+                    .range([0, this.width])
+            }
+            if (this.opts.yreverse) {
+                this.scales.y = d3.scale.linear()
+                    .domain([1, 0])
                     .range([this.height, 0])
-            };
+            } else {
+                this.scales.y = d3.scale.linear()
+                    .domain([0, 1])
+                    .range([this.height, 0])
+            }
             
             // define custom behavior
             if (typeof this.behavior == 'function') {
