@@ -1917,6 +1917,7 @@ function chart () {
             // draw the title
             if (this.opts.title && this.opts.title.length !== 0) {
                 this.panel.append('text')
+                    .attr('class', 'st-title')
                     .attr('x', margins[3] + (this.width / 2))
                     .attr('y', margins[0] * 0.75)
                     .attr('text-anchor', 'middle')
@@ -2432,8 +2433,12 @@ st.chart.ms = function () {
     /**
      * Adds utilities for custom behavior.
      */
-    ms.behavior = function () {
-        this.tooltips = d3.select(this.target).append('div')
+    ms.behavior = function () { //d3.select(this.target).append('div')
+        this.tooltips = this.panel.append('foreignObject')
+            .attr('width', $(this.target).width())
+            .attr('height', $(this.target).height())
+            .style('pointer-events', 'none')
+            .append('xhtml:div')
             .attr('class', 'st-tooltips')
             .style('position', 'absolute')
             .style('opacity', 0);
@@ -2484,6 +2489,7 @@ st.chart.ms = function () {
                 .style('stroke', this.colors.get(id))
             .on('mouseover', function (d) {
                 d3.select(this).style('stroke-width', 2);
+                var pointer = d3.mouse(this);
                 chart.tooltips
                     .style('display', 'inline');
                 chart.tooltips
@@ -2491,8 +2497,8 @@ st.chart.ms = function () {
                     .duration(300)
                     .style('opacity', 0.9);
                 chart.tooltips
-                    .style('left', d3.event.clientX + 10 + 'px')
-                    .style('top', d3.event.clientY - 10 + 'px')
+                    .style('left', pointer[0] + chart.opts.margins[3] + 10 + 'px')
+                    .style('top', pointer[1] + chart.opts.margins[0] - 10 + 'px')
                     .style('opacity', 0.9)
                     .style('border', 'dashed')
                     .style('border-width', '1px')
@@ -2749,31 +2755,12 @@ st.chart.nmr = function () {
                 .range([this.height, 0])
         };
         
-        this.mousewheel = d3.behavior.zoom()
-            .y(this.scales.y)
-            .center([0, this.scales.y(0)])
-            .on("zoom", function() {
-                chart.renderdata();
-            });
-        
         this.panel = d3.select(x)
             .append('svg:svg')
             .attr('class', 'st-base')
             .attr('width', this.width + margins[1] + margins[3])
-            .attr('height', this.height + margins[0] + margins[2])
-            .call(this.mousewheel)
-            .on('mousedown.zoom', function () { // --- mouse options ---
-                chart.mouseDown(this);
-            })
-            .on('mousemove.zoom', function () { // --- mouse options ---
-                chart.mouseMove(this);
-            })
-            .on('mouseup.zoom', function () {   // --- mouse options ---
-                chart.mouseUp(this);
-            })
-            .on('dblclick.zoom', function () {  // --- mouse options ---
-                chart.mouseDbl();
-            });
+            .attr('height', this.height + margins[0] + margins[2]);    
+        init_mouse (chart);
             
         this.canvas = this.panel
             .append('svg:g') // append plot group within chart canvas
@@ -2804,6 +2791,7 @@ st.chart.nmr = function () {
         // draw the title
         if (this.opts.title && this.opts.title.length !== 0) {
             this.panel.append('text')
+                .attr('class', 'st-title')
                 .attr('x', margins[3] + (this.width / 2))
                 .attr('y', margins[0] * 0.75)
                 .attr('text-anchor', 'middle')
@@ -2836,8 +2824,7 @@ st.chart.nmr = function () {
      */
     nmr.yscale = function () {
         this.scales.y
-            .domain(this.data.raw.gylim)
-            .nice();
+            .domain(this.data.raw.gylim);
     };
     
     /**
@@ -2956,7 +2943,7 @@ st.chart.nmr = function () {
             this.data.raw.gxlim[1],
             this.data.raw.gxlim[0]
         ]).nice();
-        this.scales.y.domain(this.data.raw.gylim).nice();
+        this.scales.y.domain(this.data.raw.gylim);
 
         this.canvas.select('.st-xaxis').call(this.xaxis);
         
@@ -2980,15 +2967,13 @@ st.chart.nmr = function () {
             chart.data.push(function () {
                 chart.xscale();
                 chart.yscale();
-                chart.mousewheel.y(chart.scales.y)
-                    .center([0, chart.scales.y(0)]);
-            
+                init_mouse (chart);                
                 chart.canvas.select('.st-xaxis').call(chart.xaxis);            
                 chart.renderdata();
                 if (chart.opts.legend) {
                     chart.renderLegend();
                 }
-            });
+                });
         };
         var oldremove = data.remove;
         data.remove = function() {
@@ -3032,6 +3017,28 @@ st.chart.nmr = function () {
     
     return nmr;
 };
+
+function init_mouse (chart) {
+    var mousewheel = d3.behavior.zoom()
+        .y(chart.scales.y)
+        .center([0, chart.scales.y(0)])
+        .on("zoom", function() {
+            chart.renderdata();
+        });
+    chart.panel.call(mousewheel)
+        .on('mousedown.zoom', function () { // --- mouse options ---
+            chart.mouseDown(this);
+        })
+        .on('mousemove.zoom', function () { // --- mouse options ---
+            chart.mouseMove(this);
+        })
+        .on('mouseup.zoom', function () {   // --- mouse options ---
+            chart.mouseUp(this);
+        })
+        .on('dblclick.zoom', function () {  // --- mouse options ---
+            chart.mouseDbl();
+        })
+}
 
 /**
  * 2D NMR chart extending the base chart. 

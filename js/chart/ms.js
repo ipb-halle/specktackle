@@ -33,8 +33,12 @@ st.chart.ms = function () {
     /**
      * Adds utilities for custom behavior.
      */
-    ms.behavior = function () {
-        this.tooltips = d3.select(this.target).append('div')
+    ms.behavior = function () { //d3.select(this.target).append('div')
+        this.tooltips = this.panel.append('foreignObject')
+            .attr('width', $(this.target).width())
+            .attr('height', $(this.target).height())
+            .style('pointer-events', 'none')
+            .append('xhtml:div')
             .attr('class', 'st-tooltips')
             .style('position', 'absolute')
             .style('opacity', 0);
@@ -85,6 +89,7 @@ st.chart.ms = function () {
                 .style('stroke', this.colors.get(id))
             .on('mouseover', function (d) {
                 d3.select(this).style('stroke-width', 2);
+                var pointer = d3.mouse(this);
                 chart.tooltips
                     .style('display', 'inline');
                 chart.tooltips
@@ -92,8 +97,8 @@ st.chart.ms = function () {
                     .duration(300)
                     .style('opacity', 0.9);
                 chart.tooltips
-                    .style('left', d3.event.pageX + 10 + 'px')
-                    .style('top', d3.event.pageY - 10 + 'px')
+                    .style('left', pointer[0] + chart.opts.margins[3] + 10 + 'px')
+                    .style('top', pointer[1] + chart.opts.margins[0] - 10 + 'px')
                     .style('opacity', 0.9)
                     .style('border', 'dashed')
                     .style('border-width', '1px')
