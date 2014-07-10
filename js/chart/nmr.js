@@ -300,7 +300,7 @@ function init_mouse (chart) {
         .y(chart.scales.y)
         .center([0, chart.scales.y(0)])
         .on("zoom", function() {
-            if (typeof this.renderdata == 'function' && this.data !== null) {
+            if (typeof chart.renderdata == 'function' && chart.data !== null) {
                 chart.renderdata();
             }
         });
