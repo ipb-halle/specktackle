@@ -1,12 +1,12 @@
-﻿svg *::selection {
+﻿.st-base *::selection {
     background : transparent;
 }
 
-svg *::-moz-selection {
+.st-base *::-moz-selection {
     background:transparent;
 }
 
-svg *::-webkit-selection {
+.st-base *::-webkit-selection {
     background:transparent;
 }
 
