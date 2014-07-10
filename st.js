@@ -2411,10 +2411,8 @@ st.chart.ms = function () {
      */
     ms.behavior = function () {
         this.tooltips = d3.select(this.target).append('div')
-            .attr('id', 'tooltips')
             .attr('class', 'st-tooltips')
             .style('position', 'absolute')
-            .style('z-index', '10')
             .style('opacity', 0);
 
         this.tooltips.append('div')
