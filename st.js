@@ -959,8 +959,8 @@ function data () {
         opts: {
             title: '',
             src: [],    // JSON URLs
-            x: '',      // x accessor
-            y: '',      // y accessor
+            x: 'x',      // x accessor
+            y: 'y',      // y accessor
             xlimits: [],// x axis limits: min, max
             ylimits: [] // y axis limits: min, max
         },
