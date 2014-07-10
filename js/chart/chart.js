@@ -202,6 +202,7 @@ function chart () {
             // draw the title
             if (this.opts.title && this.opts.title.length !== 0) {
                 this.panel.append('text')
+                    .attr('class', 'st-title')
                     .attr('x', margins[3] + (this.width / 2))
                     .attr('y', margins[0] * 0.75)
                     .attr('text-anchor', 'middle')
