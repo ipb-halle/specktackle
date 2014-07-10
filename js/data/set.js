@@ -188,7 +188,8 @@ st.data.set = function () {
                             binned[bin - cor] = dps;
                         }                    
                     } else {
-                        if (dpb[series.accs[1]] > dps[series.accs[1]]) {
+                        if (Math.abs(dpb[series.accs[1]]) > 
+                            Math.abs(dps[series.accs[1]])) {
                             binned[bin - cor] = dpb;
                         } else {
                             binned[bin - cor] = dps;

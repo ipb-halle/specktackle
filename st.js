@@ -1327,7 +1327,8 @@ st.data.set = function () {
                             binned[bin - cor] = dps;
                         }                    
                     } else {
-                        if (dpb[series.accs[1]] > dps[series.accs[1]]) {
+                        if (Math.abs(dpb[series.accs[1]]) > 
+                            Math.abs(dps[series.accs[1]])) {
                             binned[bin - cor] = dpb;
                         } else {
                             binned[bin - cor] = dps;
@@ -1609,7 +1610,7 @@ st.data.array = function () {
                             binned[bin - cor][series.accs[1]] = ys;
                         }
                     } else {
-                        if (dpb[series.accs[1]] > ys) {
+                        if (Math.abs(dpb[series.accs[1]]) > Math.abs(ys)) {
                             binned[bin - cor] = dpb;
                         } else {
                             binned[bin - cor] = { 

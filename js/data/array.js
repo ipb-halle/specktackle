@@ -194,7 +194,7 @@ st.data.array = function () {
                             binned[bin - cor][series.accs[1]] = ys;
                         }
                     } else {
-                        if (dpb[series.accs[1]] > ys) {
+                        if (Math.abs(dpb[series.accs[1]]) > Math.abs(ys)) {
                             binned[bin - cor] = dpb;
                         } else {
                             binned[bin - cor] = { 
