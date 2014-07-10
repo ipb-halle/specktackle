@@ -31,31 +31,12 @@ st.chart.nmr = function () {
                 .range([this.height, 0])
         };
         
-        this.mousewheel = d3.behavior.zoom()
-            .y(this.scales.y)
-            .center([0, this.scales.y(0)])
-            .on("zoom", function() {
-                chart.renderdata();
-            });
-        
         this.panel = d3.select(x)
             .append('svg:svg')
             .attr('class', 'st-base')
             .attr('width', this.width + margins[1] + margins[3])
-            .attr('height', this.height + margins[0] + margins[2])
-            .call(this.mousewheel)
-            .on('mousedown.zoom', function () { // --- mouse options ---
-                chart.mouseDown(this);
-            })
-            .on('mousemove.zoom', function () { // --- mouse options ---
-                chart.mouseMove(this);
-            })
-            .on('mouseup.zoom', function () {   // --- mouse options ---
-                chart.mouseUp(this);
-            })
-            .on('dblclick.zoom', function () {  // --- mouse options ---
-                chart.mouseDbl();
-            });
+            .attr('height', this.height + margins[0] + margins[2]);    
+        init_mouse (chart);
             
         this.canvas = this.panel
             .append('svg:g') // append plot group within chart canvas
@@ -119,8 +100,7 @@ st.chart.nmr = function () {
      */
     nmr.yscale = function () {
         this.scales.y
-            .domain(this.data.raw.gylim)
-            .nice();
+            .domain(this.data.raw.gylim);
     };
     
     /**
@@ -239,7 +219,7 @@ st.chart.nmr = function () {
             this.data.raw.gxlim[1],
             this.data.raw.gxlim[0]
         ]).nice();
-        this.scales.y.domain(this.data.raw.gylim).nice();
+        this.scales.y.domain(this.data.raw.gylim);
 
         this.canvas.select('.st-xaxis').call(this.xaxis);
         
@@ -263,15 +243,13 @@ st.chart.nmr = function () {
             chart.data.push(function () {
                 chart.xscale();
                 chart.yscale();
-                chart.mousewheel.y(chart.scales.y)
-                    .center([0, chart.scales.y(0)]);
-            
+                init_mouse (chart);                
                 chart.canvas.select('.st-xaxis').call(chart.xaxis);            
                 chart.renderdata();
                 if (chart.opts.legend) {
                     chart.renderLegend();
                 }
-            });
+                });
         };
         var oldremove = data.remove;
         data.remove = function() {
@@ -315,3 +293,25 @@ st.chart.nmr = function () {
     
     return nmr;
 };
+
+function init_mouse (chart) {
+    var mousewheel = d3.behavior.zoom()
+        .y(chart.scales.y)
+        .center([0, chart.scales.y(0)])
+        .on("zoom", function() {
+            chart.renderdata();
+        });
+    chart.panel.call(mousewheel)
+        .on('mousedown.zoom', function () { // --- mouse options ---
+            chart.mouseDown(this);
+        })
+        .on('mousemove.zoom', function () { // --- mouse options ---
+            chart.mouseMove(this);
+        })
+        .on('mouseup.zoom', function () {   // --- mouse options ---
+            chart.mouseUp(this);
+        })
+        .on('dblclick.zoom', function () {  // --- mouse options ---
+            chart.mouseDbl();
+        })
+}

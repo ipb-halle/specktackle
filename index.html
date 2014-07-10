@@ -206,7 +206,8 @@
             var counter = 0;
             var data = [
                 "resources/nmr1.json",
-                "resources/nmr2.json"
+                "resources/nmr2.json",
+                "resources/nmr3.json"
             ];
             var array = st.data.array()     // data type (array)
                 .xlimits(["xMin", "xMax"])
@@ -215,10 +216,10 @@
                 .title("id");
             chart.load(array);
             setTimeout(function iter() {
-                if (counter === 4) {
+                if (counter === 6) {
                     counter = 0;
                 }
-                if (counter < 2) {
+                if (counter < 3) {
                     $("#dynamicload").html("Loading: " + data[counter]);
                     array.add(data[counter]);
                 } else {
