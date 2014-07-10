@@ -959,8 +959,8 @@ function data () {
         opts: {
             title: '',
             src: [],    // JSON URLs
-            x: 'x',      // x accessor
-            y: 'y',      // y accessor
+            x: 'x',     // x accessor
+            y: 'y',     // y accessor
             xlimits: [],// x axis limits: min, max
             ylimits: [] // y axis limits: min, max
         },
@@ -2267,11 +2267,13 @@ st.chart.series = function () {
                         j = chart.plotted[i].length - 1;
                     }
                     var dp = chart.plotted[i][j];
-                    chart.canvas.select('.' + chart.data.id(i) + 'focus')
-                        .attr('display', 'inline')
-                        .attr('transform', 'translate(' + 
-                        chart.scales.x(dp[accs[0]]) + ',' + 
-                        chart.scales.y(dp[accs[1]]) + ')');
+                    if (dp) {
+                        chart.canvas.select('.' + chart.data.id(i) + 'focus')
+                            .attr('display', 'inline')
+                            .attr('transform', 'translate(' + 
+                            chart.scales.x(dp[accs[0]]) + ',' + 
+                            chart.scales.y(dp[accs[1]]) + ')');
+                    }
                 }
             } else {
                 chart.xpointer.text('');
