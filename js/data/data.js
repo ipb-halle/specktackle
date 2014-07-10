@@ -71,9 +71,11 @@ function data () {
                         }
                     }
                 } else {
-                    var spliced = this.raw.series.splice(x, 1);
-                    ids.push(spliced[0].id);
-                    delete this.raw.ids[spliced[0].id];
+                    if (x < this.raw.series.length) {
+                        var spliced = this.raw.series.splice(x, 1);
+                        ids.push(spliced[0].id);
+                        delete this.raw.ids[spliced[0].id];
+                    }
                 }
             }
             return ids;
@@ -108,6 +110,18 @@ function data () {
         accs: function (index) {
             return this.raw.series[index].accs;
         },
+        
+        annotation: function (type, name) {
+            if (type === st.annotation.ANNOTATION) {
+            
+            } else if (type === st.annotation.TOOLTIP) {
+            
+            } else {
+                console.log('Unknown annotation type: ' + type);
+            }
+        },
+        
+        
         
         /**
          * Pushes the URLs currently in the URL option into the raw data array
