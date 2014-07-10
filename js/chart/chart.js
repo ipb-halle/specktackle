@@ -140,6 +140,9 @@ function chart () {
                 .on('mouseup.zoom', function () {   // --- mouse options ---
                     chart.mouseUp();
                 })
+                .on('mouseout', function() {        // --- mouse options ---
+                    chart.mouseOut(this);
+                })
                 .on('dblclick.zoom', function () {  // --- mouse options ---
                     chart.mouseDbl();
                 });
@@ -352,6 +355,22 @@ function chart () {
                 }
             } else {
                 selection.attr('display', 'none');
+            }
+        },
+        
+        /**
+         * Defines default action for mouse out events.
+         * 
+         * Resets the selection rectangle.
+         */
+        mouseOut: function(event) {
+            var selection = this.panel.select('.st-selection');
+            var pointerX = d3.mouse(event)[0],
+                pointerY = d3.mouse(event)[1];
+            if (pointerX < 0 || pointerY < 0 ||
+                pointerX > $(this.target).width() ||
+                pointerY > $(this.target).height()) {
+                    selection.attr('display', 'none');
             }
         },
 
