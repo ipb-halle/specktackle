@@ -2246,11 +2246,13 @@ st.chart.series = function () {
      * Adds utilities for custom behavior.
      */
     series.behavior = function () {
-        this.tooltips = d3.select('body').append('div')
-            .attr('id', 'tooltips')
+        this.tooltips = this.panel.append('foreignObject')
+            .attr('width', $(this.target).width())
+            .attr('height', $(this.target).height())
+            .style('pointer-events', 'none')
+            .append('xhtml:div')
             .attr('class', 'st-tooltips')
             .style('position', 'absolute')
-            .style('z-index', '10')
             .style('opacity', 0);
 
         this.tooltips.append('div')
@@ -2365,6 +2367,7 @@ st.chart.series = function () {
                 })
             .on('mouseover', function (d) {
                 d3.select(this).attr('opacity', 0.8);
+                var pointer = d3.mouse(this);
                 chart.tooltips
                     .style('display', 'inline');
                 chart.tooltips
@@ -2372,8 +2375,8 @@ st.chart.series = function () {
                     .duration(300)
                     .style('opacity', 0.9);
                 chart.tooltips
-                    .style('left', d3.event.pageX + 10 + 'px')
-                    .style('top', d3.event.pageY - 10 + 'px')
+                    .style('left', pointer[0] + chart.opts.margins[3] + 10 + 'px')
+                    .style('top', pointer[1] + chart.opts.margins[0] - 10 + 'px')
                     .style('opacity', 0.9)
                     .style('border', 'dashed')
                     .style('border-width', '1px')
@@ -2577,11 +2580,13 @@ st.chart.ir = function () {
      */
     ir.behavior = function () {
         this.scales.x.domain([1, 0]);
-        this.tooltips = d3.select('body').append('div')
-            .attr('id', 'tooltips')
+        this.tooltips = this.panel.append('foreignObject')
+            .attr('width', $(this.target).width())
+            .attr('height', $(this.target).height())
+            .style('pointer-events', 'none')
+            .append('xhtml:div')
             .attr('class', 'st-tooltips')
             .style('position', 'absolute')
-            .style('z-index', '10')
             .style('opacity', 0);
 
         this.tooltips.append('div')
@@ -2687,6 +2692,7 @@ st.chart.ir = function () {
                 })
             .on('mouseover', function (d) {
                 d3.select(this).attr('opacity', 0.8);
+                var pointer = d3.mouse(this);
                 chart.tooltips
                     .style('display', 'inline');
                 chart.tooltips
@@ -2694,8 +2700,8 @@ st.chart.ir = function () {
                     .duration(300)
                     .style('opacity', 0.9);
                 chart.tooltips
-                    .style('left', d3.event.pageX + 10 + 'px')
-                    .style('top', d3.event.pageY - 10 + 'px')
+                    .style('left', pointer[0] + chart.opts.margins[3] + 10 + 'px')
+                    .style('top', pointer[1] + chart.opts.margins[0] - 10 + 'px')
                     .style('opacity', 0.9)
                     .style('border', 'dashed')
                     .style('border-width', '1px')
@@ -3023,7 +3029,9 @@ function init_mouse (chart) {
         .y(chart.scales.y)
         .center([0, chart.scales.y(0)])
         .on("zoom", function() {
-            chart.renderdata();
+            if (typeof this.renderdata == 'function' && this.data !== null) {
+                chart.renderdata();
+            }
         });
     chart.panel.call(mousewheel)
         .on('mousedown.zoom', function () { // --- mouse options ---
