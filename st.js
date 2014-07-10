@@ -214,8 +214,16 @@ st.util.colors = function () {
         5: "black"
     },
 
-    index = 0,      // running index
-    mapping = {},   // stores the id - color mappings
+    mapping = {};    // stores the id - color mappings
+    mapping.size = function() {
+        var size = -1, key;
+        for (key in this) {
+            if (this.hasOwnProperty(key)) {
+                size++;
+            }
+        }
+        return size;
+    };
 
     /**
      * Gets the color for the identifier or - if id is unassigned - returns
@@ -229,8 +237,21 @@ st.util.colors = function () {
         if (mapping[id]) {
             return mapping[id];
         }
-        mapping[id] = next();
+        var col = next();
+        mapping[id] = col;
         return mapping[id];
+    },
+    
+    /**
+     * Removes the color for the identifier from the mapping.
+     * 
+     * @method remove
+     * @param {int} id - the identifier
+     */
+    remove = function (id) {
+        if (mapping[id]) {
+            delete mapping[id];
+        }
     },
 
     /**
@@ -241,15 +262,16 @@ st.util.colors = function () {
      * @returns the color string
      */
     next = function () {
-        if (index === Object.keys(colors).length) {
-            index = 0;
-        }
-        return colors[index++];
+        var ncolors = Object.keys(colors).length;
+        var nmappings = mapping.size();
+        var index = nmappings % ncolors;
+        return colors[index];
     };
 
     // reference visible (public) functions as properties
     return {
-        get: get
+        get: get,
+        remove: remove
     };
 };
 
@@ -1019,6 +1041,7 @@ function data () {
                 this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
                 this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
             }
+            
             return ids;
         },
         
@@ -2172,6 +2195,7 @@ function chart () {
             data.remove = function() {
                 var ids = oldremove.apply(this, arguments);
                 for (var i in ids) {
+                    chart.colors.remove(ids[i]);
                     chart.canvas.selectAll('.' + ids[i]).remove();
                 }
                 if (chart.opts.legend) {
@@ -2469,8 +2493,8 @@ st.chart.ms = function () {
                     .duration(300)
                     .style('opacity', 0.9);
                 chart.tooltips
-                    .style('left', d3.event.pageX + 10 + 'px')
-                    .style('top', d3.event.pageY - 10 + 'px')
+                    .style('left', d3.event.clientX + 10 + 'px')
+                    .style('top', d3.event.clientY - 10 + 'px')
                     .style('opacity', 0.9)
                     .style('border', 'dashed')
                     .style('border-width', '1px')
@@ -2973,6 +2997,7 @@ st.chart.nmr = function () {
         data.remove = function() {
             var ids = oldremove.apply(this, arguments);
             for (var i in ids) {
+                chart.colors.remove(ids[i]);
                 chart.canvas.selectAll('.' + ids[i]).remove();
             }
             if (chart.opts.legend) {

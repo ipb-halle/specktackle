@@ -480,6 +480,7 @@ function chart () {
             data.remove = function() {
                 var ids = oldremove.apply(this, arguments);
                 for (var i in ids) {
+                    chart.colors.remove(ids[i]);
                     chart.canvas.selectAll('.' + ids[i]).remove();
                 }
                 if (chart.opts.legend) {

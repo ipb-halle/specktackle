@@ -17,8 +17,16 @@ st.util.colors = function () {
         5: "black"
     },
 
-    index = 0,      // running index
-    mapping = {},   // stores the id - color mappings
+    mapping = {};    // stores the id - color mappings
+    mapping.size = function() {
+        var size = -1, key;
+        for (key in this) {
+            if (this.hasOwnProperty(key)) {
+                size++;
+            }
+        }
+        return size;
+    };
 
     /**
      * Gets the color for the identifier or - if id is unassigned - returns
@@ -32,8 +40,21 @@ st.util.colors = function () {
         if (mapping[id]) {
             return mapping[id];
         }
-        mapping[id] = next();
+        var col = next();
+        mapping[id] = col;
         return mapping[id];
+    },
+    
+    /**
+     * Removes the color for the identifier from the mapping.
+     * 
+     * @method remove
+     * @param {int} id - the identifier
+     */
+    remove = function (id) {
+        if (mapping[id]) {
+            delete mapping[id];
+        }
     },
 
     /**
@@ -44,14 +65,15 @@ st.util.colors = function () {
      * @returns the color string
      */
     next = function () {
-        if (index === Object.keys(colors).length) {
-            index = 0;
-        }
-        return colors[index++];
+        var ncolors = Object.keys(colors).length;
+        var nmappings = mapping.size();
+        var index = nmappings % ncolors;
+        return colors[index];
     };
 
     // reference visible (public) functions as properties
     return {
-        get: get
+        get: get,
+        remove: remove
     };
 };

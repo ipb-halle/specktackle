@@ -83,6 +83,7 @@ function data () {
                 this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
                 this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
             }
+            
             return ids;
         },
         
