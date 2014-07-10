@@ -78,6 +78,11 @@ function data () {
                     }
                 }
             }
+            
+            if (this.raw.series.length === 0) {
+                this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+                this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+            }
             return ids;
         },
         
@@ -120,8 +125,6 @@ function data () {
                 console.log('Unknown annotation type: ' + type);
             }
         },
-        
-        
         
         /**
          * Pushes the URLs currently in the URL option into the raw data array

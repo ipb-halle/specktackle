@@ -465,7 +465,7 @@ function chart () {
             var oldadd = data.add;
             data.add = function() {
                 oldadd.apply(this, arguments);
-                chart.data.push(function () {// callback
+                chart.data.push(function () {    // callback
                     chart.xscale();              // rescale x
                     chart.yscale();              // rescale y
                     chart.canvas.select('.st-xaxis').call(chart.xaxis); // draw

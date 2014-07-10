@@ -1014,6 +1014,11 @@ function data () {
                     }
                 }
             }
+            
+            if (this.raw.series.length === 0) {
+                this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+                this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+            }
             return ids;
         },
         
@@ -1056,8 +1061,6 @@ function data () {
                 console.log('Unknown annotation type: ' + type);
             }
         },
-        
-        
         
         /**
          * Pushes the URLs currently in the URL option into the raw data array
@@ -2153,7 +2156,7 @@ function chart () {
             var oldadd = data.add;
             data.add = function() {
                 oldadd.apply(this, arguments);
-                chart.data.push(function () {// callback
+                chart.data.push(function () {    // callback
                     chart.xscale();              // rescale x
                     chart.yscale();              // rescale y
                     chart.canvas.select('.st-xaxis').call(chart.xaxis); // draw
@@ -2588,11 +2591,13 @@ st.chart.ir = function () {
                         j = chart.plotted[i].length - 1;
                     }
                     var dp = chart.plotted[i][j];
-                    chart.canvas.select('.' + chart.data.id(i) + 'focus')
-                        .attr('display', 'inline')
-                        .attr('transform', 'translate(' + 
-                        chart.scales.x(dp[accs[0]]) + ',' + 
-                        chart.scales.y(dp[accs[1]]) + ')');
+                    if (dp) {
+                        chart.canvas.select('.' + chart.data.id(i) + 'focus')
+                            .attr('display', 'inline')
+                            .attr('transform', 'translate(' + 
+                            chart.scales.x(dp[accs[0]]) + ',' + 
+                            chart.scales.y(dp[accs[1]]) + ')');
+                    }
                 }
             } else {
                 chart.xpointer.text('');
