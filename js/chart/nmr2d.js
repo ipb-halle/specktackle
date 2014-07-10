@@ -143,7 +143,7 @@ st.chart.nmr2d = function () {
             g.selectAll('.' + id + '.circle').data(series)
                 .enter()
                 .append('svg:circle')
-                .attr('clip-path', 'url(#clip)')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .style('fill', this.colors.get(title))
                 .style('stroke', this.colors.get(title))
                 .attr("r", 3)

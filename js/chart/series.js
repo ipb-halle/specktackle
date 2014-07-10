@@ -130,7 +130,7 @@ st.chart.series = function () {
             var g = this.canvas.append('g')
                 .attr('class', id);
             g.append('svg:path')
-                .attr('clip-path', 'url(#clip)')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .style('stroke', this.colors.get(title))
                 .attr('d', line(series));
             g.append('svg:circle')
@@ -144,7 +144,7 @@ st.chart.series = function () {
             g.selectAll('.' + id + '.circle').data(series)
                 .enter()
                 .append('svg:circle')
-                .attr('clip-path', 'url(#clip)')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .style('fill', this.colors.get(title))
                 .style('stroke', this.colors.get(title))
                 .attr("opacity", 0)
