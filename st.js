@@ -1878,6 +1878,7 @@ function chart () {
             // add selection rectangle
             this.selection = this.canvas.append('svg:rect')
                 .attr('class', 'st-selection')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .attr('x', 0)
                 .attr('y', 0)
                 .attr('width', 0)
@@ -2009,7 +2010,7 @@ function chart () {
                     pointerMoveY = pointerY - parseInt(s.attr('y'), 10),
                     anchorXS = parseInt(s.attr('xs'), 10),
                     anchorYS = parseInt(s.attr('ys'), 10);
-                    
+                
                 if ((pointerMoveX < 0 && pointerMoveY < 0)
                     || (pointerMoveX * 2 < anchorWidth
                     && pointerMoveY * 2 < anchorHeight)) {
@@ -2797,6 +2798,7 @@ st.chart.nmr = function () {
         // add selection rectangle
         this.selection = this.canvas.append('svg:rect')
             .attr('class', 'st-selection')
+            .attr('clip-path', 'url(#clip-' + this.target + ')')
             .attr('x', 0)
             .attr('y', 0)
             .attr('width', 0)

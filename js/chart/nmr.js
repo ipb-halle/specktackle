@@ -54,6 +54,7 @@ st.chart.nmr = function () {
         // add selection rectangle
         this.selection = this.canvas.append('svg:rect')
             .attr('class', 'st-selection')
+            .attr('clip-path', 'url(#clip-' + this.target + ')')
             .attr('x', 0)
             .attr('y', 0)
             .attr('width', 0)
