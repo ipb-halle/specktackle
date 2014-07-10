@@ -423,7 +423,7 @@ function chart () {
                     .attr('y', function () { return i * 20; })
                     .attr('width', 10)
                     .attr('height', 10)
-                    .style('fill', function () { return colors.get(title); });
+                    .style('fill', function () { return colors.get(id); });
                 lg.append('text')
                     .attr('x', this.width + 20)
                     .attr('y', function () { return i * 20 + 9; })

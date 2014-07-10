@@ -135,7 +135,6 @@ st.chart.nmr2d = function () {
         for (var i = 0; i < data.length; i++) {
             var series = data[i];
             var id = this.data.id(i);
-            var title = this.data.titleat(i);
             var accs = this.data.accs(i);
             this.canvas.selectAll('.' + id).remove();
             var g = this.canvas.append('g')
@@ -144,8 +143,8 @@ st.chart.nmr2d = function () {
                 .enter()
                 .append('svg:circle')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
-                .style('fill', this.colors.get(title))
-                .style('stroke', this.colors.get(title))
+                .style('fill', this.colors.get(id))
+                .style('stroke', this.colors.get(id))
                 .attr("r", 3)
                 .attr("cx", function (d) { 
                     return chart.scales.x(d[accs[0]]) 

@@ -118,7 +118,6 @@ st.chart.series = function () {
         for (var i = 0; i < data.length; i++) {
             var series = data[i];
             var id = this.data.id(i);
-            var title = this.data.titleat(i);
             var accs = this.data.accs(i);
             var line = d3.svg.line()
                 .interpolate('cardinal-open')
@@ -133,11 +132,11 @@ st.chart.series = function () {
                 .attr('class', id);
             g.append('svg:path')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
-                .style('stroke', this.colors.get(title))
+                .style('stroke', this.colors.get(id))
                 .attr('d', line(series));
             g.append('svg:circle')
                 .attr('class', id + 'focus')
-                .style('stroke', this.colors.get(title))
+                .style('stroke', this.colors.get(id))
                 .style('fill', 'none')
                 .attr('r', 3)
                 .attr('cx', 0)
@@ -147,8 +146,8 @@ st.chart.series = function () {
                 .enter()
                 .append('svg:circle')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
-                .style('fill', this.colors.get(title))
-                .style('stroke', this.colors.get(title))
+                .style('fill', this.colors.get(id))
+                .style('stroke', this.colors.get(id))
                 .attr("opacity", 0)
                 .attr("r", 3)
                 .attr("cx", function (d) { 
