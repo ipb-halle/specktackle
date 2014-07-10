@@ -63,7 +63,7 @@ st.chart.nmr = function () {
 
         // add SVG clip path
         this.canvas.append('svg:clipPath')
-            .attr('id', 'clip')
+            .attr('id', 'clip-' + this.target)
             .append('svg:rect')
             .attr('x', 0)
             .attr('y', 0)
@@ -306,7 +306,7 @@ st.chart.nmr = function () {
             var g = this.canvas.append('g')
                 .attr('class', id);
             g.append('svg:path')
-                .attr('clip-path', 'url(#clip)')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .style('stroke', this.colors.get(title))
                 .attr('d', line(series));
         }

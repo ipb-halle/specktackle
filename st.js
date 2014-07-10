@@ -1838,7 +1838,7 @@ function chart () {
 
             // add SVG clip path
             this.canvas.append('svg:clipPath')
-                .attr('id', 'clip')
+                .attr('id', 'clip-' + this.target)
                 .append('svg:rect')
                 .attr('x', 0)
                 .attr('y', 0)
@@ -2030,7 +2030,7 @@ function chart () {
 
                 this.scales.x.domain([x, width]).nice();
                 this.scales.y.domain([height, y]).nice();
-
+                
                 selection.attr('display', 'none');
                 this.canvas.select('.st-xaxis').call(this.xaxis);
                 this.canvas.select('.st-yaxis').call(this.yaxis);
@@ -2425,7 +2425,7 @@ st.chart.ms = function () {
             g.selectAll('.' + id + '.line').data(series)
                 .enter()
                 .append('svg:line')
-                .attr('clip-path', 'url(#clip)')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .attr('x1', function (d) { 
                     return chart.scales.x(d[accs[0]])  
                 })
@@ -2735,7 +2735,7 @@ st.chart.nmr = function () {
 
         // add SVG clip path
         this.canvas.append('svg:clipPath')
-            .attr('id', 'clip')
+            .attr('id', 'clip-' + this.target)
             .append('svg:rect')
             .attr('x', 0)
             .attr('y', 0)
@@ -2978,7 +2978,7 @@ st.chart.nmr = function () {
             var g = this.canvas.append('g')
                 .attr('class', id);
             g.append('svg:path')
-                .attr('clip-path', 'url(#clip)')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .style('stroke', this.colors.get(title))
                 .attr('d', line(series));
         }

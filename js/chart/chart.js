@@ -150,7 +150,7 @@ function chart () {
 
             // add SVG clip path
             this.canvas.append('svg:clipPath')
-                .attr('id', 'clip')
+                .attr('id', 'clip-' + this.target)
                 .append('svg:rect')
                 .attr('x', 0)
                 .attr('y', 0)
@@ -342,7 +342,7 @@ function chart () {
 
                 this.scales.x.domain([x, width]).nice();
                 this.scales.y.domain([height, y]).nice();
-
+                
                 selection.attr('display', 'none');
                 this.canvas.select('.st-xaxis').call(this.xaxis);
                 this.canvas.select('.st-yaxis').call(this.yaxis);

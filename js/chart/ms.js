@@ -74,7 +74,7 @@ st.chart.ms = function () {
             g.selectAll('.' + id + '.line').data(series)
                 .enter()
                 .append('svg:line')
-                .attr('clip-path', 'url(#clip)')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .attr('x1', function (d) { 
                     return chart.scales.x(d[accs[0]])  
                 })
