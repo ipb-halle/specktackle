@@ -2760,6 +2760,7 @@ st.chart.nmr = function () {
      * @params {string} x - the id of the container
      */
     nmr.render = function (x) {
+        this.target = x;
         var margins = this.opts.margins;
         this.width = $(x).width() - margins[1] - margins[3];
         this.height = $(x).height() - margins[0] - margins[2];
@@ -2892,7 +2893,7 @@ st.chart.nmr = function () {
             .attr('height', this.height)
             .attr('display', 'inline');
     };
-
+    
     /**
      * Defines default action for mouse move events.
      * 
@@ -2946,7 +2947,7 @@ st.chart.nmr = function () {
             selection.attr('display', 'none');
         }
     };
-
+    
     /**
      * Defines default action for mouse double-click events.
      * 
@@ -3056,7 +3057,10 @@ function init_mouse (chart) {
             chart.mouseMove(this);
         })
         .on('mouseup.zoom', function () {   // --- mouse options ---
-            chart.mouseUp(this);
+            chart.mouseUp();
+        })
+        .on('mouseout', function() {        // --- mouse options ---
+            chart.mouseOut(this);
         })
         .on('dblclick.zoom', function () {  // --- mouse options ---
             chart.mouseDbl();
