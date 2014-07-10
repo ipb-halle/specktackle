@@ -299,7 +299,9 @@ function init_mouse (chart) {
         .y(chart.scales.y)
         .center([0, chart.scales.y(0)])
         .on("zoom", function() {
-            chart.renderdata();
+            if (typeof this.renderdata == 'function' && this.data !== null) {
+                chart.renderdata();
+            }
         });
     chart.panel.call(mousewheel)
         .on('mousedown.zoom', function () { // --- mouse options ---
