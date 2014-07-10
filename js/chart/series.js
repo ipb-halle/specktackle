@@ -92,11 +92,17 @@ st.chart.series = function () {
                     }
                     var dp = chart.plotted[i][j];
                     if (dp) {
+                        var ploty = chart.scales.y(dp[accs[1]]);
+                        if (ploty < 0) {
+                            ploty = 0;
+                        } else if (ploty > chart.height) {
+                            ploty = chart.height;
+                        }
                         chart.canvas.select('.' + chart.data.id(i) + 'focus')
                             .attr('display', 'inline')
                             .attr('transform', 'translate(' + 
                             chart.scales.x(dp[accs[0]]) + ',' + 
-                            chart.scales.y(dp[accs[1]]) + ')');
+                             ploty + ')');
                     }
                 }
             } else {

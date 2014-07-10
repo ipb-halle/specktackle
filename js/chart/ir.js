@@ -66,8 +66,9 @@ st.chart.ir = function () {
         this.panel.on('mousemove', function () {
             var mousex = d3.mouse(this)[0] - chart.opts.margins[3];
             var plotx = chart.scales.x.invert(mousex);
-            var plotdomain = chart.scales.x.domain();
-            if (plotx < plotdomain[0] && plotx >= plotdomain[1]) {
+            var plotdomainx = chart.scales.x.domain();
+            var plotdomainy = chart.scales.y.domain();
+            if (plotx < plotdomainx[0] && plotx >= plotdomainx[1]) {
                 chart.xpointer.text('x = ' + xFormat(plotx));
                 for (var i = 0; i < chart.plotted.length; i++) {
                     var accs = chart.data.accs(i);
@@ -80,11 +81,17 @@ st.chart.ir = function () {
                     }
                     var dp = chart.plotted[i][j];
                     if (dp) {
+                        var ploty = chart.scales.y(dp[accs[1]]);
+                        if (ploty < 0) {
+                            ploty = 0;
+                        } else if (ploty > chart.height) {
+                            ploty = chart.height;
+                        }
                         chart.canvas.select('.' + chart.data.id(i) + 'focus')
                             .attr('display', 'inline')
                             .attr('transform', 'translate(' + 
                             chart.scales.x(dp[accs[0]]) + ',' + 
-                            chart.scales.y(dp[accs[1]]) + ')');
+                            ploty + ')');
                     }
                 }
             } else {
