@@ -2125,7 +2125,7 @@ function chart () {
          * Draws the chart legend in the top right corner.
          */
         renderLegend: function () {
-            $('.st-legend').empty();
+            this.canvas.select('.st-legend').remove();
             var legend = this.canvas.append('g')
                 .attr('class', 'st-legend')
                 .style('cursor', 'pointer');
