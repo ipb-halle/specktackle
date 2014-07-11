@@ -36,7 +36,7 @@ st.util.colors = function () {
      * @param {int} id - the identifier
      * @returns the color string for the identifier
      */
-    get = function (id) {
+    var get = function (id) {
         if (mapping[id]) {
             return mapping[id];
         }

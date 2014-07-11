@@ -233,7 +233,7 @@ st.util.colors = function () {
      * @param {int} id - the identifier
      * @returns the color string for the identifier
      */
-    get = function (id) {
+    var get = function (id) {
         if (mapping[id]) {
             return mapping[id];
         }
@@ -2618,7 +2618,6 @@ st.chart.ir = function () {
             var mousex = d3.mouse(this)[0] - chart.opts.margins[3];
             var plotx = chart.scales.x.invert(mousex);
             var plotdomainx = chart.scales.x.domain();
-            var plotdomainy = chart.scales.y.domain();
             if (plotx < plotdomainx[0] && plotx >= plotdomainx[1]) {
                 chart.xpointer.text('x = ' + xFormat(plotx));
                 for (var i = 0; i < chart.plotted.length; i++) {
