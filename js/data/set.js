@@ -74,27 +74,57 @@ st.data.set = function () {
      *
      * @param {string} src - a data url
      */
-    set.fetch = function (src) {
+    set.fetch = function (src, anno) {
         var set = this;
         var jqxhr = null;
         if (typeof src === 'string') {
-            jqxhr = $.getJSON(src, function (json) {
-                if (json instanceof Array) {
-                    for (var i in json) {
-                        set_fetch(json[i], set);
+            if (typeof anno === 'string' && anno) {
+                jqxhr = $.when(
+                    $.get(src),
+                    $.get(anno)
+                ).then(function(json, json2) {
+                    if (json[0] instanceof Array) {
+                        for (var i in json[0]) {
+                            set_fetch(json[0][i], json2[0][i], set);
+                        }
+                    } else {
+                        set_fetch(json[0], json2[0], set);
+                    }
+                });
+            } else {
+                jqxhr = $.when(
+                    $.get(src)
+                ).then(function(json) {
+                    if (json instanceof Array) {
+                        for (var i in json) {
+                            set_fetch(json[i], anno[i], set);
+                        }
+                    } else {
+                        set_fetch(json, anno, set);
+                    }
+                });
+            }
+        } else {
+            if (typeof anno === 'string' && anno) {
+                jqxhr = $.when(
+                    $.get(anno)
+                ).then(function(json) {
+                    if (src instanceof Array) {
+                        for (var i in src) {
+                            set_fetch(src[i], json[i], set);
+                        }
+                    } else {
+                        set_fetch(src, json, set);
+                    }
+                });
+            } else {
+                if (src instanceof Array) {
+                    for (var i in src) {
+                        set_fetch(src[i], anno[i], set);
                     }
                 } else {
-                    set_fetch(json, set);
+                    set_fetch(src, anno, set);
                 }
-            });
-        } else {
-            
-            if (src instanceof Array) {
-                for (var i in src) {
-                    set_fetch(src[i], set);
-                }
-            } else {
-                set_fetch(src, set);
             }
         }
         return jqxhr;
@@ -212,7 +242,7 @@ st.data.set = function () {
     return set;
 };
 
-function set_fetch (json, set) {
+function set_fetch (json, json2, set) {
     var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
     id = 'st' + id;                     // model id
     var title = json[set.opts.title];   // model title
@@ -243,6 +273,34 @@ function set_fetch (json, set) {
     xlim = fetch_limits(data, json, set.opts.xlimits, xacc);
     ylim = fetch_limits(data, json, set.opts.ylimits, yacc);
     size = [0, data.length, 0];
+    
+    // assign annotations
+    if (json2) {
+        var bisector = d3.bisector(function (d) {
+            return d[xacc];
+        }).left;
+        for (var i in json2) {
+            var ref = json2[i][0];
+            var refpos = bisector(data, ref);
+            if (refpos !== -1 && ref === data[refpos][xacc]) {
+                for (var j = 0; j < set.opts.annoTypes.length; j++) {
+                    if (set.opts.annoTypes[j] === st.annotation.ANNOTATION) {
+                        data[refpos].annotation = json2[i][j + 1];
+                    } else if (set.opts.annoTypes[j] === st.annotation.TOOLTIP) {
+                        if (!data[refpos].tooltip) {
+                            data[refpos].tooltip = {};
+                        }
+                        data[refpos].tooltip[set.opts.annoTexts[j]] = json2[i][j + 1];
+                    } else if (set.opts.annoTypes[j] === st.annotation.TOOLTIP_MOL) {
+                        if (!data[refpos].tooltipmol) {
+                            data[refpos].tooltipmol = {};
+                        }
+                        data[refpos].tooltipmol[set.opts.annoTexts[j]] = json2[i][j + 1];
+                    }
+                }
+            }
+        }
+    }
     
     // replace global limits if required
     if (xlim[0] < set.raw.gxlim[0]) {

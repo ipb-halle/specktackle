@@ -5,5 +5,6 @@
  */
 st.annotation = {
     TOOLTIP: 'tooltip',
+    TOOLTIP_MOL: 'tooltip_mol',
     ANNOTATION: 'annotation'
 };

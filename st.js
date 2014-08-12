@@ -879,6 +879,7 @@ st.util.spinner = function (el) {
  */
 st.annotation = {
     TOOLTIP: 'tooltip',
+    TOOLTIP_MOL: 'tooltip_mol',
     ANNOTATION: 'annotation'
 };
 /**
@@ -981,10 +982,13 @@ function data () {
         opts: {
             title: '',
             src: [],    // JSON URLs
+            anno: [],
             x: 'x',     // x accessor
             y: 'y',     // y accessor
             xlimits: [],// x axis limits: min, max
-            ylimits: [] // y axis limits: min, max
+            ylimits: [], // y axis limits: min, max
+            annoTypes: [],
+            annoTexts: []
         },
         
         raw: {          // globals summarising contained data
@@ -1000,14 +1004,25 @@ function data () {
          * @param {string[]} x - an URL array 
          * @returns the data object
          */
-        add: function (urls) {
-            if (urls instanceof Array) {
-                this.opts.src.push.apply(this.opts.src, urls);
+        add: function (datarefs, annorefs) {
+            if (datarefs instanceof Array) {
+                this.opts.src.push.apply(this.opts.src, datarefs);
+                this.opts.anno.push.apply(this.opts.anno, annorefs);
             } else {
-                this.opts.src.push(urls);
+                this.opts.src.push(datarefs);
+                this.opts.anno.push(annorefs);
             }
         },
         
+        annotationColumn: function (type, text) {
+            if (type.toUpperCase() in st.annotation) {
+                this.opts.annoTypes.push(type);
+                this.opts.annoTexts.push(text);
+            } else {
+                console.log('Unknown annotation type: ' + type);
+            }
+        },
+
         /**
          * Removes a data series by its identifier or index.
          *
@@ -1075,16 +1090,6 @@ function data () {
             return this.raw.series[index].accs;
         },
         
-        annotation: function (type, name) {
-            if (type === st.annotation.ANNOTATION) {
-            
-            } else if (type === st.annotation.TOOLTIP) {
-            
-            } else {
-                console.log('Unknown annotation type: ' + type);
-            }
-        },
-        
         /**
          * Pushes the URLs currently in the URL option into the raw data array
          * and sets the global data options.
@@ -1096,13 +1101,15 @@ function data () {
             var deferreds = [];
             for (var i in this.opts.src) {
                 if (typeof this.opts.src[i] !== 'string') {
-                    this.fetch(this.opts.src[i]);
+                    this.fetch(this.opts.src[i], this.opts.anno[i]);
                 } else {
-                    deferreds.push(this.fetch(this.opts.src[i]));
+                    deferreds.push(this.fetch(
+                        this.opts.src[i], this.opts.anno[i]));
                 }
             }
             $.when.apply($, deferreds).done(function () {
                 data.opts.src = [];
+                data.opts.anno = [];
                 callback();
             });
         },
@@ -1236,27 +1243,57 @@ st.data.set = function () {
      *
      * @param {string} src - a data url
      */
-    set.fetch = function (src) {
+    set.fetch = function (src, anno) {
         var set = this;
         var jqxhr = null;
         if (typeof src === 'string') {
-            jqxhr = $.getJSON(src, function (json) {
-                if (json instanceof Array) {
-                    for (var i in json) {
-                        set_fetch(json[i], set);
+            if (typeof anno === 'string' && anno) {
+                jqxhr = $.when(
+                    $.get(src),
+                    $.get(anno)
+                ).then(function(json, json2) {
+                    if (json[0] instanceof Array) {
+                        for (var i in json[0]) {
+                            set_fetch(json[0][i], json2[0][i], set);
+                        }
+                    } else {
+                        set_fetch(json[0], json2[0], set);
+                    }
+                });
+            } else {
+                jqxhr = $.when(
+                    $.get(src)
+                ).then(function(json) {
+                    if (json instanceof Array) {
+                        for (var i in json) {
+                            set_fetch(json[i], anno[i], set);
+                        }
+                    } else {
+                        set_fetch(json, anno, set);
+                    }
+                });
+            }
+        } else {
+            if (typeof anno === 'string' && anno) {
+                jqxhr = $.when(
+                    $.get(anno)
+                ).then(function(json) {
+                    if (src instanceof Array) {
+                        for (var i in src) {
+                            set_fetch(src[i], json[i], set);
+                        }
+                    } else {
+                        set_fetch(src, json, set);
+                    }
+                });
+            } else {
+                if (src instanceof Array) {
+                    for (var i in src) {
+                        set_fetch(src[i], anno[i], set);
                     }
                 } else {
-                    set_fetch(json, set);
+                    set_fetch(src, anno, set);
                 }
-            });
-        } else {
-            
-            if (src instanceof Array) {
-                for (var i in src) {
-                    set_fetch(src[i], set);
-                }
-            } else {
-                set_fetch(src, set);
             }
         }
         return jqxhr;
@@ -1374,7 +1411,7 @@ st.data.set = function () {
     return set;
 };
 
-function set_fetch (json, set) {
+function set_fetch (json, json2, set) {
     var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
     id = 'st' + id;                     // model id
     var title = json[set.opts.title];   // model title
@@ -1405,6 +1442,34 @@ function set_fetch (json, set) {
     xlim = fetch_limits(data, json, set.opts.xlimits, xacc);
     ylim = fetch_limits(data, json, set.opts.ylimits, yacc);
     size = [0, data.length, 0];
+    
+    // assign annotations
+    if (json2) {
+        var bisector = d3.bisector(function (d) {
+            return d[xacc];
+        }).left;
+        for (var i in json2) {
+            var ref = json2[i][0];
+            var refpos = bisector(data, ref);
+            if (refpos !== -1 && ref === data[refpos][xacc]) {
+                for (var j = 0; j < set.opts.annoTypes.length; j++) {
+                    if (set.opts.annoTypes[j] === st.annotation.ANNOTATION) {
+                        data[refpos].annotation = json2[i][j + 1];
+                    } else if (set.opts.annoTypes[j] === st.annotation.TOOLTIP) {
+                        if (!data[refpos].tooltip) {
+                            data[refpos].tooltip = {};
+                        }
+                        data[refpos].tooltip[set.opts.annoTexts[j]] = json2[i][j + 1];
+                    } else if (set.opts.annoTypes[j] === st.annotation.TOOLTIP_MOL) {
+                        if (!data[refpos].tooltipmol) {
+                            data[refpos].tooltipmol = {};
+                        }
+                        data[refpos].tooltipmol[set.opts.annoTexts[j]] = json2[i][j + 1];
+                    }
+                }
+            }
+        }
+    }
     
     // replace global limits if required
     if (xlim[0] < set.raw.gxlim[0]) {
@@ -2451,7 +2516,8 @@ st.chart.ms = function () {
             .append('xhtml:div')
             .attr('class', 'st-tooltips')
             .style('position', 'absolute')
-            .style('opacity', 0);
+            .style('opacity', 0)
+            .style('useHTML', true);
 
         this.tooltips.append('div')
             .attr('id', 'tooltips-meta')
@@ -2487,16 +2553,28 @@ st.chart.ms = function () {
                 .append('svg:line')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .attr('x1', function (d) { 
-                    return chart.scales.x(d[accs[0]])  
+                    return chart.scales.x(d[accs[0]]);
                 })
                 .attr('y1', function (d) { 
-                    return chart.scales.y(d[accs[1]])  
+                    return chart.scales.y(d[accs[1]]);
                 })
                 .attr('x2', function (d) { 
-                    return chart.scales.x(d[accs[0]])  
+                    return chart.scales.x(d[accs[0]]); 
                 })
                 .attr('y2', this.height)
                 .style('stroke', this.colors.get(id))
+                .each(function(d) {
+                    if (d.annotation) {
+                        g.append('text')
+                            .attr('class', id + '.anno')
+                            .attr('x', chart.scales.x(d[accs[0]]))
+                            .attr('y', chart.scales.y(d[accs[1]]) - 5)
+                            .attr('text-anchor', 'middle')
+                            .attr('font-size', 'small')
+                            .attr('fill', chart.colors.get(id))
+                            .text(d.annotation);
+                    }
+                })
             .on('mouseover', function (d) {
                 d3.select(this).style('stroke-width', 2);
                 var pointer = d3.mouse(this);
@@ -2519,17 +2597,21 @@ st.chart.ms = function () {
                 var y = format(d[accs[1]]);
                 d3.selectAll('#tooltips-meta').html(
                     chart.opts.xlabel + ': ' + 
-                    x + '<br/>' + chart.opts.ylabel + ': ' + y
+                    x + '<br/>' + chart.opts.ylabel + ': ' + y + '<br/>'
                 );
-                if (d.ref) {
-                    var spinner = st.util.spinner('#tooltips-mol');
-                    // var index = d.ref - 1;
-                    // var className = this.className.baseVal;
-                    timeout = setTimeout(function () {
-                        spinner.css('display', 'none');
-                        // get ref
-                        chart.mol2svg.draw('http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/174174/SDF', '#tooltips-mol');
-                    }, 500);
+                if (d.tooltip || d.tooltipmol) {
+                    var tooltip = d3.selectAll('#tooltips-meta').html();
+                    for (var key in d.tooltip) {
+                        tooltip += key + ': ' + d.tooltip[key] + '<br/>';
+                    }
+                    d3.selectAll('#tooltips-meta').html(tooltip);
+                    for (var molkey in d.tooltipmol) {
+                        var spinner = st.util.spinner('#tooltips-mol');
+                        timeout = setTimeout(function () {
+                            spinner.css('display', 'none');
+                            chart.mol2svg.draw(d.tooltipmol[molkey], '#tooltips-mol');
+                        }, 500);
+                    }
                 } else {
                     d3.selectAll('#tooltips-mol').html('');
                 }

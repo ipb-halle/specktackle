@@ -104,14 +104,23 @@
                         //.x("data.x")
                         //.y("data.y")
                         .title("spectrumId");
-                    chart.load(set);                // load the data
+                        
+                    set.annotationColumn(st.annotation.ANNOTATION, "Ticks");
+                    set.annotationColumn(st.annotation.TOOLTIP, "Origin");
+                    set.annotationColumn(st.annotation.TOOLTIP_MOL, "Ion");
+                    
+                    chart.load(set);               // load the data
                     set.add([                      // input array
-                        "resources/data1.json",
-                        "resources/data2.json",
-                        "resources/data3.json"
+                        "resources/data1.json"
+                        //"resources/data2.json",
+                        //"resources/data3.json"
                         //"resources/multiple.json"
                         //"http://www.ebi.ac.uk/metabolights/spectra/15769/json"
+                    ], [
+                        //""
+                        "resources/data1_anno.json"
                     ]);
+                    
                     break;
                 case 1:                             // NMR
                     var array = st.data.array()     // data type (array)

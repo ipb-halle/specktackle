@@ -23,10 +23,13 @@ function data () {
         opts: {
             title: '',
             src: [],    // JSON URLs
+            anno: [],
             x: 'x',     // x accessor
             y: 'y',     // y accessor
             xlimits: [],// x axis limits: min, max
-            ylimits: [] // y axis limits: min, max
+            ylimits: [], // y axis limits: min, max
+            annoTypes: [],
+            annoTexts: []
         },
         
         raw: {          // globals summarising contained data
@@ -42,14 +45,25 @@ function data () {
          * @param {string[]} x - an URL array 
          * @returns the data object
          */
-        add: function (urls) {
-            if (urls instanceof Array) {
-                this.opts.src.push.apply(this.opts.src, urls);
+        add: function (datarefs, annorefs) {
+            if (datarefs instanceof Array) {
+                this.opts.src.push.apply(this.opts.src, datarefs);
+                this.opts.anno.push.apply(this.opts.anno, annorefs);
             } else {
-                this.opts.src.push(urls);
+                this.opts.src.push(datarefs);
+                this.opts.anno.push(annorefs);
             }
         },
         
+        annotationColumn: function (type, text) {
+            if (type.toUpperCase() in st.annotation) {
+                this.opts.annoTypes.push(type);
+                this.opts.annoTexts.push(text);
+            } else {
+                console.log('Unknown annotation type: ' + type);
+            }
+        },
+
         /**
          * Removes a data series by its identifier or index.
          *
@@ -117,16 +131,6 @@ function data () {
             return this.raw.series[index].accs;
         },
         
-        annotation: function (type, name) {
-            if (type === st.annotation.ANNOTATION) {
-            
-            } else if (type === st.annotation.TOOLTIP) {
-            
-            } else {
-                console.log('Unknown annotation type: ' + type);
-            }
-        },
-        
         /**
          * Pushes the URLs currently in the URL option into the raw data array
          * and sets the global data options.
@@ -138,13 +142,15 @@ function data () {
             var deferreds = [];
             for (var i in this.opts.src) {
                 if (typeof this.opts.src[i] !== 'string') {
-                    this.fetch(this.opts.src[i]);
+                    this.fetch(this.opts.src[i], this.opts.anno[i]);
                 } else {
-                    deferreds.push(this.fetch(this.opts.src[i]));
+                    deferreds.push(this.fetch(
+                        this.opts.src[i], this.opts.anno[i]));
                 }
             }
             $.when.apply($, deferreds).done(function () {
                 data.opts.src = [];
+                data.opts.anno = [];
                 callback();
             });
         },

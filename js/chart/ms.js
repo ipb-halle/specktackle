@@ -77,16 +77,28 @@ st.chart.ms = function () {
                 .append('svg:line')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .attr('x1', function (d) { 
-                    return chart.scales.x(d[accs[0]])  
+                    return chart.scales.x(d[accs[0]]);
                 })
                 .attr('y1', function (d) { 
-                    return chart.scales.y(d[accs[1]])  
+                    return chart.scales.y(d[accs[1]]);
                 })
                 .attr('x2', function (d) { 
-                    return chart.scales.x(d[accs[0]])  
+                    return chart.scales.x(d[accs[0]]); 
                 })
                 .attr('y2', this.height)
                 .style('stroke', this.colors.get(id))
+                .each(function(d) {
+                    if (d.annotation) {
+                        g.append('text')
+                            .attr('class', id + '.anno')
+                            .attr('x', chart.scales.x(d[accs[0]]))
+                            .attr('y', chart.scales.y(d[accs[1]]) - 5)
+                            .attr('text-anchor', 'middle')
+                            .attr('font-size', 'small')
+                            .attr('fill', chart.colors.get(id))
+                            .text(d.annotation);
+                    }
+                })
             .on('mouseover', function (d) {
                 d3.select(this).style('stroke-width', 2);
                 var pointer = d3.mouse(this);
@@ -109,17 +121,21 @@ st.chart.ms = function () {
                 var y = format(d[accs[1]]);
                 d3.selectAll('#tooltips-meta').html(
                     chart.opts.xlabel + ': ' + 
-                    x + '<br/>' + chart.opts.ylabel + ': ' + y
+                    x + '<br/>' + chart.opts.ylabel + ': ' + y + '<br/>'
                 );
-                if (d.ref) {
-                    var spinner = st.util.spinner('#tooltips-mol');
-                    // var index = d.ref - 1;
-                    // var className = this.className.baseVal;
-                    timeout = setTimeout(function () {
-                        spinner.css('display', 'none');
-                        // get ref
-                        chart.mol2svg.draw('http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/174174/SDF', '#tooltips-mol');
-                    }, 500);
+                if (d.tooltip || d.tooltipmol) {
+                    var tooltip = d3.selectAll('#tooltips-meta').html();
+                    for (var key in d.tooltip) {
+                        tooltip += key + ': ' + d.tooltip[key] + '<br/>';
+                    }
+                    d3.selectAll('#tooltips-meta').html(tooltip);
+                    for (var molkey in d.tooltipmol) {
+                        var spinner = st.util.spinner('#tooltips-mol');
+                        timeout = setTimeout(function () {
+                            spinner.css('display', 'none');
+                            chart.mol2svg.draw(d.tooltipmol[molkey], '#tooltips-mol');
+                        }, 500);
+                    }
                 } else {
                     d3.selectAll('#tooltips-mol').html('');
                 }

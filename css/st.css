@@ -96,6 +96,7 @@ path {
 .st-tooltips {
     font-family: Verdana, sans-serif;
     font-size: small;
+    float: left;
 }
 
 .st-spinner {
