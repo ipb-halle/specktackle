@@ -1,4 +1,4 @@
 [
-    [116.0714, "***", "Homo Sapiens", "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/174174/SDF"],
-    [142.0505, "*", "Homo Sapiens", "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/30214/SDF"]
+    [116.0714, "***", "Homo Sapiens", "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/174174/SDF", ""],
+    [142.0505, "*", "Homo Sapiens", "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/30214/SDF", "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/174174/SDF"]
 ]

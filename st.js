@@ -1,10 +1,11 @@
 !function(){
-    var st = {version: "0.0.1"};
+    var st = {version: "0.0.3"};
 
 /**
  * util stub.
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @constructor
  */
 st.util = {};
 
@@ -12,11 +13,11 @@ st.util = {};
  * Simple hash-based object cache.
  *
  * Adapted from:
- * http://markdaggett.com/blog/2012/03/28/client-side-request-caching-with-javascript/
+ * http://markdaggett.com/blog/2012/03/28/
+ * client-side-request-caching-with-javascript/
  *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.cache
- * @returns object literal with a add, get, getKey, and exists property
+ * @returns {object} object literal with a add, get, getKey, and exists property
  * 
  * @example
  * var cache = st.util.cache();
@@ -35,10 +36,9 @@ st.util.cache = function () {
     /**
      * Returns an element's index in an array or -1.
      * 
-     * @method indexOf
-     * @param {object[]} arr - element array
-     * @param {object} obj - element
-     * @returns the elemen'ts index or -1
+     * @param {object[]} arr An element array
+     * @param {object} obj An element
+     * @returns {number} the element's index or -1
      */
     indexOf = function (arr, obj) {
         var len = arr.length;
@@ -53,9 +53,8 @@ st.util.cache = function () {
     /**
      * Returns a string representation of any input.
      * 
-     * @method serialize
-     * @param {object} opts - input to stringify
-     * @returns the stringified input object
+     * @param {object} opts An input to stringify
+     * @returns {string} the stringified input object
      */
     serialize = function (opts) {
         if ((opts).toString() === "[object Object]") {
@@ -68,8 +67,7 @@ st.util.cache = function () {
      /**
      * Removes an element from the cache via its key.
      * 
-     * @method remove
-     * @param {string} key - the element's key
+     * @param {string} key The element's key
      */
     remove = function (key) {
         var t;
@@ -81,8 +79,6 @@ st.util.cache = function () {
 
     /**
      * Removes all elements from the cache.
-     * 
-     * @method removeAll
      */
     removeAll = function () {
         cache = {};
@@ -92,9 +88,8 @@ st.util.cache = function () {
     /**
      * Adds an element to the cache.
      * 
-     * @method add
-     * @param {string} key - the element's key
-     * @param {object} obj - the element to be added
+     * @param {string} key The element's key
+     * @param {object} obj The element to be added
      */
     add = function (key, obj) {
         if (keys.indexOf(key) === -1) {
@@ -106,9 +101,8 @@ st.util.cache = function () {
     /**
      * Checks whether a key has already been added to the cache.
      * 
-     * @method exists
-     * @param {string} key - the element's key
-     * @returns boolean if the key exists in the cache
+     * @param {string} key The element's key
+     * @returns {boolean} whether the key exists in the cache
      */
     exists = function (key) {
         return cache.hasOwnProperty(key);
@@ -117,8 +111,7 @@ st.util.cache = function () {
     /**
      * Removes a selected or all elements from the cache.
      * 
-     * @method purge
-     * @returns the purged cache array
+     * @returns {object[]} the purged cache array
      */
     purge = function () {
         if (arguments.length > 0) {
@@ -132,9 +125,8 @@ st.util.cache = function () {
     /**
      * Returns matching keys from the cache in an array.
      * 
-     * @method searchKeys
-     * @param {string} str - the query key (string)
-     * @returns the array of matching keys
+     * @param {string} str The query key (string)
+     * @returns {string[]} the array of matching keys
      */
     searchKeys = function (str) {
         var keys = [];
@@ -151,9 +143,8 @@ st.util.cache = function () {
     /**
      * Returns the element for a given key.
      * 
-     * @method get
-     * @param {string} key - the element's key
-     * @returns the key's cached object
+     * @param {string} key The element's key
+     * @returns {object} the key's cached object
      */
     get = function (key) {
         var val;
@@ -170,9 +161,8 @@ st.util.cache = function () {
     /**
      * Returns the string representation of the element.
      * 
-     * @method getKey
-     * @param {object} opts - the element to be stringified
-     * @returns the string representation fo the element
+     * @param {object} opts The element to be stringified
+     * @returns {string} the string representation fo the element
      */
     getKey = function (opts) {
         return serialize(opts);
@@ -181,8 +171,7 @@ st.util.cache = function () {
     /**
      * Returns all keys stored in the cache.
      * 
-     * @method getKeys
-     * @returns the array of keys
+     * @returns {string[]} the array of keys
      */
     getKeys = function () {
         return keys;
@@ -202,7 +191,8 @@ st.util.cache = function () {
  * for a given identifier.
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.colors
+ * @constructor
+ * @returns {object} object literal with a get and remove property
  */
 st.util.colors = function () {
     var colors = {
@@ -229,9 +219,8 @@ st.util.colors = function () {
      * Gets the color for the identifier or - if id is unassigned - returns
      * a new color from the color hash.
      * 
-     * @method get
-     * @param {int} id - the identifier
-     * @returns the color string for the identifier
+     * @param {int} id A series identifier
+     * @returns {string} the color string for the identifier
      */
     var get = function (id) {
         if (mapping[id]) {
@@ -245,8 +234,7 @@ st.util.colors = function () {
     /**
      * Removes the color for the identifier from the mapping.
      * 
-     * @method remove
-     * @param {int} id - the identifier
+     * @param {int} id An series identifier
      */
     remove = function (id) {
         if (mapping[id]) {
@@ -258,8 +246,7 @@ st.util.colors = function () {
      * Returns the color string based on the running index. Resets the
      * index if it exceeds the color hash.
      * 
-     * @method next
-     * @returns the color string
+     * @returns {string} the color string
      */
     next = function () {
         var ncolors = Object.keys(colors).length;
@@ -279,9 +266,8 @@ st.util.colors = function () {
  * Simple hash code generator for strings.
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.hashcode
- * @param {string} str - a string to be hashed
- * @returns the hashed string
+ * @param {string} str A string to be hashed
+ * @returns {number} the hashed string
  */
 st.util.hashcode = function (str) {
     var hash = 0, i, chr, len;
@@ -300,10 +286,9 @@ st.util.hashcode = function (str) {
  * need to be inverted.
  *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.domain
- * @param {object} scale - a d3 scale
- * @param {number[]} array - an array of length two with a min/max pair
- * @returns the sorted array
+ * @param {object} scale A d3 scale
+ * @param {number[]} array An array of length two with a min/max pair
+ * @returns {number[]} the sorted array
  */
 st.util.domain = function (scale, array) {
     var domain = scale.domain();
@@ -335,21 +320,15 @@ st.util.domain = function (scale, array) {
  * 
  * The renderer uses the CPK coloring convention.
  *
- * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.mol2svg
- * @returns object literal with a draw and init property (functions)
- * 
- * @example
- * var instance = st.util.mol2svg(640, 480);
- * var url = 'http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/30214/SDF';
- * instance.draw(url, '#myElement');
- *
  * Initializes the renderer setting the width and height of 
  * the viewport. The width and height should include a margin 
  * of 10 px, which is applied all around by default.
- * 
- * @param {number} width - width of the viewport
- * @param {number} height - height of the viewport
+ *
+ * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @constructor
+ * @param {number} width A width of the viewport
+ * @param {number} height A height of the viewport
+ * @returns {object} object literal with a draw property
  */
 st.util.mol2svg = function (width, height) {
 
@@ -357,7 +336,7 @@ st.util.mol2svg = function (width, height) {
         h = height || 200,  // height of the panel
         x = null,           // linear d3 x scale function
         y = null,           // linear d3 y scale function
-        avgL = 0,   // scaled average bond length (required for font size scaling)
+        avgL = 0,   // scaled average bond length (for font size scaling)
         cache = st.util.cache();
 
     /**
@@ -365,12 +344,10 @@ st.util.mol2svg = function (width, height) {
      * creates the SVG. The SVG is appended to the element of the 
      * given identifier.    
      * 
-     * @method draw
-     * @param {string} molfile - URL of the MDL molfile (REST web service)
-     * @param {string} id - id of the element 
+     * @param {string} molfile A URL of the MDL molfile (REST web service)
+     * @param {string} id An identifier of the element 
      */
     var draw = function (molfile, id) {
-        $(id).empty();
         var el = d3.select(id);
         var cacheKey = cache.getKey(molfile);
         if (cache.exists(cacheKey)) {
@@ -393,10 +370,9 @@ st.util.mol2svg = function (width, height) {
      * header block, two dimensional coordinates, symbol, charge, 
      * and mass difference information extracted from the atom block,
      * connectivity and stereo information from the bond block.
-     * 
-     * @method parse
-     * @param {string} molfile - URL of the MDL molfile (REST web service)
-     * @param {string} id - id of the element
+     *
+     * @param {string} molfile A URL to the MDL molfile (REST web service)
+     * @param {string} id An element identifier
      */
     var parse = function (molfile, el) {
         var lines = molfile.split(/\r\n|\n/),
@@ -416,11 +392,10 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * Parses the atom block line by line.
-     * 
-     * @method atomBlock
-     * @param {string[]} lines - molfile line array
-     * @param {number} nAtoms - total number of atoms
-     * @returns array of atom objects
+     *
+     * @param {string[]} lines A molfile line array
+     * @param {number} nAtoms The total number of atoms
+     * @returns {object[]} associative array of atom objects
      */
     var atomBlock = function (lines, nAtoms) {
         var atoms = [];
@@ -441,11 +416,10 @@ st.util.mol2svg = function (width, height) {
     /**
      * Parses the bond block line by line.
      * 
-     * @method bondBlock
-     * @param {string[]} lines - molfile line array
-     * @param {number} nAtoms - total number of atoms
-     * @param {number} nBonds - total number of bonds
-     * @returns array of bond objects
+     * @param {string[]} lines A molfile line array
+     * @param {number} nAtoms The total number of atoms
+     * @param {number} nBonds The total number of bonds
+     * @returns {object[]} associative array of bond objects
      */
     var bondBlock = function (lines, nAtoms, nBonds) {
         var bonds = [];
@@ -453,10 +427,13 @@ st.util.mol2svg = function (width, height) {
         for (var j = nAtoms + offset; j < nAtoms + nBonds + offset; j++) {
             var bond = lines[j].match(/\d+/g);
             bonds.push({
-                a1: parseInt(bond[0]) - 1,  // adjust to '0', atom counter starts at '1'
+                // adjust to '0', atom counter starts at '1'
+                a1: parseInt(bond[0]) - 1,  
                 a2: parseInt(bond[1]) - 1,
-                order: parseInt(bond[2]),   // values 1, 2, 3
-                stereo: parseInt(bond[3])   // values 0 (plain),1 (wedge),4 (wiggly),6 (hash)
+                // values 1, 2, 3
+                order: parseInt(bond[2]),
+                // values 0 (plain),1 (wedge),4 (wiggly),6 (hash)                
+                stereo: parseInt(bond[3])
             });
         }
         return bonds;
@@ -465,10 +442,9 @@ st.util.mol2svg = function (width, height) {
     /**
      * Parses the properties block line by line.
      * 
-     * @method propsBlock
-     * @param {string[]} lines - molfile line array
-     * @param {object[]} atoms - array of atom objects
-     * @param {number} nAtomsBonds - total number of atoms and bonds
+     * @param {string[]} lines A molfile line array
+     * @param {object[]} atoms An array of atom objects
+     * @param {number} nAtomsBonds The total number of atoms and bonds
      */
     var propsBlock = function (lines, atoms, nAtomsBonds) {
         var offset = 4; // the first three lines belong to the header block
@@ -492,16 +468,17 @@ st.util.mol2svg = function (width, height) {
      * by the given identifier. The linear d3 x- and y-scales are set 
      * to translate from the viewport coordinates to the mol coordinates.
      * 
-     * @method initSvg
-     * @param {object[]} atoms - array of atom objects
-     * @param {string} id - id of the element
-     * @returns initialized SVG element
+     * @param {object[]} atoms An array of atom objects
+     * @param {string} id An element identifier
+     * @returns {object} the initialized SVG element
      */
     var initSvg = function (atoms, el) {
-        var xExtrema = d3.extent(atoms, function (atom) { // x minimum and maximum
+        // x minimum and maximum
+        var xExtrema = d3.extent(atoms, function (atom) {
             return atom.x;
         });
-        var yExtrema = d3.extent(atoms, function (atom) { // y minimum and maximum
+        // y minimum and maximum
+        var yExtrema = d3.extent(atoms, function (atom) { 
             return atom.y;
         });
 
@@ -523,8 +500,8 @@ st.util.mol2svg = function (width, height) {
         // Y scale will fit all values within pixels h-0
         y = d3.scale.linear().domain([yExtrema[0], yExtrema[1]]).range([hp, 0]);
 
-        // add an SVG element with the desired dimensions and margin
-        // and center the drawing area
+        // add an SVG element with the desired dimensions
+        // and margin and center the drawing area
         var graph = el.append('svg:svg')
             .attr('width', wp + m[1] + m[3])
             .attr('height', hp + m[0] + m[2])
@@ -538,10 +515,9 @@ st.util.mol2svg = function (width, height) {
      * Draws the bonds onto the SVG element. Note that the bonds are drawn
      * first before anything else is added.
      * 
-     * @method drawBonds
-     * @param {object[]} atoms - array of atom objects
-     * @param {object[]} bonds - array of bond objects
-     * @param {object} graph - SVG element
+     * @param {object[]} atoms An array of atom objects
+     * @param {object[]} bonds An array of bond objects
+     * @param {object} graph A SVG element
      */
     var drawBonds = function (atoms, bonds, graph) {
         for (var i = 0; i < bonds.length; i++) {
@@ -580,7 +556,10 @@ st.util.mol2svg = function (width, height) {
                         [x2 + xOff, y2 + yOff],
                         [x2 - xOff, y2 - yOff]
                     ];
-                    graph.append('svg:path').attr('d', wedgeBond(xyData));
+                    graph.append('svg:path')
+                        .style('fill', 'none')
+                        .style('stroke-width', 1)
+                        .attr('d', wedgeBond(xyData));
                 } else if (bonds[i].stereo === 6) {     // single hash bond
                     off = 0.2;
                     xOff = off * (y2 - y1) / l;
@@ -596,7 +575,11 @@ st.util.mol2svg = function (width, height) {
                             );
                     }
 
-                    graph.append('svg:path').attr('d', hashBond(xyData)).attr('stroke', 'black');
+                    graph.append('svg:path')
+                        .style('fill', 'none')
+                        .style('stroke-width', 1)
+                        .attr('d', hashBond(xyData))
+                        .attr('stroke', 'black');
                 } else if (bonds[i].stereo === 4) {     // single wiggly bond
                     off = 0.2;
                     xOff = off * (y2 - y1) / l;
@@ -617,15 +600,18 @@ st.util.mol2svg = function (width, height) {
                         }
                     }
 
-                    graph.append('svg:path').attr('d', wigglyBond(xyData))
+                    graph.append('svg:path')
+                        .attr('d', wigglyBond(xyData))
                         .attr('fill', 'none')
+                        .style('stroke-width', 1)
                         .attr('stroke', 'black');
                 } else {                                // single plain bond
                     xyData = [
                         [x1, y1], [x2, y2]
                     ];
-                    graph.append('svg:path').attr('d', plainBond(xyData))
-                        .attr('stroke-width', '2')
+                    graph.append('svg:path')
+                        .attr('d', plainBond(xyData))
+                        .attr('stroke-width', '1')
                         .attr('stroke-linecap', 'round')
                         .attr('stroke-linejoin', 'round')
                         .attr('stroke', 'black');
@@ -639,10 +625,11 @@ st.util.mol2svg = function (width, height) {
                     [x1 - xOff, y1 - yOff], [x2 - xOff, y2 - yOff]
                 ];
                 graph.append('svg:path').attr('d', plainBond(xyData))
-                        .attr('stroke-width', '2')
-                        .attr('stroke-linecap', 'round')
-                        .attr('stroke-linejoin', 'round')
-                        .attr('stroke', 'black');
+                    .attr('stroke-width', '1')
+                    .style('fill', 'none')
+                    .attr('stroke-linecap', 'round')
+                    .attr('stroke-linejoin', 'round')
+                    .attr('stroke', 'black');
             } else if (bonds[i].order === 3) {          // triple bond
                 off = 0.15;
                 xOff = off * (y2 - y1) / l;
@@ -652,11 +639,12 @@ st.util.mol2svg = function (width, height) {
                     [x1 + xOff, y1 + yOff], [x2 + xOff, y2 + yOff],
                     [x1 - xOff, y1 - yOff], [x2 - xOff, y2 - yOff]
                 ];
-                graph.append('svg:path').attr('d', plainBond(xyData))
-                        .attr('stroke-width', '2')
-                        .attr('stroke-linecap', 'round')
-                        .attr('stroke-linejoin', 'round')
-                        .attr('stroke', 'black');
+                graph.append('svg:path')
+                    .attr('d', plainBond(xyData))
+                    .attr('stroke-width', '1')
+                    .attr('stroke-linecap', 'round')
+                    .attr('stroke-linejoin', 'round')
+                    .attr('stroke', 'black');
             }
         }
         avgL /= bonds.length; // get average bond length
@@ -664,27 +652,33 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * Draws the atoms onto the SVG element. Note that the atoms are drawn
-     * onto the bonds.
+     * on top of the bonds.
      * 
-     * @method drawAtoms
-     * @param {object[]} atoms - array of atom objects
-     * @param {number} avgL - average bond length
-     * @param {object} graph - SVG element
+     * @param {object[]} atoms An array of atom objects
+     * @param {number} avgL An average bond length
+     * @param {object} graph A SVG element
      */
     var drawAtoms = function (atoms, avgL, graph) {
         for (var i = 0; i < atoms.length; i++) {
             var atom = atoms[i];
             var atomCol = d3.rgb(atomColor[atom.symbol]);
-            var g = graph.append('svg:g').attr('transform', 'translate(' + x(atom.x) + ',' + y(atom.y) + ')');
-            g.append('svg:circle')                          // draw a circle underneath the text
-                .attr('r', Math.ceil(avgL / 3))             // hack: magic number for scaling
+            var g = graph.append('svg:g')
+                .attr('transform', 'translate(' + 
+                    x(atom.x) + ',' + y(atom.y) + ')');
+            // draw a circle underneath the text
+            g.append('svg:circle')
+                // hack: magic number for scaling
+                .attr('r', Math.ceil(avgL / 3))
                 .attr('fill', 'white')
                 .attr('opacity', '1');
-            g.append('text')                                // draw the text string
-                .attr('dy', Math.ceil(avgL / 4.5))          // hack: magic number for scaling
+            // draw the text string
+            g.append('text')                                
+                // hack: magic number for scaling
+                .attr('dy', Math.ceil(avgL / 4.5))          
                 .attr('text-anchor', 'middle')
                 .attr('font-family', 'sans-serif')
-                .attr('font-size', Math.ceil(avgL / 1.5))   // hack: magic number for scaling
+                // hack: magic number for scaling
+                .attr('font-size', Math.ceil(avgL / 1.5))   
                 .attr('fill', atomCol)
                 .text(atom.symbol);
 
@@ -723,13 +717,11 @@ st.util.mol2svg = function (width, height) {
     /**
      * Calculates the Euclidean distance between two points.
      * 
-     * @method distance
-     * @private
-     * @param {number} x1 - x value of first point
-     * @param {number} y1 - y value of first point
-     * @param {number} x2 - x value of second point
-     * @param {number} y2 - y value of second point
-     * @returns Euclidean distance
+     * @param {number} x1 A x value of first point
+     * @param {number} y1 A y value of first point
+     * @param {number} x2 A x value of second point
+     * @param {number} y2 A y value of second point
+     * @returns {number} the Euclidean distance
      */
     var distance = function (x1, y1, x2, y2) {
         return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
@@ -737,8 +729,6 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * d3 line function using the SVG path mini language to draw a plain bond.
-     * 
-     * @method plainBond
      */
     var plainBond = d3.svg.line()
         .interpolate(function (points) {
@@ -761,8 +751,6 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * d3 line function using the SVG path mini language to draw a wedge bond.
-     * 
-     * @method wedgeBond
      */
     var wedgeBond = d3.svg.line()
         .x(function (d) {
@@ -774,8 +762,6 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * d3 line function using the SVG path mini language to draw a hash bond.
-     * 
-     * @method hashBond
      */
     var hashBond = d3.svg.line()
         .interpolate(function (points) {
@@ -798,8 +784,6 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * d3 line function using the SVG path mini language to draw a wiggly bond.
-     * 
-     * @method wigglyBond
      */
     var wigglyBond = d3.svg.line()
         .interpolate('cardinal')
@@ -854,16 +838,15 @@ st.util.mol2svg = function (width, height) {
  * Helper function to create divs for the spinner animation (defined in css).
  *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.spinner
- * @param {string} el - an element id to append the spinner to
- * @return the spinner element
+ * @constructor
+ * @param {string} el An element identifier to append the spinner to
+ * @return {object} the spinner element
  */
 st.util.spinner = function (el) {
-    if ($('.st-spinner').length) {
-        console.log("SDF");
+    if ($('.st-spinner').length) { // singleton
         return $('.st-spinner');
     }
-    
+    // append the sub-divs to the spinner element
     $(el).append('<div class="st-spinner">' +
         '<div class="st-bounce1"></div>' + 
         '<div class="st-bounce2"></div>' +
@@ -873,14 +856,15 @@ st.util.spinner = function (el) {
     return $('.st-spinner');
 };
 /**
- * annotation stub.
+ * Enum for annotation types.
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @enum {string}
  */
 st.annotation = {
-    TOOLTIP: 'tooltip',
-    TOOLTIP_MOL: 'tooltip_mol',
-    ANNOTATION: 'annotation'
+    TOOLTIP: 'tooltip',         // tooltip text, plain text key value pairs
+    TOOLTIP_MOL: 'tooltip_mol', // tooltip molecule, resolves URLs to SDfiles
+    ANNOTATION: 'annotation'    // canvas annotation, drawn onto the canvas
 };
 /**
  * parser stub.
@@ -888,45 +872,62 @@ st.annotation = {
  * Parsers for input data should extend this stub.
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @constructor
  */
 st.parser = {};
 
+/**
+ * Incomplete rudimentary JCAMP-DX parser for PAC compressed files and 
+ * arrays of type ##XYDATA= (X++(Y..Y)).
+ *
+ * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @constructor
+ * @deprecated
+ * @param {string} url A url to the JCAMP-DX file
+ * @param {function} callback A callback function
+ */
 st.parser.jdx = function (url, callback) {
+    // d3 AJAX request to resolve the URL
     d3.text(url, function (jdx) {
+        // essential key definitions
         var LABEL = '##',
             END = 'END',
             XYDATA = 'XYDATA',
             YTABLE = '(X++(Y..Y))',
-            XFACTOR = 'XFACTOR',
+            //XFACTOR = 'XFACTOR',
             YFACTOR = 'YFACTOR',
             FIRSTX = 'FIRSTX',
-            LASTX = 'LASTX',
-            NPOINTS = 'NPOINTS';
+            LASTX = 'LASTX';
+            //NPOINTS = 'NPOINTS';
         
+        // the data store
         var objs = [];
+        // tmp helper objects
         var obj = {},
             data = false,
             points = [];
-            
+        // tmp helper objects
         var pair,
             key,
             pkey,
             value;
     
+        // split input text into separate lines
         var lines = jdx.split(/\r\n|\r|\n/g);
+        // iterate over all lines
         for (var i in lines) {
             var line = lines[i];
             if (line.indexOf(LABEL) === 0) {
-                pair = line.split(/=\s(.*)/);
-                if (pair.length < 2) {
+                pair = line.split(/=\s(.*)/); // split key-value pair
+                if (pair.length < 2) {        // sanity check
                     continue;
                 }
-                key = pair[0].slice(2);
-                value = pair[1].split(/\$\$(.*)/)[0].trim();
+                key = pair[0].slice(2);                     // parse key
+                value = pair[1].split(/\$\$(.*)/)[0].trim();// parse value
                 if (key === XYDATA && value === YTABLE) {
-                    data = true;
+                    data = true; // boolean flag whether this is a data table
                 } else if (key === END) {
-                    if (data) {
+                    if (data) {  // clean up after a data table has been parsed
                         if (parseFloat(obj[FIRSTX]) > 
                             parseFloat(obj[LASTX])) {
                             points.reverse();
@@ -1031,6 +1032,17 @@ function data () {
          */
         remove: function (x) {
             var ids = [];
+            if (!x) {
+                for (var i in this.raw.ids) {
+                    ids.push(i);
+                }
+                this.raw.ids = {};
+                this.raw.series = [];
+                this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+                this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+                return ids;
+            }
+            
             if (x instanceof Array) {
                 // TODO
             } else {
@@ -1785,127 +1797,153 @@ function array_fetch (json, array) {
 }
 
 /**
- * chart stub.
+ * Base chart to be extended by custom charts.
  *
- * Custom charts should extend this chart stub. Default options include x- and
- * y-labels, margins, and a title. 
- * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @constructor
+ * @returns {object} the base chart
  */
 st.chart = {};
 
 /**
- * Function returning the base chart object that should be extended or modified
- * in models extending the st.chart stub.
+ * Builds the base chart object that serves as base for custom charts.
  * 
- * @method chart
- * @returns the base chart object to be extended/modified
+ * @constructor
+ * @returns {object} the base chart
  */
 function chart () {
     return {
-        opts: {
-            title: '',
-            xlabel: '',
-            ylabel: '',
-            xreverse: false,
-            yreverse: false,
-            legend: false,
-            margins: [80, 80, 80, 120]
+        opts: { // chart options
+            title: '',          // chart title
+            xlabel: '',         // chart x-axis label
+            ylabel: '',         // chart y-axis label
+            xreverse: false,    // whether to reverse the x-axis
+            yreverse: false,    // whether to reverse the y-axis
+            legend: false,      // whether to display the legend
+            margins: [80, 80, 80, 120]  // canvas margins: t, r, b, l
         },
         
+        // internal data binding: references the data set
         data: null,
+        // internal timeout object for async. requests
+        timeout: null,
+        // internal color chooser
         colors: st.util.colors(),
+        // SDfile SVG renderer object set for an output of 250 px by 250 px
+        mol2svg: st.util.mol2svg(250, 250),
         
         /**
-         * Sets the title option.
+         * Sets the chart title option.
          *
-         * @param {string} x - a title 
-         * @returns the chart object
+         * @param {string} title A chart title 
+         * @returns {object} the base chart
          */
-        title: function (x) {
-            this.opts.title = x;
+        title: function (title) {
+            this.opts.title = title;
             return this;
         },
         
         /**
-         * Sets the x label option.
+         * Sets the chart x-axis label option.
          *
-         * @param {string} x - a x label
-         * @returns the chart object
+         * @param {string} xlabel A x-axis label
+         * @returns {object} the base chart
          */
-        xlabel: function (x) {
-            this.opts.xlabel = x;
+        xlabel: function (xlabel) {
+            this.opts.xlabel = xlabel;
             return this;
         },
         
         /**
-         * Sets the y label option.
+         * Sets the chart y-axis label option.
          *
-         * @param {string} y - a y label
-         * @returns the chart object
+         * @param {string} ylabel A y-axis label
+         * @returns {object} the base chart
          */
-        ylabel: function (x) {
-            this.opts.ylabel = x;
+        ylabel: function (ylabel) {
+            this.opts.ylabel = ylabel;
             return this;
         },
         
         /**
-         * Sets the x reverse axis option.
+         * Sets whether to reverse the x-axis.
          *
-         * @param {string} x - whether to reverse the x axis
-         * @returns the chart object
+         * @param {boolean} reverse Whether to reverse the x-axis
+         * @returns {object} the base chart
          */
-        xreverse: function (x) {
-            this.opts.xreverse = x;
+        xreverse: function (reverse) {
+            this.opts.xreverse = reverse;
             return this;
         },
         
         /**
-         * Sets the y reverse axis option.
+         * Sets whether to reverse the y-axis.
          *
-         * @param {string} x - whether to reverse the y axis
-         * @returns the chart object
+         * @param {boolean} reverse Whether to reverse the y-axis
+         * @returns {object} the base chart
          */
-        yreverse: function (x) {
-            this.opts.yreverse = x;
+        yreverse: function (reverse) {
+            this.opts.yreverse = reverse;
             return this;
         },
         
         /**
-         * Sets the legend option.
+         * Sets whether to display the legend.
          *
-         * @param {boolean} x - whether to display a legend
-         * @returns the chart object
+         * @param {boolean} display Whether to display the legend
+         * @returns {object} the base chart
          */
-        legend: function (x) {
-            this.opts.legend = x;
+        legend: function (display) {
+            this.opts.legend = display;
             return this;
         },
         
         /**
-         * Sets the margins option.
+         * Sets the chart margins.
          *
-         * @param {int[]} x - the margins: [top, right, bottom, left]
-         * @returns the chart object
+         * @param {int[]} margs The margins: top, right, bottom, left
+         * @returns {object} the base chart
          */
-        margins: function (x) {
-            this.opts.margins = x;
+        margins: function (margs) {
+            this.opts.margins = margs;
             return this;
         },
         
         /**
-         * Renders the base chart to the container.
+         * Renders the base chart to the target div.
          *
-         * @params {string} x - the id of the container
+         * <div id="stgraph" class="stgraph">
+         *
+         * |-----------------------------------|
+         * |Panel                              |
+         * |   |----------------------| Legend |
+         * |   |Canvas                |  s1    |
+         * |   |        ..            |  s2    |
+         * |   |      .    .          |        |
+         * |   |     .     .          |        |
+         * |   |    .       ..        |        |
+         * |   |  ..          ...     |        |
+         * |   |----------------------|        |
+         * |                                   |
+         * |-----------------------------------|
+         * 
+         * </div>
+         *
+         * @params {string} x The id of the div
          */
         render: function (x) {
+            // reference id of the div
             this.target = x;
+            // get margin option...
             var margins = this.opts.margins;
+            // ...calculate width and height of the canvas inside the panel
             this.width = $(x).width() - margins[1] - margins[3];
             this.height = $(x).height() - margins[0] - margins[2];
         
+            // self-reference for nested functions
             var chart = this;
             
+            // create the panel SVG element and define the base zoom behavior
             this.panel = d3.select(x)
                 .append('svg:svg')
                 .attr('class', 'st-base')
@@ -1927,11 +1965,13 @@ function chart () {
                     chart.mouseDbl();
                 });
                 
+            // append the chart canvas as group within the chart panel
             this.canvas = this.panel
-                .append('svg:g') // append plot group within chart canvas
-                .attr('transform', 'translate(' + margins[3] + ',' + margins[0] + ')');
+                .append('svg:g')
+                .attr('transform', 'translate(' + 
+                    margins[3] + ',' + margins[0] + ')');
 
-            // add SVG clip path
+            // add the SVG clip path on top of the canvas
             this.canvas.append('svg:clipPath')
                 .attr('id', 'clip-' + this.target)
                 .append('svg:rect')
@@ -1940,7 +1980,7 @@ function chart () {
                 .attr('width', this.width)
                 .attr('height', this.height);
 
-            // add selection rectangle
+            // add a hidden selection rectangle
             this.selection = this.canvas.append('svg:rect')
                 .attr('class', 'st-selection')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
@@ -1951,20 +1991,20 @@ function chart () {
                 .style('pointer-events', 'none')
                 .attr('display', 'none');
 
-            // container for x and y scale
+            // scale object with initial d3 x- and y-scale functions
             this.scales = {};
-            if (this.opts.xreverse) {
+            if (this.opts.xreverse) {   // check whether axis is reversed...
                 this.scales.x = d3.scale.linear()
-                    .domain([1, 0])
+                    .domain([1, 0])      // ...invert the x-domain limits
                     .range([0, this.width])
             } else {
                 this.scales.x = d3.scale.linear()
                     .domain([0, 1])
                     .range([0, this.width])
             }
-            if (this.opts.yreverse) {
+            if (this.opts.yreverse) {   // check whether axis is reversed...
                 this.scales.y = d3.scale.linear()
-                    .domain([1, 0])
+                    .domain([1, 0])      // ...invert the y-domain limits
                     .range([this.height, 0])
             } else {
                 this.scales.y = d3.scale.linear()
@@ -1972,12 +2012,33 @@ function chart () {
                     .range([this.height, 0])
             }
             
-            // define custom behavior
+            // add a hidden div that serves as tooltip
+            this.tooltips = d3.select(x).append('div')
+                .attr('width', $(x).width())
+                .attr('height', $(x).height())
+                .style('pointer-events', 'none')
+                .attr('class', 'st-tooltips')
+                .style('position', 'absolute')
+                .style('opacity', 0);
+            // split the tooltip div into a key-value pair section for
+            // annotations of type st.annotation.TOOLTIP...
+            this.tooltips.append('div')
+                .attr('id', 'tooltips-meta')
+                .style('height', '50%')
+                .style('width', '100%');
+            // ...and a section for molecules resolved through URLs pointing
+            // to SDfiles for annotations of type st.annotation.TOOLTIP_MOL
+            this.tooltips.append('div')
+                .attr('id', 'tooltips-mol')
+                .style('height', '50%')
+                .style('width', '100%');
+            
+            // implement custom behavior if defined in the extension
             if (typeof this.behavior == 'function') {
                 this.behavior();
             }
             
-            // define and render axis
+            // define and render the x- and y-axis
             this.renderAxes();
             
             // draw the title
@@ -1993,42 +2054,45 @@ function chart () {
         },
         
         /**
-         * Defines and renders the axes (direction, tick marks, etc.).
+         * Defines and renders the x- and y-axis (direction, tick marks, etc.).
          * Axes follow standard cartesian coordinate conventions.
          */
         renderAxes: function () {
             var margins = this.opts.margins;
+            // format numbers to four decimals: 1.2345678 to 1.2346
             var xFormat = d3.format('.4g');
+            // format numbers to two decimals: 1.2345678 to 1.23
             var yFormat= d3.format(',.2g');
             
-            this.xaxis = d3.svg.axis()
+            this.xaxis = d3.svg.axis()  // define the x-axis
                 .scale(this.scales.x)
                 .ticks(6)
                 .tickSubdivide(true)
                 .tickFormat(xFormat)
                 .orient('bottom');
-            this.yaxis = d3.svg.axis().scale(this.scales.y)
+            this.yaxis = d3.svg.axis()  // define the y-axis
+                .scale(this.scales.y)
                 .ticks(4)
                 .tickFormat(yFormat)
                 .orient('left');
 
-            this.canvas.append('svg:g')
+            this.canvas.append('svg:g') // draw the x-axis
                 .attr('class', 'st-xaxis')
                 .attr('transform', 'translate(0,' + this.height + ')')
                 .call(this.xaxis);
-            this.canvas.append('svg:g')
+            this.canvas.append('svg:g') // draw the y-axis
                 .attr('class', 'st-yaxis')
                 .attr('transform', 'translate(-25, 0)')
                 .call(this.yaxis);
 
-            if (this.opts.xlabel !== '') {
+            if (this.opts.xlabel !== '') {  // draw x-label if defined
                 this.panel.select('.st-xaxis').append('text')
                     .text(this.opts.xlabel)
                     .attr('text-anchor', 'middle')
                     .attr('x', this.width / 2)
                     .attr('y', margins[2] / 2);
             }
-            if (this.opts.ylabel !== '') {
+            if (this.opts.ylabel !== '') {  // draw y-label if defined
                 this.panel.select('.st-yaxis').append('text')
                     .text(this.opts.ylabel)
                     .attr('transform', 'rotate (-90)')
@@ -2039,18 +2103,18 @@ function chart () {
         },
         
         /**
-         * Defines default action for mouse down events.
+         * Defines the default zoom action for mouse down events.
          * 
-         * @param event - mouse event
+         * @param {object} event A mouse event
          */
         mouseDown: function (event) {
-            var p = d3.mouse(event);
+            var p = d3.mouse(event);            // get the mouse position
             var left = this.opts.margins[3];
             var top = this.opts.margins[0];
-            this.panel.select('.st-selection')
-                .attr('x', p[0] - left)
-                .attr('xs', p[0] - left)
-                .attr('y', p[1] - top)
+            this.panel.select('.st-selection')  // set the selection rectangle
+                .attr('x', p[0] - left)         // to the mouse position on
+                .attr('xs', p[0] - left)        // the canvas and make the sel-
+                .attr('y', p[1] - top)          // ection rectangle visible
                 .attr('ys', p[1] - top)
                 .attr('width', 1)
                 .attr('height', 1)
@@ -2058,42 +2122,47 @@ function chart () {
         },
 
         /**
-         * Defines default action for mouse move events.
+         * Defines the default zoom action for mouse move events.
          * 
-         * Updates the selection rectangle if visible.
-         * 
-         * @param event - mouse event
+         * @param {object} event A mouse event
          */
         mouseMove: function (event) {
+            // get the selection rectangle
             var s = this.panel.select('.st-selection')
-            if (s.attr('display') === 'inline') {
+            if (s.attr('display') === 'inline') { // proceed only if visible
+                // get the corected mouse position on the canvas
                 var pointerX = d3.mouse(event)[0] - this.opts.margins[3],
                     pointerY = d3.mouse(event)[1] - this.opts.margins[0],
+                    // get the width and height of the selection rectangle
                     anchorWidth = parseInt(s.attr('width'), 10),
                     anchorHeight = parseInt(s.attr('height'), 10),
+                    // get the distance between the selection rectangle start
+                    // coordinates and the corrected mouse position
                     pointerMoveX = pointerX - parseInt(s.attr('x'), 10),
                     pointerMoveY = pointerY - parseInt(s.attr('y'), 10),
+                    // get the original start coordinates of the rectangle
                     anchorXS = parseInt(s.attr('xs'), 10),
                     anchorYS = parseInt(s.attr('ys'), 10);
                 
-                if ((pointerMoveX < 0 && pointerMoveY < 0)
+                // update the selection rectangle...
+                if ((pointerMoveX < 0 && pointerMoveY < 0) // ...quadrant II
                     || (pointerMoveX * 2 < anchorWidth
                     && pointerMoveY * 2 < anchorHeight)) {
                     s.attr('x', pointerX);
                     s.attr('width', anchorXS - pointerX);
                     s.attr('y', pointerY);
                     s.attr('height', anchorYS - pointerY);
-                } else if (pointerMoveX < 0
+                } else if (pointerMoveX < 0                 // ...quadrant I
                     || (pointerMoveX * 2 < anchorWidth)) {
                     s.attr('x', pointerX);
                     s.attr('width', anchorXS - pointerX);
                     s.attr('height', pointerMoveY);
-                } else if (pointerMoveY < 0
+                } else if (pointerMoveY < 0                 // ...quadrant I
                     || (pointerMoveY * 2 < anchorHeight)) {
                     s.attr('y', pointerY);
                     s.attr('height', anchorYS - pointerY);
                     s.attr('width', pointerMoveX);
-                } else {
+                } else {                                    // ...quadrant IV
                     s.attr('width', pointerMoveX);
                     s.attr('height', pointerMoveY);
                 }
@@ -2101,54 +2170,67 @@ function chart () {
         },
 
         /**
-         * Defines default action for mouse up events.
-         * 
-         * Zooms to the selected area in x and y.
+         * Defines the default zoom action for mouse up events.
          */
         mouseUp: function () {
-            var tolerance = 5; // px threshold for selections
+            // px threshold for selections
+            var tolerance = 5; 
+            // get the selection rectangle
             var selection = this.panel.select('.st-selection');
+            
+            // check if the px threshold has been exceeded in x and y
             if (parseInt(selection.attr('width')) > tolerance
                 && parseInt(selection.attr('height')) > tolerance) {
+                // get the start coordinates of the rectangle
                 var x = parseFloat(selection.attr('x'));
                 var y = parseFloat(selection.attr('y'));
+                // get the width and height of the selection rectangle
                 var width = parseFloat(selection.attr('width'));
                 var height = parseFloat(selection.attr('height'));
-
+                
+                // convert the width and height to the domain range
                 width = this.scales.x.invert(x + width);
                 height = this.scales.y.invert(y + height);
-
+                // convert the start coordinates to the domain range
                 x = this.scales.x.invert(x);
                 y = this.scales.y.invert(y);
 
-                if (height < 0) {
+                if (height < 0) { // sanity check
                     height = 0;
                 }
 
+                // rescale the x and y domain based on the new values
                 this.scales.x.domain([x, width]).nice();
                 this.scales.y.domain([height, y]).nice();
                 
+                // clean up: hide the selection rectangle
                 selection.attr('display', 'none');
+                // clean up: re-draw the x- and y-axis
                 this.canvas.select('.st-xaxis').call(this.xaxis);
                 this.canvas.select('.st-yaxis').call(this.yaxis);
-                
-                if (typeof this.renderdata == 'function' && this.data !== null) {
+                // clean up: re-draw the data set
+                if (typeof this.renderdata == 'function' && 
+                    this.data !== null) {
                     this.renderdata();
                 }
             } else {
+                // hide the selection rectangle
                 selection.attr('display', 'none');
             }
         },
         
         /**
-         * Defines default action for mouse out events.
-         * 
-         * Resets the selection rectangle.
+         * Defines the default zoom action for mouse out events.
          */
         mouseOut: function(event) {
+            // get the selection rectangle
             var selection = this.panel.select('.st-selection');
+            // get the mouse position
             var pointerX = d3.mouse(event)[0],
                 pointerY = d3.mouse(event)[1];
+            
+            // hide the selection rectangle if the
+            // mouse has left the panel of the chart
             if (pointerX < 0 || pointerY < 0 ||
                 pointerX > $(this.target).width() ||
                 pointerY > $(this.target).height()) {
@@ -2157,12 +2239,10 @@ function chart () {
         },
 
         /**
-         * Defines default action for mouse double-click events.
-         * 
-         * Resets the chart zoom in x and y to 100%.
+         * Defines the default zoom action for mouse double-click events.
          */
         mouseDbl: function () {
-            if (this.data === null) {
+            if (this.data === null) {   // default for empty charts
                 var xdom = st.util.domain(this.scales.x, [0, 1]);
                 var ydom = st.util.domain(this.scales.y, [0, 1]);
                 this.scales.x.domain(xdom).nice();
@@ -2172,14 +2252,16 @@ function chart () {
                 return;
             }
             
+            // reset the global x and y domain limits
             var gxlim = st.util.domain(this.scales.x, this.data.raw.gxlim);
             var gylim = st.util.domain(this.scales.y, this.data.raw.gylim);
+            // rescale the x and y domains
             this.scales.x.domain(gxlim).nice();
             this.scales.y.domain(gylim).nice();
-
+            // re-draw the x- and y-axis
             this.canvas.select('.st-xaxis').call(this.xaxis);
             this.canvas.select('.st-yaxis').call(this.yaxis);
-            
+            // re-draw the data set
             if (typeof this.renderdata == 'function') {
                 this.data.reset();
                 this.renderdata();
@@ -2187,49 +2269,166 @@ function chart () {
         },
         
         /**
+         * Defines the default tooltip action for mouse over events.
+         * 
+         * @param {object} event A mouse event
+         * @param {object} d A series data point
+         * @param {string[]} accs A series data point accessor array
+         */
+        mouseOverAction: function (event, d, accs) {
+            this.tooltips   // show the tooltip
+                .style('display', 'inline');
+            this.tooltips   // fade in the tooltip
+                .transition()
+                .duration(300)
+                .style('opacity', 0.9);
+            // format numbers to two decimals: 1.2345678 to 1.23
+            var format = d3.format('.2f');
+            // get the mouse position of the event on the panel
+            var pointer = d3.mouse(event);
+            
+            // get the translated transformation matrix...
+            var matrix = event.getScreenCTM()
+                .translate(+pointer[0], +pointer[1]);
+            // ...to adjust the x- and y-position of the tooltip
+            this.tooltips
+                .style('left', (window.pageXOffset + matrix.e + 10) + 'px')
+                .style('top', (window.pageYOffset + matrix.f - 10) + 'px')
+                .style('opacity', 0.9)
+                .style('border', 'dashed')
+                .style('border-width', '1px')
+                .style('padding', '3px')
+                .style('border-radius', '10px')
+                .style('background-color', 'white');
+            var x = format(d[accs[0]]); // format the x value
+            var y = format(d[accs[1]]); // format the y value
+            // add the x and y value to the tooltip HTML
+            d3.selectAll('#tooltips-meta').html(
+                this.opts.xlabel + ': ' + 
+                x + '<br/>' + this.opts.ylabel + ': ' + y + '<br/>'
+            );
+            // self-reference for nested functions
+            var chart = this;
+            // check whether tooltips are assigned to the series point
+            if (d.tooltip || d.tooltipmol) {
+                // copy the tooltip-meta sub-div 
+                var tooltip = d3.selectAll('#tooltips-meta').html();
+                // add the tooltip key-value pairs to the tooltip HTML
+                for (var key in d.tooltip) {
+                    tooltip += key + ': ' + d.tooltip[key] + '<br/>';
+                }
+                // add the HTML string to the tooltip
+                d3.selectAll('#tooltips-meta').html(tooltip + '<br/>');
+                // initiate the spinner on the tooltip-mol sub-div 
+                var spinner = st.util.spinner('#tooltips-meta');
+                // wait 500 ms before XHR is executed
+                this.timeout = setTimeout(function () {
+                    // hide the spinner
+                    spinner.css('display', 'none');
+                    // resolve all SDfile URLs one by one 
+                    for (var molkey in d.tooltipmol) {
+                        var moldivid = '#tooltips-mol-' + molkey;
+                        var moldiv = d3.selectAll('#tooltips-mol')
+                            .append('div')
+                            .attr('id', 'tooltips-mol-' + molkey)
+                            .style('float', 'left')
+                            .style('height', '100%')
+                            .style('width', '50%');
+                        // draw to the tooltip-mol sub-div and assign a title
+                        d3.selectAll(moldivid).html(
+                            '<em>' + molkey + '</em><br/>'
+                        );
+                        chart.mol2svg.draw(d.tooltipmol[molkey], moldivid);
+                    }
+                }, 500);
+            } else {
+                // clear the tooltip-mol sub-div 
+                d3.selectAll('#tooltips-mol').html('');
+            }
+        },
+        
+        /**
+         * Defines the default tooltip action for mouse out events.
+         */
+        mouseOutAction: function () {
+            // clear any timeout from an async. request
+            clearTimeout(this.timeout);
+            // clear the tooltip-mol sub-div 
+            d3.selectAll('#tooltips-mol').html('');
+            this.tooltips   // fade the tooltip
+                .transition()
+                .duration(300)
+                .style('opacity', 0);
+            this.tooltips   // hide the tooltip
+                .style('display', 'none');
+        },
+        
+        /**
          * Draws the chart legend in the top right corner.
          */
         renderLegend: function () {
+            // remove the current legend
             this.canvas.select('.st-legend').remove();
+            // create a new group element for the data series records
             var legend = this.canvas.append('g')
                 .attr('class', 'st-legend')
                 .style('cursor', 'pointer');
+                
+            // self-reference for nested functions
             var colors = this.colors;
+            // self-reference for nested functions
             var chart = this;
+            
+            // iterate over all data series
             for (var i = 0; i < this.data.raw.series.length; i++) {
+                // get the series identifier
                 var id = this.data.raw.series[i].id;
+                // get the series title
                 var title = this.data.raw.series[i].title;
+                
+                // create a new group element for each series
                 var lg = legend.append('g').attr('stid', id);
-                lg.append('svg:rect')
+                lg.append('svg:rect')   // append the legend symbol
                     .attr('x', this.width + 5)
                     .attr('y', function () { return i * 20; })
                     .attr('width', 10)
                     .attr('height', 10)
                     .style('fill', function () { return colors.get(id); });
-                lg.append('text')
+                lg.append('text')       // append the data series's legend text
                     .attr('x', this.width + 20)
                     .attr('y', function () { return i * 20 + 9; })
                     .text(function () {
-                        var text = title;
-                        return text;
+                        return title;
                     });
-                lg.on('mouseover', function() {
+                // define series highlights on mouse over events
+                lg.on('mouseover', function() { 
+                    // select the series
                     d3.select(this).style('fill', 'red');
                     var selectid = d3.select(this).attr('stid');
-                    chart.canvas.selectAll('.' + selectid).style('stroke-width', 2);
+                    // highlight the selected series
+                    chart.canvas.selectAll('.' + selectid)
+                        .style('stroke-width', 2);
+                    // fade all other series
                     for (var dataid in chart.data.raw.ids) {
                         if (dataid !== selectid) {
-                            chart.canvas.selectAll('.' + dataid).style('opacity', 0.1);
+                            chart.canvas.selectAll('.' + dataid)
+                                .style('opacity', 0.1);
                         }
                     }
                 })
+                // define series highlight removal on mouse out events
                 lg.on('mouseout', function() {
+                    // select the series
                     d3.select(this).style('fill', 'black');
                     var selectid = d3.select(this).attr('stid');
-                    chart.canvas.selectAll('.' + selectid).style('stroke-width', 1);
+                    // reset the selected series
+                    chart.canvas.selectAll('.' + selectid)
+                        .style('stroke-width', 1);
+                    // reset all other series
                     for (var dataid in chart.data.raw.ids) {
                         if (dataid !== selectid) {
-                            chart.canvas.selectAll('.' + dataid).style('opacity', 1);
+                            chart.canvas.selectAll('.' + dataid)
+                                .style('opacity', 1);
                         }
                     }
                 })
@@ -2237,36 +2436,41 @@ function chart () {
         },
         
         /**
-         * Loads and associdates the data container with the chart.
+         * Loads and binds the data set to the chart.
          *
-         * @param {object} data - the data container
+         * @param {object} data A data set
          */
         load: function (data) {
-            var chart = this;
-            this.data = data; // associate with the chart
-            var oldadd = data.add;
-            data.add = function() {
-                oldadd.apply(this, arguments);
-                chart.data.push(function () {    // callback
+            var chart = this;       // self-reference for nested functions
+            this.data = data;       // associate with the chart
+            var oldadd = data.add;  // copy of the old function
+            data.add = function() { // redefine
+                oldadd.apply(this, arguments);   // execute old copy
+                chart.data.push(function () {    // define callback
                     chart.xscale();              // rescale x
                     chart.yscale();              // rescale y
-                    chart.canvas.select('.st-xaxis').call(chart.xaxis); // draw
-                    chart.canvas.select('.st-yaxis').call(chart.yaxis); // draw
-                    chart.renderdata();         // draw data
+                    chart.canvas.select('.st-xaxis')
+                        .call(chart.xaxis);     // draw the x-axis
+                    chart.canvas.select('.st-yaxis')
+                        .call(chart.yaxis);     // draw the y-axis
+                    chart.renderdata();         // draw the data set
                     if (chart.opts.legend) {
-                        chart.renderLegend();
+                        chart.renderLegend();   // draw the legend
                     }
                 });
             };
-            var oldremove = data.remove;
-            data.remove = function() {
-                var ids = oldremove.apply(this, arguments);
+            var oldremove = data.remove;    // copy of the old function
+            data.remove = function() {      // redefine
+                var ids = oldremove.apply(this, arguments); // execute old copy
+                // iterate over the identifiers of the removed series
                 for (var i in ids) {
+                    // remove color entries
                     chart.colors.remove(ids[i]);
+                    // remove associated SVG elements from the canvas
                     chart.canvas.selectAll('.' + ids[i]).remove();
                 }
                 if (chart.opts.legend) {
-                    chart.renderLegend();
+                    chart.renderLegend(); // redraw the legend
                 }
             };
         }
@@ -2274,11 +2478,12 @@ function chart () {
 }
 
 /**
- * Time series chart extending the base chart. 
+ * Default chart for continuous data (Chromatograms, UV/VIS, etc.). 
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.chart.series
- * @returns the time series chart
+ * @constructor
+ * @extends st.chart.chart
+ * @returns {object} the continuous data chart
  */
 st.chart.series = function () {
     var series = chart(); // create and extend base chart
@@ -2287,13 +2492,14 @@ st.chart.series = function () {
      * Rescales the x domain.
      */
     series.xscale = function () {
-        var array = this.data.raw.gxlim;
-        if (this.opts.xreverse) {
-            array = [
+        var array = this.data.raw.gxlim; // get global x-domain limits
+        if (this.opts.xreverse) {        // check whether axis is reversed...
+            array = [                    // ...invert the x-domain limits
                 array[1],
                 array[0]
             ];
         }
+        
         this.scales.x
             .domain(array)
             .nice();
@@ -2309,68 +2515,72 @@ st.chart.series = function () {
     };
     
     /**
-     * Adds utilities for custom behavior.
+     * Insertion point for custom behavior.
      */
     series.behavior = function () {
-        this.tooltips = this.panel.append('foreignObject')
-            .attr('width', $(this.target).width())
-            .attr('height', $(this.target).height())
-            .style('pointer-events', 'none')
-            .append('xhtml:div')
-            .attr('class', 'st-tooltips')
-            .style('position', 'absolute')
-            .style('opacity', 0);
-
-        this.tooltips.append('div')
-            .attr('id', 'tooltips-meta')
-            .style('height', '50%')
-            .style('width', '100%');
-
-        this.tooltips.append('div')
-            .attr('id', 'tooltips-mol')
-            .style('height', '50%')
-            .style('width', '100%');
-            
+        // define a text label for selected x values in the top left corner
         this.xpointer = this.panel.append('text')
             .attr('x', this.opts.margins[3])
             .attr('y', this.opts.margins[0])
             .attr('font-size', 'x-small')
-            .text('')
+            .text('');
+            
+        // self-reference for nested functions
         var chart = this;
+        // format numbers to four decimals: 1.2345678 to 1.2346
         var xFormat = d3.format('.4g');
+        // initialise the data set reference
         this.plotted = [];
+        
+        // define global mouse-move behavior on the panel
         this.panel.on('mousemove', function () {
+            // get the mouse position on the x scale
             var mousex = d3.mouse(this)[0] - chart.opts.margins[3];
+            // get the mouse position on the x domain
             var plotx = chart.scales.x.invert(mousex);
+            // get the series x domain limits
             var plotdomain = chart.scales.x.domain();
-            if (chart.opts.xreverse) {
-                var within = function () {
+            
+            if (chart.opts.xreverse) {      // check whether axis is reversed...
+                var within = function () {  // ...define boundary function this
                     return plotx < plotdomain[0] && plotx >= plotdomain[1];
                 }
-            } else {
-                var within = function () {
+            } else {                        
+                var within = function () {  // ...or that way
                     return plotx >= plotdomain[0] && plotx < plotdomain[1];
                 }
             }
+            
+            // check whether the mouse pointer event is within the canvas
             if (within()) {
+                // set text label value to the current formatted x value
                 chart.xpointer.text('x = ' + xFormat(plotx));
+                
+                // iterate over all data series and update the point trackers
                 for (var i = 0; i < chart.plotted.length; i++) {
+                    // get the series data accessors
                     var accs = chart.data.accs(i);
+                    // define the series bisector function for x values
                     var bisector = d3.bisector(function (d) {
                         return d[accs[0]];
                     }).left;
+                    // get the closest x index to the left 
+                    // of the mouse position in the x domain
                     var j = bisector(chart.plotted[i], plotx);
-                    if (j > chart.plotted[i].length - 1) {
+                    if (j > chart.plotted[i].length - 1) { // boundary check
                         j = chart.plotted[i].length - 1;
                     }
+                    // get the closest x value based on the retrieved index
                     var dp = chart.plotted[i][j];
-                    if (dp) {
+                    if (dp) { // if defined
+                        // get the mouse position on the y scale
                         var ploty = chart.scales.y(dp[accs[1]]);
-                        if (ploty < 0) {
+                        if (ploty < 0) {    // boundary check on chart ceiling
                             ploty = 0;
-                        } else if (ploty > chart.height) {
-                            ploty = chart.height;
+                        } else if (ploty > chart.height) { // boundary check...
+                            ploty = chart.height;          // ...on chart floor
                         }
+                        // update the point tracker with x and y
                         chart.canvas.select('.' + chart.data.id(i) + 'focus')
                             .attr('display', 'inline')
                             .attr('transform', 'translate(' + 
@@ -2378,9 +2588,10 @@ st.chart.series = function () {
                              ploty + ')');
                     }
                 }
-            } else {
-                chart.xpointer.text('');
-                for (var i = 0; i < chart.plotted.length; i++) {
+            } else { // the mouse pointer event is outside the canvas...
+                chart.xpointer.text(''); // ...reset the text label value
+                // and hide all point trackers for each series in the data set
+                for (var i = 0; i < chart.plotted.length; i++) { 
                     chart.canvas.select('.' + chart.data.id(i) + 'focus')
                         .attr('display', 'none');
                 }
@@ -2392,43 +2603,58 @@ st.chart.series = function () {
      * Renders the data.
      */
     series.renderdata = function () {
+        // get the binned data set for the current x-axis scale
         var data = this.data.bin(this.width, this.scales.x);
+        // reference the data set for use in series.behavior
         this.plotted = data;
+        // self-reference for nested functions
         var chart = this;
-        var format = d3.format('.2f');
+        // iterate over all data series
         for (var i = 0; i < data.length; i++) {
-            var series = data[i];
-            var id = this.data.id(i);
-            var accs = this.data.accs(i);
-            var line = d3.svg.line()
-                .interpolate('cardinal-open')
+            var series = data[i];           // get the series data
+            var id = this.data.id(i);       // get the series identifier
+            var accs = this.data.accs(i);   // get the series data accessors
+            var color = this.colors.get(id);// get the series color
+            
+            // define how the continuous line should be drawn
+            var line = d3.svg.line()        
+                .interpolate('cardinal-open') // use an open cardinal spline
                 .x(function (d) {
-                    return chart.scales.x(d[accs[0]]);
+                    return chart.scales.x(d[accs[0]]);  // x1 = x1
                 })
                 .y(function (d) {
-                    return chart.scales.y(d[accs[1]]);
+                    return chart.scales.y(d[accs[1]]);  // y1 = f(x1)
                 });
+                
+            // remove current SVG elements of the series's class
             this.canvas.selectAll('.' + id).remove();
+            // create a new group for SVG elements of this series
             var g = this.canvas.append('g')
                 .attr('class', id);
+            
+            // add a continuous line for each series
             g.append('svg:path')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
-                .style('stroke', this.colors.get(id))
+                .style('stroke', color)
+                .style('fill', 'none')
+                .style('stroke-width', 1)
                 .attr('d', line(series));
+            // add a single hidden circle element for point tracking
             g.append('svg:circle')
                 .attr('class', id + 'focus')
-                .style('stroke', this.colors.get(id))
+                .style('stroke', color)
                 .style('fill', 'none')
                 .attr('r', 3)
                 .attr('cx', 0)
                 .attr('cy', 0)
                 .attr('display', 'none')
+            // add hidden circle elements for highlighting
             g.selectAll('.' + id + '.circle').data(series)
                 .enter()
                 .append('svg:circle')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
-                .style('fill', this.colors.get(id))
-                .style('stroke', this.colors.get(id))
+                .style('fill', color)
+                .style('stroke', color)
                 .attr("opacity", 0)
                 .attr("r", 3)
                 .attr("cx", function (d) { 
@@ -2437,39 +2663,19 @@ st.chart.series = function () {
                 .attr("cy", function (d) { 
                     return chart.scales.y(d[accs[1]]) 
                 })
+            // define point mouse-over behavior
             .on('mouseover', function (d) {
+                // highlight the selected circle
                 d3.select(this).attr('opacity', 0.8);
-                var pointer = d3.mouse(this);
-                chart.tooltips
-                    .style('display', 'inline');
-                chart.tooltips
-                    .transition()
-                    .duration(300)
-                    .style('opacity', 0.9);
-                chart.tooltips
-                    .style('left', pointer[0] + chart.opts.margins[3] + 10 + 'px')
-                    .style('top', pointer[1] + chart.opts.margins[0] - 10 + 'px')
-                    .style('opacity', 0.9)
-                    .style('border', 'dashed')
-                    .style('border-width', '1px')
-                    .style('padding', '3px')
-                    .style('border-radius', '10px')
-                    .style('background-color', 'white');
-                var x = format(d[accs[0]]);
-                var y = format(d[accs[1]]);
-                d3.selectAll('#tooltips-meta').html(
-                    chart.opts.xlabel + ': ' + 
-                    x + '<br/>' + chart.opts.ylabel + ': ' + y
-                );
+                // call default action
+                chart.mouseOverAction(this, d, accs);
             })
+            // define point mouse-out behavior
             .on('mouseout', function () {
+                // remove the highlight for the selected circle
                 d3.select(this).attr('opacity', '0');
-                chart.tooltips
-                    .transition()
-                    .duration(300)
-                    .style('opacity', 0);
-                chart.tooltips
-                    .style('display', 'none');
+                // call default action
+                chart.mouseOutAction();
             });
         }
     };
@@ -2478,11 +2684,12 @@ st.chart.series = function () {
 };
 
 /**
- * Mass spectrometry chart extending the base chart. 
- * 
+ * Default chart for mass spectrometry spectra.
+ *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.chart.ms
- * @returns the mass spectrometry chart
+ * @constructor
+ * @extends st.chart.chart
+ * @returns {object} the mass spectrometry chart
  */
 st.chart.ms = function () {
     var ms = chart(); // create and extend base chart
@@ -2506,126 +2713,74 @@ st.chart.ms = function () {
     };
     
     /**
-     * Adds utilities for custom behavior.
+     * Insertion point for custom behavior.
      */
-    ms.behavior = function () { //d3.select(this.target).append('div')
-        this.tooltips = this.panel.append('foreignObject')
-            .attr('width', $(this.target).width())
-            .attr('height', $(this.target).height())
-            .style('pointer-events', 'none')
-            .append('xhtml:div')
-            .attr('class', 'st-tooltips')
-            .style('position', 'absolute')
-            .style('opacity', 0)
-            .style('useHTML', true);
-
-        this.tooltips.append('div')
-            .attr('id', 'tooltips-meta')
-            .style('height', '50%')
-            .style('width', '100%');
-
-        this.tooltips.append('div')
-            .attr('id', 'tooltips-mol')
-            .style('height', '50%')
-            .style('width', '100%');
+    ms.behavior = function () {
+        // nothing to do
     };
-   
-    // add the MDL molfile to SVG renderer   
-    ms.mol2svg = st.util.mol2svg(200, 200);
     
     /**
-     * Renders the data.
+     * Renders the data: defines how data points are drawn onto the canvas.
      */
     ms.renderdata = function () {
+        // get the binned data set for the current x-axis scale
         var data = this.data.bin(this.width, this.scales.x);
+        // self-reference for nested functions
         var chart = this;
-        var timeout;
-        var format = d3.format('.2f');
+        // iterate over all data series
         for (var i = 0; i < data.length; i++) {
-            var series = data[i];
-            var id = this.data.id(i);
-            var accs = this.data.accs(i);
+            var series = data[i];           // get the series data set
+            var id = this.data.id(i);       // get the series identifier
+            var accs = this.data.accs(i);   // get the series data accessors
+            var color = chart.colors.get(id)// get the series color
+            
+            // remove current SVG elements of the series's class
             this.canvas.selectAll('.' + id).remove();
+            // create a new group for SVG elements of this series
             var g = this.canvas.append('g')
                 .attr('class', id);
+                
+            // add 'signal spikes' (lines) for each point in the data set
             g.selectAll('.' + id + '.line').data(series)
                 .enter()
                 .append('svg:line')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .attr('x1', function (d) { 
-                    return chart.scales.x(d[accs[0]]);
+                    return chart.scales.x(d[accs[0]]);  // x1 = x1
                 })
                 .attr('y1', function (d) { 
-                    return chart.scales.y(d[accs[1]]);
+                    return chart.scales.y(d[accs[1]]);  // y1 = f(x1)
                 })
                 .attr('x2', function (d) { 
-                    return chart.scales.x(d[accs[0]]); 
+                    return chart.scales.x(d[accs[0]]);  // x2 = x1
                 })
-                .attr('y2', this.height)
-                .style('stroke', this.colors.get(id))
-                .each(function(d) {
-                    if (d.annotation) {
-                        g.append('text')
+                .attr('y2', this.height)                // y2 = 0
+                .style('stroke', color)  // color by id
+                .each(function(d) {      // address each point
+                    if (d.annotation) {  // check for on-canvas annotations...
+                        g.append('text') // ...append a SVG text element
                             .attr('class', id + '.anno')
                             .attr('x', chart.scales.x(d[accs[0]]))
                             .attr('y', chart.scales.y(d[accs[1]]) - 5)
                             .attr('text-anchor', 'middle')
                             .attr('font-size', 'small')
-                            .attr('fill', chart.colors.get(id))
+                            .attr('fill', color)
                             .text(d.annotation);
                     }
                 })
+            // define point mouse-over behavior
             .on('mouseover', function (d) {
+                // highlight the selected 'signal spike'
                 d3.select(this).style('stroke-width', 2);
-                var pointer = d3.mouse(this);
-                chart.tooltips
-                    .style('display', 'inline');
-                chart.tooltips
-                    .transition()
-                    .duration(300)
-                    .style('opacity', 0.9);
-                chart.tooltips
-                    .style('left', pointer[0] + chart.opts.margins[3] + 10 + 'px')
-                    .style('top', pointer[1] + chart.opts.margins[0] - 10 + 'px')
-                    .style('opacity', 0.9)
-                    .style('border', 'dashed')
-                    .style('border-width', '1px')
-                    .style('padding', '3px')
-                    .style('border-radius', '10px')
-                    .style('background-color', 'white');
-                var x = format(d[accs[0]]);
-                var y = format(d[accs[1]]);
-                d3.selectAll('#tooltips-meta').html(
-                    chart.opts.xlabel + ': ' + 
-                    x + '<br/>' + chart.opts.ylabel + ': ' + y + '<br/>'
-                );
-                if (d.tooltip || d.tooltipmol) {
-                    var tooltip = d3.selectAll('#tooltips-meta').html();
-                    for (var key in d.tooltip) {
-                        tooltip += key + ': ' + d.tooltip[key] + '<br/>';
-                    }
-                    d3.selectAll('#tooltips-meta').html(tooltip);
-                    for (var molkey in d.tooltipmol) {
-                        var spinner = st.util.spinner('#tooltips-mol');
-                        timeout = setTimeout(function () {
-                            spinner.css('display', 'none');
-                            chart.mol2svg.draw(d.tooltipmol[molkey], '#tooltips-mol');
-                        }, 500);
-                    }
-                } else {
-                    d3.selectAll('#tooltips-mol').html('');
-                }
+                // call default action
+                chart.mouseOverAction(this, d, accs);
             })
+            // define point mouse-out behavior
             .on('mouseout', function () {
-                clearTimeout(timeout);
-                d3.selectAll('#tooltips-mol').html('');
+                // remove the highlight for the selected 'signal spike'
                 d3.select(this).style('stroke-width', '1');
-                chart.tooltips
-                    .transition()
-                    .duration(300)
-                    .style('opacity', 0);
-                chart.tooltips
-                    .style('display', 'none');
+                // call default action
+                chart.mouseOutAction();
             });
         }
     };
@@ -2634,11 +2789,12 @@ st.chart.ms = function () {
 };
 
 /**
- * Infrared chart extending the base chart. 
+ * Default chart for infrared spectra. 
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.chart.series
- * @returns the IR chart
+ * @constructor
+ * @extends st.chart.chart
+ * @returns the infrared chart
  */
 st.chart.ir = function () {
     var ir = chart(); // create and extend base chart
@@ -2648,7 +2804,7 @@ st.chart.ir = function () {
      */
     ir.xscale = function () {
         this.scales.x
-            .domain([
+            .domain([   // invert the x-domain limits
                 this.data.raw.gxlim[1],
                 this.data.raw.gxlim[0]
             ])
@@ -2665,60 +2821,65 @@ st.chart.ir = function () {
     };
     
     /**
-     * Adds utilities for custom behavior.
+     * Insertion point for custom behavior.
      */
     ir.behavior = function () {
+        // invert the x-domain limits for initial chart setup
         this.scales.x.domain([1, 0]);
-        this.tooltips = this.panel.append('foreignObject')
-            .attr('width', $(this.target).width())
-            .attr('height', $(this.target).height())
-            .style('pointer-events', 'none')
-            .append('xhtml:div')
-            .attr('class', 'st-tooltips')
-            .style('position', 'absolute')
-            .style('opacity', 0);
-
-        this.tooltips.append('div')
-            .attr('id', 'tooltips-meta')
-            .style('height', '50%')
-            .style('width', '100%');
-
-        this.tooltips.append('div')
-            .attr('id', 'tooltips-mol')
-            .style('height', '50%')
-            .style('width', '100%');
         
+        // define a text label for selected x values in the top left corner
         this.xpointer = this.panel.append('text')
             .attr('x', this.opts.margins[3])
             .attr('y', this.opts.margins[0])
             .attr('font-size', 'x-small')
-            .text('')
+            .text('');
+            
+        // self-reference for nested functions
         var chart = this;
+        // format numbers to four decimals: 1.2345678 to 1.2346
         var xFormat = d3.format('.4g');
+        // initialise the data set reference
         this.plotted = [];
+        
+        // define global mouse-move behavior on the panel
         this.panel.on('mousemove', function () {
+            // get the mouse position on the x scale
             var mousex = d3.mouse(this)[0] - chart.opts.margins[3];
+            // get the mouse position on the x domain
             var plotx = chart.scales.x.invert(mousex);
+            // get the series x domain limits
             var plotdomainx = chart.scales.x.domain();
+            
+            // check whether the mouse pointer event is within the canvas
             if (plotx < plotdomainx[0] && plotx >= plotdomainx[1]) {
+                // set text label value to the current formatted x value
                 chart.xpointer.text('x = ' + xFormat(plotx));
+                
+                // iterate over all data series and update the point trackers
                 for (var i = 0; i < chart.plotted.length; i++) {
+                    // get the series data accessors
                     var accs = chart.data.accs(i);
+                    // define the series bisector function for x values
                     var bisector = d3.bisector(function (d) {
                         return d[accs[0]];
                     }).left;
+                    // get the closest x index to the left 
+                    // of the mouse position in the x domain
                     var j = bisector(chart.plotted[i], plotx);
-                    if (j > chart.plotted[i].length - 1) {
+                    if (j > chart.plotted[i].length - 1) { // boundary check
                         j = chart.plotted[i].length - 1;
                     }
+                    // get the closest x value based on the retrieved index
                     var dp = chart.plotted[i][j];
-                    if (dp) {
+                    if (dp) { // if defined
+                        // get the mouse position on the y scale
                         var ploty = chart.scales.y(dp[accs[1]]);
-                        if (ploty < 0) {
+                        if (ploty < 0) {    // boundary check on chart ceiling
                             ploty = 0;
-                        } else if (ploty > chart.height) {
-                            ploty = chart.height;
+                        } else if (ploty > chart.height) { // boundary check...
+                            ploty = chart.height;          // ...on chart floor
                         }
+                        // update the point tracker with x and y
                         chart.canvas.select('.' + chart.data.id(i) + 'focus')
                             .attr('display', 'inline')
                             .attr('transform', 'translate(' + 
@@ -2726,8 +2887,9 @@ st.chart.ir = function () {
                             ploty + ')');
                     }
                 }
-            } else {
-                chart.xpointer.text('');
+            } else { // the mouse pointer event is outside the canvas...
+                chart.xpointer.text(''); // ...reset the text label value
+                // and hide all point trackers for each series in the data set
                 for (var i = 0; i < chart.plotted.length; i++) {
                     chart.canvas.select('.' + chart.data.id(i) + 'focus')
                         .attr('display', 'none');
@@ -2740,14 +2902,21 @@ st.chart.ir = function () {
      * Renders the data.
      */
     ir.renderdata = function () {
+        // get the binned data set for the current x-axis scale
+        // param: true -> bin by y value minima
         var data = this.data.bin(this.width, this.scales.x, true);
+        // reference the data set for use in series.behavior
         this.plotted = data;
+        // self-reference for nested functions
         var chart = this;
-        var format = d3.format('.2f');
+        // iterate over all data series
         for (var i = 0; i < data.length; i++) {
-            var series = data[i];
-            var id = this.data.id(i);
-            var accs = this.data.accs(i);
+            var series = data[i];           // get the series data
+            var id = this.data.id(i);       // get the series identifier
+            var accs = this.data.accs(i);   // get the series data accessors
+            var color = this.colors.get(id);// get the series color
+            
+            // define how the continuous line should be drawn
             var line = d3.svg.line()
                 .interpolate('cardinal-open')
                 .x(function (d) {
@@ -2756,27 +2925,36 @@ st.chart.ir = function () {
                 .y(function (d) {
                     return chart.scales.y(d[accs[1]]);
                 });
+                
+            // remove current SVG elements of the series's class
             this.canvas.selectAll('.' + id).remove();
+            // create a new group for SVG elements of this series
             var g = this.canvas.append('g')
                 .attr('class', id);
+                
+            // add a continuous line for each series
             g.append('svg:path')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
-                .style('stroke', this.colors.get(id))
+                .style('stroke', color)
+                .style('fill', 'none')
+                .style('stroke-width', 1)
                 .attr('d', line(series));
+            // add a single hidden circle element for point tracking
             g.append('svg:circle')
                 .attr('class', id + 'focus')
-                .style('stroke', this.colors.get(id))
+                .style('stroke', color)
                 .style('fill', 'none')
                 .attr('r', 3)
                 .attr('cx', 0)
                 .attr('cy', 0)
                 .attr('display', 'none')
+            // add hidden circle elements for highlighting
             g.selectAll('.' + id + '.circle').data(series)
                 .enter()
                 .append('svg:circle')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
-                .style('fill', this.colors.get(id))
-                .style('stroke', this.colors.get(id))
+                .style('fill', color)
+                .style('stroke', color)
                 .attr("opacity", 0)
                 .attr("r", 3)
                 .attr("cx", function (d) { 
@@ -2785,39 +2963,19 @@ st.chart.ir = function () {
                 .attr("cy", function (d) { 
                     return chart.scales.y(d[accs[1]]) 
                 })
+            // define point mouse-over behavior
             .on('mouseover', function (d) {
+                // highlight the selected circle
                 d3.select(this).attr('opacity', 0.8);
-                var pointer = d3.mouse(this);
-                chart.tooltips
-                    .style('display', 'inline');
-                chart.tooltips
-                    .transition()
-                    .duration(300)
-                    .style('opacity', 0.9);
-                chart.tooltips
-                    .style('left', pointer[0] + chart.opts.margins[3] + 10 + 'px')
-                    .style('top', pointer[1] + chart.opts.margins[0] - 10 + 'px')
-                    .style('opacity', 0.9)
-                    .style('border', 'dashed')
-                    .style('border-width', '1px')
-                    .style('padding', '3px')
-                    .style('border-radius', '10px')
-                    .style('background-color', 'white');
-                var x = format(d[accs[0]]);
-                var y = format(d[accs[1]]);
-                d3.selectAll('#tooltips-meta').html(
-                    chart.opts.xlabel + ': ' + 
-                    x + '<br/>' + chart.opts.ylabel + ': ' + y
-                );
+                // call default action
+                chart.mouseOverAction(this, d, accs);
             })
+            // define point mouse-out behavior
             .on('mouseout', function () {
+                // remove the highlight for the selected circle
                 d3.select(this).attr('opacity', '0');
-                chart.tooltips
-                    .transition()
-                    .duration(300)
-                    .style('opacity', 0);
-                chart.tooltips
-                    .style('display', 'none');
+                // call default action
+                chart.mouseOutAction();
             });
         }
     };
@@ -2826,49 +2984,74 @@ st.chart.ir = function () {
 };
 
 /**
- * NMR chart extending the base chart. 
+ * Default chart for NMR spectra. 
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.chart.nmr
+ * @constructor
+ * @extends st.chart.chart
  * @returns the NMR chart
  */
 st.chart.nmr = function () {
     var nmr = chart(); // create and extend base chart
     
     /**
-     * Renders the base chart to the container.
+     * Renders the base chart to the target div.
      *
-     * @params {string} x - the id of the container
+     * <div id="stgraph" class="stgraph">
+     *
+     * |-----------------------------------|
+     * |Panel                              |
+     * |   |----------------------| Legend |
+     * |   |Canvas                |  s1    |
+     * |   |        ..            |  s2    |
+     * |   |      .    .          |        |
+     * |   |     .     .          |        |
+     * |   |    .       ..        |        |
+     * |   |  ..          ...     |        |
+     * |   |----------------------|        |
+     * |                                   |
+     * |-----------------------------------|
+     * 
+     * </div>
+     *
+     * @params {string} x The id of the div
      */
     nmr.render = function (x) {
+        // reference id of the div
         this.target = x;
+        // get margin option...
         var margins = this.opts.margins;
+        // ...calculate width and height of the canvas inside the panel
         this.width = $(x).width() - margins[1] - margins[3];
         this.height = $(x).height() - margins[0] - margins[2];
     
+        // self-reference for nested functions
         var chart = this;
 
-        // container for x and y scale
+        // scale object with initial d3 x- and y-scale functions
         this.scales = { 
             x: d3.scale.linear()
-                .domain([1, 0])
+                .domain([1, 0]) // invert the x-domain limits
                 .range([0, this.width]),
             y: d3.scale.linear()
                 .range([this.height, 0])
         };
         
+        // create the panel SVG element and define the base zoom behavior
         this.panel = d3.select(x)
             .append('svg:svg')
             .attr('class', 'st-base')
             .attr('width', this.width + margins[1] + margins[3])
-            .attr('height', this.height + margins[0] + margins[2]);    
-        init_mouse (chart);
-            
+            .attr('height', this.height + margins[0] + margins[2]);
+        // define the base zoom behavior
+        init_mouse(chart);
+         
+        // append the chart canvas as group within the chart panel
         this.canvas = this.panel
-            .append('svg:g') // append plot group within chart canvas
+            .append('svg:g')
             .attr('transform', 'translate(' + margins[3] + ',' + margins[0] + ')');
 
-        // add SVG clip path
+        // add the SVG clip path on top of the canvas
         this.canvas.append('svg:clipPath')
             .attr('id', 'clip-' + this.target)
             .append('svg:rect')
@@ -2877,7 +3060,7 @@ st.chart.nmr = function () {
             .attr('width', this.width)
             .attr('height', this.height);
 
-        // add selection rectangle
+        // add a hidden selection rectangle
         this.selection = this.canvas.append('svg:rect')
             .attr('class', 'st-selection')
             .attr('clip-path', 'url(#clip-' + this.target + ')')
@@ -2888,7 +3071,7 @@ st.chart.nmr = function () {
             .style('pointer-events', 'none')
             .attr('display', 'none');
         
-        // define and render axis
+        // define and render the x- and y-axis
         this.renderAxes();
         
         // draw the title
@@ -2902,7 +3085,7 @@ st.chart.nmr = function () {
                 .text(this.opts.title)
         }
             
-        // define custom behavior
+        // implement custom behavior if defined in the extension
         if (typeof this.behavior == 'function') {
             this.behavior();
         }
@@ -2931,26 +3114,27 @@ st.chart.nmr = function () {
     };
     
     /**
-     * Defines and renders the axes (direction, tick marks, etc.).
+     * Defines and renders the x-axis (direction, tick marks, etc.).
      * Axes follow standard cartesian coordinate conventions.
      */
     nmr.renderAxes = function () {
         var margins = this.opts.margins;
+        // format numbers to four decimals: 1.2345678 to 1.2346
         var xFormat = d3.format('.4g');
         
-        this.xaxis = d3.svg.axis()
+        this.xaxis = d3.svg.axis()  // define the x-axis
             .scale(this.scales.x)
             .ticks(6)
             .tickSubdivide(true)
             .tickFormat(xFormat)
             .orient('bottom');
 
-        this.canvas.append('svg:g')
+        this.canvas.append('svg:g') // draw the x-axis
             .attr('class', 'st-xaxis')
             .attr('transform', 'translate(0,' + this.height + ')')
             .call(this.xaxis);
 
-        if (this.opts.xlabel !== '') {
+        if (this.opts.xlabel !== '') {   // draw x-label if defined
             this.panel.select('.st-xaxis').append('text')
                 .text(this.opts.xlabel)
                 .attr('text-anchor', 'middle')
@@ -2960,36 +3144,41 @@ st.chart.nmr = function () {
     };
     
     /**
-     * Defines default action for mouse down events.
+     * Defines the default zoom action for mouse down events.
      * 
-     * @param event - mouse event
+     * @param {object} event A mouse event
      */
     nmr.mouseDown = function (event) {
         var p = d3.mouse(event);
         var left = this.opts.margins[3];
-        this.panel.select('.st-selection')
-            .attr('x', p[0] - left)
-            .attr('xs', p[0] - left)
-            .attr('width', 1)
+        this.panel.select('.st-selection')  // set the selection rectangle
+            .attr('x', p[0] - left)         // to the mouse position on
+            .attr('xs', p[0] - left)        // the canvas and make the sel-
+            .attr('width', 1)               // ection rectangle visible
             .attr('height', this.height)
             .attr('display', 'inline');
     };
     
     /**
-     * Defines default action for mouse move events.
+     * Defines the default zoom action for mouse move events.
      * 
-     * Updates the selection rectangle if visible.
-     * 
-     * @param event - mouse event
+     * @param {object} event A mouse event
      */
     nmr.mouseMove = function (event) {
+        // get the selection rectangle
         var s = this.panel.select('.st-selection')
-        if (s.attr('display') === 'inline') {
+        if (s.attr('display') === 'inline') { // proceed only if visible
+            // get the corected mouse position (x) on the canvas
             var pointerX = d3.mouse(event)[0] - this.opts.margins[3],
+                // get the width of the selection rectangle
                 anchorWidth = parseInt(s.attr('width'), 10),
+                // get the distance between the selection rectangle start
+                // coordinates and the corrected mouse position in x
                 pointerMoveX = pointerX - parseInt(s.attr('x'), 10),
+                // get the original start coordinates of the rectangle
                 anchorXS = parseInt(s.attr('xs'), 10);
-                
+             
+            // update the selection rectangle
             if (pointerMoveX < 1 && (pointerMoveX * 2) < anchorWidth) {
                 s.attr('x', pointerX);
                 s.attr('width', anchorXS - pointerX);
@@ -3000,56 +3189,64 @@ st.chart.nmr = function () {
     };
 
     /**
-     * Defines default action for mouse up events.
-     * 
-     * Zooms to the selected area in x and y.
-     * 
-     * @param event - mouse event
+     * Defines the default zoom action for mouse up events.
      */
     nmr.mouseUp = function () {
-        var tolerance = 5; // px threshold for selections
+        // px threshold for selections
+        var tolerance = 5;
+        // get the selection rectangle
         var selection = this.panel.select('.st-selection');
+        
+        // check if the px threshold has been exceeded in x
         if (parseInt(selection.attr('width')) > tolerance) {
+            // get the x start coordinate of the rectangle
             var x = parseFloat(selection.attr('x'));
+            // get the width of the selection rectangle
             var width = parseFloat(selection.attr('width'));
 
+            // convert the width to the domain range
             width = this.scales.x.invert(x + width);
-
+            // convert the x start coordinate to the domain range
             x = this.scales.x.invert(x);
+            
+            // rescale the x domain based on the new values
             this.scales.x.domain([x, width]).nice();
 
+            // clean up: hide the selection rectangle
             selection.attr('display', 'none');
+            // clean up: re-draw the x-axis
             this.canvas.select('.st-xaxis').call(this.xaxis);
-            
-            if (typeof this.renderdata == 'function' && this.data !== null) {
+            // clean up: re-draw the data set
+            if (typeof this.renderdata == 'function' && 
+                this.data !== null) {
                 this.renderdata();
             }
         } else {
+            // hide the selection rectangle
             selection.attr('display', 'none');
         }
     };
     
     /**
-     * Defines default action for mouse double-click events.
-     * 
-     * Resets the chart zoom in x and y to 100%.
+     * Defines the default zoom action for mouse double-click events.
      */
     nmr.mouseDbl = function () {
-        if (this.data === null) {
+        if (this.data === null) {   // default for empty charts
             this.scales.x.domain([1, 0]).nice();
             this.scales.y.domain([0, 1]).nice();
             this.canvas.select('.st-xaxis').call(this.xaxis);
             return;
         }
     
+        // rescale the x and y domains
         this.scales.x.domain([
             this.data.raw.gxlim[1],
             this.data.raw.gxlim[0]
         ]).nice();
         this.scales.y.domain(this.data.raw.gylim);
-
+        // re-draw the x-axis
         this.canvas.select('.st-xaxis').call(this.xaxis);
-        
+        // re-draw the data set
         if (typeof this.renderdata == 'function') {
             this.data.reset();
             this.renderdata();
@@ -3057,36 +3254,40 @@ st.chart.nmr = function () {
     };
     
     /**
-     * Loads and associdates the data container with the chart.
+     * Loads and binds the data set to the chart.
      *
-     * @param {object} data - the data container
+     * @param {object} data A data set
      */
     nmr.load = function (data) {
-        var chart = this;
-        this.data = data;
-        var oldadd = data.add;
-        data.add = function() {
-            oldadd.apply(this, arguments);
-            chart.data.push(function () {
-                chart.xscale();
-                chart.yscale();
-                init_mouse (chart);                
-                chart.canvas.select('.st-xaxis').call(chart.xaxis);            
-                chart.renderdata();
+        var chart = this;       // self-reference for nested functions
+        this.data = data;       // associate with the chart
+        var oldadd = data.add;  // copy of the old function
+        data.add = function() { // redefine
+            oldadd.apply(this, arguments);  // execute old copy
+            chart.data.push(function () {   // define callback
+                chart.xscale();             // rescale x
+                chart.yscale();             // rescale y
+                init_mouse (chart);         // re-initialise the mouse behavior      
+                chart.canvas.select('.st-xaxis')
+                    .call(chart.xaxis);     // draw the x-axis   
+                chart.renderdata();         // draw the data set
                 if (chart.opts.legend) {
-                    chart.renderLegend();
+                    chart.renderLegend();   // draw the legend
                 }
-                });
+            });
         };
-        var oldremove = data.remove;
-        data.remove = function() {
-            var ids = oldremove.apply(this, arguments);
+        var oldremove = data.remove;    // copy of the old function
+        data.remove = function() {      // redefine
+            var ids = oldremove.apply(this, arguments); // execute old copy
+            // iterate over the identifiers of the removed series
             for (var i in ids) {
+                // remove color entries
                 chart.colors.remove(ids[i]);
+                // remove associated SVG elements from the canvas
                 chart.canvas.selectAll('.' + ids[i]).remove();
             }
             if (chart.opts.legend) {
-                chart.renderLegend();
+                chart.renderLegend(); // redraw the legend
             }
         };
     };
@@ -3095,12 +3296,17 @@ st.chart.nmr = function () {
      * Renders the data.
      */
     nmr.renderdata = function () {
+        // get the binned data set for the current x-axis scale
         var data = this.data.bin(this.width, this.scales.x);
+        // self-reference for nested functions
         var chart = this;
+        // iterate over all data series
         for (var i = 0; i < data.length; i++) {
-            var series = data[i];
-            var id = this.data.id(i);
-            var accs = this.data.accs(i);
+            var series = data[i];           // get the series data
+            var id = this.data.id(i);       // get the series identifier
+            var accs = this.data.accs(i);   // get the series data accessors
+            
+            // define how the continuous line should be drawn
             var line = d3.svg.line()
                 .x(function (d) {
                     return chart.scales.x(d[accs[0]]);
@@ -3108,12 +3314,19 @@ st.chart.nmr = function () {
                 .y(function (d) {
                     return chart.scales.y(d[accs[1]]);
                 });
+                
+            // remove current SVG elements of the series's class
             this.canvas.selectAll('.' + id).remove();
+            // create a new group for SVG elements of this series
             var g = this.canvas.append('g')
                 .attr('class', id);
+            
+            // add a continuous line for each series
             g.append('svg:path')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .style('stroke', this.colors.get(id))
+                .style('fill', 'none')
+                .style('stroke-width', 1)
                 .attr('d', line(series));
         }
     };
@@ -3121,12 +3334,18 @@ st.chart.nmr = function () {
     return nmr;
 };
 
+/**
+ * Defines the base zoom behavior.
+ *
+ * @param {object} chart A chart object
+ */
 function init_mouse (chart) {
-    var mousewheel = d3.behavior.zoom()
+    var mousewheel = d3.behavior.zoom() // the mouse wheel zoom behavior
         .y(chart.scales.y)
         .center([0, chart.scales.y(0)])
         .on("zoom", function() {
-            if (typeof chart.renderdata == 'function' && chart.data !== null) {
+            if (typeof chart.renderdata == 'function' && 
+                chart.data !== null) {
                 chart.renderdata();
             }
         });
@@ -3149,11 +3368,12 @@ function init_mouse (chart) {
 }
 
 /**
- * 2D NMR chart extending the base chart. 
+ * Default chart for 2D NMR spectra. 
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.chart.nmr2d
- * @returns the 2d NMR chart
+ * @constructor
+ * @extends st.chart.chart
+ * @returns {object} the 2D NMR chart
  */
 st.chart.nmr2d = function () {
     var nmr2d = chart(); // create and extend base chart
@@ -3163,7 +3383,7 @@ st.chart.nmr2d = function () {
      */
     nmr2d.xscale = function () {
         this.scales.x
-            .domain([
+            .domain([   // invert the x-domain limits
                 this.data.raw.gxlim[1],
                 this.data.raw.gxlim[0]
             ])
@@ -3183,11 +3403,14 @@ st.chart.nmr2d = function () {
     };
     
     /**
-     * Adds utilities for custom behavior.
+     * Insertion point for custom behavior.
      */
     nmr2d.behavior = function () {
+        // invert the x- and y-domain limits for initial chart setup
         this.scales.x.domain([1, 0]);
         this.scales.y.domain([1, 0]);
+        
+        // append rectangle of width 1 to serve as ruler in x
         var selX = this.canvas.append('svg:rect')
             .attr('class', 'st-selection')
             .attr('y', 0)
@@ -3195,6 +3418,7 @@ st.chart.nmr2d = function () {
             .attr('height', this.height)
             .style('pointer-events', 'none')
             .attr('visibility', 'hidden');
+        // append rectangle of width 1 to serve as ruler in y
         var selY = this.canvas.append('svg:rect')
             .attr('class', 'st-selection')
             .attr('x', 0)
@@ -3202,21 +3426,27 @@ st.chart.nmr2d = function () {
             .attr('height', 1)
             .style('pointer-events', 'none')
             .attr('visibility', 'hidden');
+            
+        // self-reference for nested functions
         var that = this;
+        // define axis ruler actions for mouse move events
         d3.select('.st-base').on('mousemove', function () {
+            // get the corrected mouse position on the canvas
             var pointerX = d3.mouse(this)[0] - that.opts.margins[3];
             var pointerY = d3.mouse(this)[1] - that.opts.margins[0];
+            // whether the mouse event is outside the canvas...
             if (pointerX < 0 || pointerX > that.width
                 || pointerY < 0 || pointerY > that.height) {
                 selX.attr('visibility', 'hidden');
                 selY.attr('visibility', 'hidden');
+            // ...or inside the canvas: set rulers visible
             } else {
                 selX.attr('x', pointerX);
                 selY.attr('y', pointerY);
                 selX.attr('visibility', 'visible');
                 selY.attr('visibility', 'visible');
             }
-            })
+            }) // append invisible rectangle to capture ruler events
             .append('svg:rect')
             .attr('class', 'st-mouse-capture')
             .style('visibility', 'hidden')
@@ -3226,14 +3456,15 @@ st.chart.nmr2d = function () {
             .attr('height', this.height);
     };
     /**
-     * Defines and renders the axes (direction, tick marks, etc.).
+     * Defines and renders the x- and y-axis (direction, tick marks, etc.).
      * Axes follow standard cartesian coordinate conventions.
      */
     nmr2d.renderAxes = function () {
         var margins = this.opts.margins;
+        // format numbers to three decimals: 1.2345678 to 1.235
         var xFormat = d3.format('.3g');
         
-        this.xaxis = d3.svg.axis()
+        this.xaxis = d3.svg.axis()  // define the x-axis
             .scale(this.scales.x)
             .ticks(6)
             .tickSubdivide(true)
@@ -3241,30 +3472,31 @@ st.chart.nmr2d = function () {
             .tickSize(-this.height)
             .tickPadding(5)
             .orient('bottom');
-        this.yaxis = d3.svg.axis().scale(this.scales.y)
+        this.yaxis = d3.svg.axis()  // define the y-axis
+            .scale(this.scales.y)
             .ticks(6)
             .tickFormat(xFormat)
             .tickSize(-this.width)
             .tickPadding(5)
             .orient('right');
 
-        this.canvas.append('svg:g')
+        this.canvas.append('svg:g') // draw the x-axis
             .attr('class', 'st-xaxis')
             .attr('transform', 'translate(0,' + this.height + ')')
             .call(this.xaxis);
-        this.canvas.append('svg:g')
+        this.canvas.append('svg:g') // draw the y-axis
             .attr('class', 'st-yaxis')
             .attr('transform', 'translate(' + this.width + ',0)')
             .call(this.yaxis);
 
-        if (this.opts.xlabel !== '') {
+        if (this.opts.xlabel !== '') {  // draw x-label if defined
             d3.select('.st-xaxis').append('text')
                 .text(this.opts.xlabel)
                 .attr('text-anchor', 'middle')
                 .attr('x', this.width / 2)
                 .attr('y', margins[2] / 2);
         }
-        if (this.opts.ylabel !== '') {
+        if (this.opts.ylabel !== '') {  // draw y-label if defined
             d3.select('.st-yaxis').append('text')
                 .text(this.opts.ylabel)
                 .attr('transform', 'rotate (-90)')
@@ -3278,15 +3510,23 @@ st.chart.nmr2d = function () {
      * Renders the data.
      */
     nmr2d.renderdata = function () {
+        // get the unbinned data set for the current x-axis scale
         var data = this.data.get(this.width, this.scales.x);
+        // self-reference for nested functions
         var chart = this;
+        // iterate over all data series
         for (var i = 0; i < data.length; i++) {
-            var series = data[i];
-            var id = this.data.id(i);
-            var accs = this.data.accs(i);
+            var series = data[i];           // get the series data
+            var id = this.data.id(i);       // get the series identifier
+            var accs = this.data.accs(i);   // get the series data accessors
+            
+            // remove current SVG elements of the series's class
             this.canvas.selectAll('.' + id).remove();
+            // create a new group for SVG elements of this series
             var g = this.canvas.append('g')
                 .attr('class', id);
+            
+            // add circles for each series
             g.selectAll('.' + id + '.circle').data(series)
                 .enter()
                 .append('svg:circle')
@@ -3300,6 +3540,16 @@ st.chart.nmr2d = function () {
                 .attr("cy", function (d) { 
                     return chart.scales.y(d[accs[1]]) 
                 })
+            // define point mouse-over behavior
+            .on('mouseover', function (d) {
+                // call default action
+                chart.mouseOverAction(this, d, accs);
+            })
+            // define point mouse-out behavior
+            .on('mouseout', function () {
+                // call default action
+                chart.mouseOutAction();
+            });
         }
     };
     

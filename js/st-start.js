@@ -1,2 +1,2 @@
 !function(){
-    var st = {version: "0.0.1"};
+    var st = {version: "0.0.3"};

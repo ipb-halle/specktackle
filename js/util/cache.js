@@ -4,11 +4,11 @@ import "util";
  * Simple hash-based object cache.
  *
  * Adapted from:
- * http://markdaggett.com/blog/2012/03/28/client-side-request-caching-with-javascript/
+ * http://markdaggett.com/blog/2012/03/28/
+ * client-side-request-caching-with-javascript/
  *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.cache
- * @returns object literal with a add, get, getKey, and exists property
+ * @returns {object} object literal with a add, get, getKey, and exists property
  * 
  * @example
  * var cache = st.util.cache();
@@ -27,10 +27,9 @@ st.util.cache = function () {
     /**
      * Returns an element's index in an array or -1.
      * 
-     * @method indexOf
-     * @param {object[]} arr - element array
-     * @param {object} obj - element
-     * @returns the elemen'ts index or -1
+     * @param {object[]} arr An element array
+     * @param {object} obj An element
+     * @returns {number} the element's index or -1
      */
     indexOf = function (arr, obj) {
         var len = arr.length;
@@ -45,9 +44,8 @@ st.util.cache = function () {
     /**
      * Returns a string representation of any input.
      * 
-     * @method serialize
-     * @param {object} opts - input to stringify
-     * @returns the stringified input object
+     * @param {object} opts An input to stringify
+     * @returns {string} the stringified input object
      */
     serialize = function (opts) {
         if ((opts).toString() === "[object Object]") {
@@ -60,8 +58,7 @@ st.util.cache = function () {
      /**
      * Removes an element from the cache via its key.
      * 
-     * @method remove
-     * @param {string} key - the element's key
+     * @param {string} key The element's key
      */
     remove = function (key) {
         var t;
@@ -73,8 +70,6 @@ st.util.cache = function () {
 
     /**
      * Removes all elements from the cache.
-     * 
-     * @method removeAll
      */
     removeAll = function () {
         cache = {};
@@ -84,9 +79,8 @@ st.util.cache = function () {
     /**
      * Adds an element to the cache.
      * 
-     * @method add
-     * @param {string} key - the element's key
-     * @param {object} obj - the element to be added
+     * @param {string} key The element's key
+     * @param {object} obj The element to be added
      */
     add = function (key, obj) {
         if (keys.indexOf(key) === -1) {
@@ -98,9 +92,8 @@ st.util.cache = function () {
     /**
      * Checks whether a key has already been added to the cache.
      * 
-     * @method exists
-     * @param {string} key - the element's key
-     * @returns boolean if the key exists in the cache
+     * @param {string} key The element's key
+     * @returns {boolean} whether the key exists in the cache
      */
     exists = function (key) {
         return cache.hasOwnProperty(key);
@@ -109,8 +102,7 @@ st.util.cache = function () {
     /**
      * Removes a selected or all elements from the cache.
      * 
-     * @method purge
-     * @returns the purged cache array
+     * @returns {object[]} the purged cache array
      */
     purge = function () {
         if (arguments.length > 0) {
@@ -124,9 +116,8 @@ st.util.cache = function () {
     /**
      * Returns matching keys from the cache in an array.
      * 
-     * @method searchKeys
-     * @param {string} str - the query key (string)
-     * @returns the array of matching keys
+     * @param {string} str The query key (string)
+     * @returns {string[]} the array of matching keys
      */
     searchKeys = function (str) {
         var keys = [];
@@ -143,9 +134,8 @@ st.util.cache = function () {
     /**
      * Returns the element for a given key.
      * 
-     * @method get
-     * @param {string} key - the element's key
-     * @returns the key's cached object
+     * @param {string} key The element's key
+     * @returns {object} the key's cached object
      */
     get = function (key) {
         var val;
@@ -162,9 +152,8 @@ st.util.cache = function () {
     /**
      * Returns the string representation of the element.
      * 
-     * @method getKey
-     * @param {object} opts - the element to be stringified
-     * @returns the string representation fo the element
+     * @param {object} opts The element to be stringified
+     * @returns {string} the string representation fo the element
      */
     getKey = function (opts) {
         return serialize(opts);
@@ -173,8 +162,7 @@ st.util.cache = function () {
     /**
      * Returns all keys stored in the cache.
      * 
-     * @method getKeys
-     * @returns the array of keys
+     * @returns {string[]} the array of keys
      */
     getKeys = function () {
         return keys;

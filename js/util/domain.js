@@ -6,10 +6,9 @@ import "util";
  * need to be inverted.
  *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.domain
- * @param {object} scale - a d3 scale
- * @param {number[]} array - an array of length two with a min/max pair
- * @returns the sorted array
+ * @param {object} scale A d3 scale
+ * @param {number[]} array An array of length two with a min/max pair
+ * @returns {number[]} the sorted array
  */
 st.util.domain = function (scale, array) {
     var domain = scale.domain();

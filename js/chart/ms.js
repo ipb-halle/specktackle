@@ -1,13 +1,12 @@
-import "../util/mol2svg";
-import "../util/spinner";
 import "chart";
 
 /**
- * Mass spectrometry chart extending the base chart. 
- * 
+ * Default chart for mass spectrometry spectra.
+ *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.chart.ms
- * @returns the mass spectrometry chart
+ * @constructor
+ * @extends st.chart.chart
+ * @returns {object} the mass spectrometry chart
  */
 st.chart.ms = function () {
     var ms = chart(); // create and extend base chart
@@ -31,125 +30,74 @@ st.chart.ms = function () {
     };
     
     /**
-     * Adds utilities for custom behavior.
+     * Insertion point for custom behavior.
      */
-    ms.behavior = function () { //d3.select(this.target).append('div')
-        this.tooltips = this.panel.append('foreignObject')
-            .attr('width', $(this.target).width())
-            .attr('height', $(this.target).height())
-            .style('pointer-events', 'none')
-            .append('xhtml:div')
-            .attr('class', 'st-tooltips')
-            .style('position', 'absolute')
-            .style('opacity', 0);
-
-        this.tooltips.append('div')
-            .attr('id', 'tooltips-meta')
-            .style('height', '50%')
-            .style('width', '100%');
-
-        this.tooltips.append('div')
-            .attr('id', 'tooltips-mol')
-            .style('height', '50%')
-            .style('width', '100%');
+    ms.behavior = function () {
+        // nothing to do
     };
-   
-    // add the MDL molfile to SVG renderer   
-    ms.mol2svg = st.util.mol2svg(200, 200);
     
     /**
-     * Renders the data.
+     * Renders the data: defines how data points are drawn onto the canvas.
      */
     ms.renderdata = function () {
+        // get the binned data set for the current x-axis scale
         var data = this.data.bin(this.width, this.scales.x);
+        // self-reference for nested functions
         var chart = this;
-        var timeout;
-        var format = d3.format('.2f');
+        // iterate over all data series
         for (var i = 0; i < data.length; i++) {
-            var series = data[i];
-            var id = this.data.id(i);
-            var accs = this.data.accs(i);
+            var series = data[i];           // get the series data set
+            var id = this.data.id(i);       // get the series identifier
+            var accs = this.data.accs(i);   // get the series data accessors
+            var color = chart.colors.get(id)// get the series color
+            
+            // remove current SVG elements of the series's class
             this.canvas.selectAll('.' + id).remove();
+            // create a new group for SVG elements of this series
             var g = this.canvas.append('g')
                 .attr('class', id);
+                
+            // add 'signal spikes' (lines) for each point in the data set
             g.selectAll('.' + id + '.line').data(series)
                 .enter()
                 .append('svg:line')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .attr('x1', function (d) { 
-                    return chart.scales.x(d[accs[0]]);
+                    return chart.scales.x(d[accs[0]]);  // x1 = x1
                 })
                 .attr('y1', function (d) { 
-                    return chart.scales.y(d[accs[1]]);
+                    return chart.scales.y(d[accs[1]]);  // y1 = f(x1)
                 })
                 .attr('x2', function (d) { 
-                    return chart.scales.x(d[accs[0]]); 
+                    return chart.scales.x(d[accs[0]]);  // x2 = x1
                 })
-                .attr('y2', this.height)
-                .style('stroke', this.colors.get(id))
-                .each(function(d) {
-                    if (d.annotation) {
-                        g.append('text')
+                .attr('y2', this.height)                // y2 = 0
+                .style('stroke', color)  // color by id
+                .each(function(d) {      // address each point
+                    if (d.annotation) {  // check for on-canvas annotations...
+                        g.append('text') // ...append a SVG text element
                             .attr('class', id + '.anno')
                             .attr('x', chart.scales.x(d[accs[0]]))
                             .attr('y', chart.scales.y(d[accs[1]]) - 5)
                             .attr('text-anchor', 'middle')
                             .attr('font-size', 'small')
-                            .attr('fill', chart.colors.get(id))
+                            .attr('fill', color)
                             .text(d.annotation);
                     }
                 })
+            // define point mouse-over behavior
             .on('mouseover', function (d) {
+                // highlight the selected 'signal spike'
                 d3.select(this).style('stroke-width', 2);
-                var pointer = d3.mouse(this);
-                chart.tooltips
-                    .style('display', 'inline');
-                chart.tooltips
-                    .transition()
-                    .duration(300)
-                    .style('opacity', 0.9);
-                chart.tooltips
-                    .style('left', pointer[0] + chart.opts.margins[3] + 10 + 'px')
-                    .style('top', pointer[1] + chart.opts.margins[0] - 10 + 'px')
-                    .style('opacity', 0.9)
-                    .style('border', 'dashed')
-                    .style('border-width', '1px')
-                    .style('padding', '3px')
-                    .style('border-radius', '10px')
-                    .style('background-color', 'white');
-                var x = format(d[accs[0]]);
-                var y = format(d[accs[1]]);
-                d3.selectAll('#tooltips-meta').html(
-                    chart.opts.xlabel + ': ' + 
-                    x + '<br/>' + chart.opts.ylabel + ': ' + y + '<br/>'
-                );
-                if (d.tooltip || d.tooltipmol) {
-                    var tooltip = d3.selectAll('#tooltips-meta').html();
-                    for (var key in d.tooltip) {
-                        tooltip += key + ': ' + d.tooltip[key] + '<br/>';
-                    }
-                    d3.selectAll('#tooltips-meta').html(tooltip);
-                    for (var molkey in d.tooltipmol) {
-                        var spinner = st.util.spinner('#tooltips-mol');
-                        timeout = setTimeout(function () {
-                            spinner.css('display', 'none');
-                            chart.mol2svg.draw(d.tooltipmol[molkey], '#tooltips-mol');
-                        }, 500);
-                    }
-                } else {
-                    d3.selectAll('#tooltips-mol').html('');
-                }
+                // call default action
+                chart.mouseOverAction(this, d, accs);
             })
+            // define point mouse-out behavior
             .on('mouseout', function () {
-                clearTimeout(timeout);
-                d3.selectAll('#tooltips-mol').html('');
+                // remove the highlight for the selected 'signal spike'
                 d3.select(this).style('stroke-width', '1');
-                chart.tooltips
-                    .transition()
-                    .duration(300)
-                    .style('opacity', 0);
-                chart.tooltips
-                    .style('display', 'none');
+                // call default action
+                chart.mouseOutAction();
             });
         }
     };

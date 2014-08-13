@@ -7,11 +7,6 @@
     user-select: none;
 }
 
-path {
-    stroke-width: 1;
-    fill: none;
-}
-
 .st-g-main {
     pointer-events: all;
 }

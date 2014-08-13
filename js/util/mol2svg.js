@@ -17,21 +17,15 @@ import "util";
  * 
  * The renderer uses the CPK coloring convention.
  *
- * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.mol2svg
- * @returns object literal with a draw and init property (functions)
- * 
- * @example
- * var instance = st.util.mol2svg(640, 480);
- * var url = 'http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/30214/SDF';
- * instance.draw(url, '#myElement');
- *
  * Initializes the renderer setting the width and height of 
  * the viewport. The width and height should include a margin 
  * of 10 px, which is applied all around by default.
- * 
- * @param {number} width - width of the viewport
- * @param {number} height - height of the viewport
+ *
+ * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @constructor
+ * @param {number} width A width of the viewport
+ * @param {number} height A height of the viewport
+ * @returns {object} object literal with a draw property
  */
 st.util.mol2svg = function (width, height) {
 
@@ -39,7 +33,7 @@ st.util.mol2svg = function (width, height) {
         h = height || 200,  // height of the panel
         x = null,           // linear d3 x scale function
         y = null,           // linear d3 y scale function
-        avgL = 0,   // scaled average bond length (required for font size scaling)
+        avgL = 0,   // scaled average bond length (for font size scaling)
         cache = st.util.cache();
 
     /**
@@ -47,12 +41,10 @@ st.util.mol2svg = function (width, height) {
      * creates the SVG. The SVG is appended to the element of the 
      * given identifier.    
      * 
-     * @method draw
-     * @param {string} molfile - URL of the MDL molfile (REST web service)
-     * @param {string} id - id of the element 
+     * @param {string} molfile A URL of the MDL molfile (REST web service)
+     * @param {string} id An identifier of the element 
      */
     var draw = function (molfile, id) {
-        $(id).empty();
         var el = d3.select(id);
         var cacheKey = cache.getKey(molfile);
         if (cache.exists(cacheKey)) {
@@ -75,10 +67,9 @@ st.util.mol2svg = function (width, height) {
      * header block, two dimensional coordinates, symbol, charge, 
      * and mass difference information extracted from the atom block,
      * connectivity and stereo information from the bond block.
-     * 
-     * @method parse
-     * @param {string} molfile - URL of the MDL molfile (REST web service)
-     * @param {string} id - id of the element
+     *
+     * @param {string} molfile A URL to the MDL molfile (REST web service)
+     * @param {string} id An element identifier
      */
     var parse = function (molfile, el) {
         var lines = molfile.split(/\r\n|\n/),
@@ -98,11 +89,10 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * Parses the atom block line by line.
-     * 
-     * @method atomBlock
-     * @param {string[]} lines - molfile line array
-     * @param {number} nAtoms - total number of atoms
-     * @returns array of atom objects
+     *
+     * @param {string[]} lines A molfile line array
+     * @param {number} nAtoms The total number of atoms
+     * @returns {object[]} associative array of atom objects
      */
     var atomBlock = function (lines, nAtoms) {
         var atoms = [];
@@ -123,11 +113,10 @@ st.util.mol2svg = function (width, height) {
     /**
      * Parses the bond block line by line.
      * 
-     * @method bondBlock
-     * @param {string[]} lines - molfile line array
-     * @param {number} nAtoms - total number of atoms
-     * @param {number} nBonds - total number of bonds
-     * @returns array of bond objects
+     * @param {string[]} lines A molfile line array
+     * @param {number} nAtoms The total number of atoms
+     * @param {number} nBonds The total number of bonds
+     * @returns {object[]} associative array of bond objects
      */
     var bondBlock = function (lines, nAtoms, nBonds) {
         var bonds = [];
@@ -135,10 +124,13 @@ st.util.mol2svg = function (width, height) {
         for (var j = nAtoms + offset; j < nAtoms + nBonds + offset; j++) {
             var bond = lines[j].match(/\d+/g);
             bonds.push({
-                a1: parseInt(bond[0]) - 1,  // adjust to '0', atom counter starts at '1'
+                // adjust to '0', atom counter starts at '1'
+                a1: parseInt(bond[0]) - 1,  
                 a2: parseInt(bond[1]) - 1,
-                order: parseInt(bond[2]),   // values 1, 2, 3
-                stereo: parseInt(bond[3])   // values 0 (plain),1 (wedge),4 (wiggly),6 (hash)
+                // values 1, 2, 3
+                order: parseInt(bond[2]),
+                // values 0 (plain),1 (wedge),4 (wiggly),6 (hash)                
+                stereo: parseInt(bond[3])
             });
         }
         return bonds;
@@ -147,10 +139,9 @@ st.util.mol2svg = function (width, height) {
     /**
      * Parses the properties block line by line.
      * 
-     * @method propsBlock
-     * @param {string[]} lines - molfile line array
-     * @param {object[]} atoms - array of atom objects
-     * @param {number} nAtomsBonds - total number of atoms and bonds
+     * @param {string[]} lines A molfile line array
+     * @param {object[]} atoms An array of atom objects
+     * @param {number} nAtomsBonds The total number of atoms and bonds
      */
     var propsBlock = function (lines, atoms, nAtomsBonds) {
         var offset = 4; // the first three lines belong to the header block
@@ -174,16 +165,17 @@ st.util.mol2svg = function (width, height) {
      * by the given identifier. The linear d3 x- and y-scales are set 
      * to translate from the viewport coordinates to the mol coordinates.
      * 
-     * @method initSvg
-     * @param {object[]} atoms - array of atom objects
-     * @param {string} id - id of the element
-     * @returns initialized SVG element
+     * @param {object[]} atoms An array of atom objects
+     * @param {string} id An element identifier
+     * @returns {object} the initialized SVG element
      */
     var initSvg = function (atoms, el) {
-        var xExtrema = d3.extent(atoms, function (atom) { // x minimum and maximum
+        // x minimum and maximum
+        var xExtrema = d3.extent(atoms, function (atom) {
             return atom.x;
         });
-        var yExtrema = d3.extent(atoms, function (atom) { // y minimum and maximum
+        // y minimum and maximum
+        var yExtrema = d3.extent(atoms, function (atom) { 
             return atom.y;
         });
 
@@ -205,8 +197,8 @@ st.util.mol2svg = function (width, height) {
         // Y scale will fit all values within pixels h-0
         y = d3.scale.linear().domain([yExtrema[0], yExtrema[1]]).range([hp, 0]);
 
-        // add an SVG element with the desired dimensions and margin
-        // and center the drawing area
+        // add an SVG element with the desired dimensions
+        // and margin and center the drawing area
         var graph = el.append('svg:svg')
             .attr('width', wp + m[1] + m[3])
             .attr('height', hp + m[0] + m[2])
@@ -220,10 +212,9 @@ st.util.mol2svg = function (width, height) {
      * Draws the bonds onto the SVG element. Note that the bonds are drawn
      * first before anything else is added.
      * 
-     * @method drawBonds
-     * @param {object[]} atoms - array of atom objects
-     * @param {object[]} bonds - array of bond objects
-     * @param {object} graph - SVG element
+     * @param {object[]} atoms An array of atom objects
+     * @param {object[]} bonds An array of bond objects
+     * @param {object} graph A SVG element
      */
     var drawBonds = function (atoms, bonds, graph) {
         for (var i = 0; i < bonds.length; i++) {
@@ -262,7 +253,10 @@ st.util.mol2svg = function (width, height) {
                         [x2 + xOff, y2 + yOff],
                         [x2 - xOff, y2 - yOff]
                     ];
-                    graph.append('svg:path').attr('d', wedgeBond(xyData));
+                    graph.append('svg:path')
+                        .style('fill', 'none')
+                        .style('stroke-width', 1)
+                        .attr('d', wedgeBond(xyData));
                 } else if (bonds[i].stereo === 6) {     // single hash bond
                     off = 0.2;
                     xOff = off * (y2 - y1) / l;
@@ -278,7 +272,11 @@ st.util.mol2svg = function (width, height) {
                             );
                     }
 
-                    graph.append('svg:path').attr('d', hashBond(xyData)).attr('stroke', 'black');
+                    graph.append('svg:path')
+                        .style('fill', 'none')
+                        .style('stroke-width', 1)
+                        .attr('d', hashBond(xyData))
+                        .attr('stroke', 'black');
                 } else if (bonds[i].stereo === 4) {     // single wiggly bond
                     off = 0.2;
                     xOff = off * (y2 - y1) / l;
@@ -299,15 +297,18 @@ st.util.mol2svg = function (width, height) {
                         }
                     }
 
-                    graph.append('svg:path').attr('d', wigglyBond(xyData))
+                    graph.append('svg:path')
+                        .attr('d', wigglyBond(xyData))
                         .attr('fill', 'none')
+                        .style('stroke-width', 1)
                         .attr('stroke', 'black');
                 } else {                                // single plain bond
                     xyData = [
                         [x1, y1], [x2, y2]
                     ];
-                    graph.append('svg:path').attr('d', plainBond(xyData))
-                        .attr('stroke-width', '2')
+                    graph.append('svg:path')
+                        .attr('d', plainBond(xyData))
+                        .attr('stroke-width', '1')
                         .attr('stroke-linecap', 'round')
                         .attr('stroke-linejoin', 'round')
                         .attr('stroke', 'black');
@@ -321,10 +322,11 @@ st.util.mol2svg = function (width, height) {
                     [x1 - xOff, y1 - yOff], [x2 - xOff, y2 - yOff]
                 ];
                 graph.append('svg:path').attr('d', plainBond(xyData))
-                        .attr('stroke-width', '2')
-                        .attr('stroke-linecap', 'round')
-                        .attr('stroke-linejoin', 'round')
-                        .attr('stroke', 'black');
+                    .attr('stroke-width', '1')
+                    .style('fill', 'none')
+                    .attr('stroke-linecap', 'round')
+                    .attr('stroke-linejoin', 'round')
+                    .attr('stroke', 'black');
             } else if (bonds[i].order === 3) {          // triple bond
                 off = 0.15;
                 xOff = off * (y2 - y1) / l;
@@ -334,11 +336,12 @@ st.util.mol2svg = function (width, height) {
                     [x1 + xOff, y1 + yOff], [x2 + xOff, y2 + yOff],
                     [x1 - xOff, y1 - yOff], [x2 - xOff, y2 - yOff]
                 ];
-                graph.append('svg:path').attr('d', plainBond(xyData))
-                        .attr('stroke-width', '2')
-                        .attr('stroke-linecap', 'round')
-                        .attr('stroke-linejoin', 'round')
-                        .attr('stroke', 'black');
+                graph.append('svg:path')
+                    .attr('d', plainBond(xyData))
+                    .attr('stroke-width', '1')
+                    .attr('stroke-linecap', 'round')
+                    .attr('stroke-linejoin', 'round')
+                    .attr('stroke', 'black');
             }
         }
         avgL /= bonds.length; // get average bond length
@@ -346,27 +349,33 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * Draws the atoms onto the SVG element. Note that the atoms are drawn
-     * onto the bonds.
+     * on top of the bonds.
      * 
-     * @method drawAtoms
-     * @param {object[]} atoms - array of atom objects
-     * @param {number} avgL - average bond length
-     * @param {object} graph - SVG element
+     * @param {object[]} atoms An array of atom objects
+     * @param {number} avgL An average bond length
+     * @param {object} graph A SVG element
      */
     var drawAtoms = function (atoms, avgL, graph) {
         for (var i = 0; i < atoms.length; i++) {
             var atom = atoms[i];
             var atomCol = d3.rgb(atomColor[atom.symbol]);
-            var g = graph.append('svg:g').attr('transform', 'translate(' + x(atom.x) + ',' + y(atom.y) + ')');
-            g.append('svg:circle')                          // draw a circle underneath the text
-                .attr('r', Math.ceil(avgL / 3))             // hack: magic number for scaling
+            var g = graph.append('svg:g')
+                .attr('transform', 'translate(' + 
+                    x(atom.x) + ',' + y(atom.y) + ')');
+            // draw a circle underneath the text
+            g.append('svg:circle')
+                // hack: magic number for scaling
+                .attr('r', Math.ceil(avgL / 3))
                 .attr('fill', 'white')
                 .attr('opacity', '1');
-            g.append('text')                                // draw the text string
-                .attr('dy', Math.ceil(avgL / 4.5))          // hack: magic number for scaling
+            // draw the text string
+            g.append('text')                                
+                // hack: magic number for scaling
+                .attr('dy', Math.ceil(avgL / 4.5))          
                 .attr('text-anchor', 'middle')
                 .attr('font-family', 'sans-serif')
-                .attr('font-size', Math.ceil(avgL / 1.5))   // hack: magic number for scaling
+                // hack: magic number for scaling
+                .attr('font-size', Math.ceil(avgL / 1.5))   
                 .attr('fill', atomCol)
                 .text(atom.symbol);
 
@@ -405,13 +414,11 @@ st.util.mol2svg = function (width, height) {
     /**
      * Calculates the Euclidean distance between two points.
      * 
-     * @method distance
-     * @private
-     * @param {number} x1 - x value of first point
-     * @param {number} y1 - y value of first point
-     * @param {number} x2 - x value of second point
-     * @param {number} y2 - y value of second point
-     * @returns Euclidean distance
+     * @param {number} x1 A x value of first point
+     * @param {number} y1 A y value of first point
+     * @param {number} x2 A x value of second point
+     * @param {number} y2 A y value of second point
+     * @returns {number} the Euclidean distance
      */
     var distance = function (x1, y1, x2, y2) {
         return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
@@ -419,8 +426,6 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * d3 line function using the SVG path mini language to draw a plain bond.
-     * 
-     * @method plainBond
      */
     var plainBond = d3.svg.line()
         .interpolate(function (points) {
@@ -443,8 +448,6 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * d3 line function using the SVG path mini language to draw a wedge bond.
-     * 
-     * @method wedgeBond
      */
     var wedgeBond = d3.svg.line()
         .x(function (d) {
@@ -456,8 +459,6 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * d3 line function using the SVG path mini language to draw a hash bond.
-     * 
-     * @method hashBond
      */
     var hashBond = d3.svg.line()
         .interpolate(function (points) {
@@ -480,8 +481,6 @@ st.util.mol2svg = function (width, height) {
 
     /**
      * d3 line function using the SVG path mini language to draw a wiggly bond.
-     * 
-     * @method wigglyBond
      */
     var wigglyBond = d3.svg.line()
         .interpolate('cardinal')

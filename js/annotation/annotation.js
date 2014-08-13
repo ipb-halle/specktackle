@@ -1,10 +1,11 @@
 /**
- * annotation stub.
+ * Enum for annotation types.
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @enum {string}
  */
 st.annotation = {
-    TOOLTIP: 'tooltip',
-    TOOLTIP_MOL: 'tooltip_mol',
-    ANNOTATION: 'annotation'
+    TOOLTIP: 'tooltip',         // tooltip text, plain text key value pairs
+    TOOLTIP_MOL: 'tooltip_mol', // tooltip molecule, resolves URLs to SDfiles
+    ANNOTATION: 'annotation'    // canvas annotation, drawn onto the canvas
 };

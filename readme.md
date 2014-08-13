@@ -1,6 +1,6 @@
 # SpeckTackle
-***st.js*** is a JavaScript library to create custom-tailored charts for spectroscopy data. 
-Implemented charts exist for mass spectrometry, one- and two-dimensional NMR, and time series data such as chromatograms.
+***st.js*** is a JavaScript library to create custom-tailored charts for spectroscopy in life sciences. 
+Implemented charts exist for mass spectrometry, one- and two-dimensional NMR, UV/VIS, IR, and general continuous data use cases such as chromatograms.
 
 ## JSFiddle
 Currently not compatible with all browsers because of nosniff header support prohibiting 'hotlinking' of JavaScript files.

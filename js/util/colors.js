@@ -5,7 +5,8 @@ import "util";
  * for a given identifier.
  * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.util.colors
+ * @constructor
+ * @returns {object} object literal with a get and remove property
  */
 st.util.colors = function () {
     var colors = {
@@ -32,9 +33,8 @@ st.util.colors = function () {
      * Gets the color for the identifier or - if id is unassigned - returns
      * a new color from the color hash.
      * 
-     * @method get
-     * @param {int} id - the identifier
-     * @returns the color string for the identifier
+     * @param {int} id A series identifier
+     * @returns {string} the color string for the identifier
      */
     var get = function (id) {
         if (mapping[id]) {
@@ -48,8 +48,7 @@ st.util.colors = function () {
     /**
      * Removes the color for the identifier from the mapping.
      * 
-     * @method remove
-     * @param {int} id - the identifier
+     * @param {int} id An series identifier
      */
     remove = function (id) {
         if (mapping[id]) {
@@ -61,8 +60,7 @@ st.util.colors = function () {
      * Returns the color string based on the running index. Resets the
      * index if it exceeds the color hash.
      * 
-     * @method next
-     * @returns the color string
+     * @returns {string} the color string
      */
     next = function () {
         var ncolors = Object.keys(colors).length;

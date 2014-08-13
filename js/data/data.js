@@ -72,6 +72,17 @@ function data () {
          */
         remove: function (x) {
             var ids = [];
+            if (!x) {
+                for (var i in this.raw.ids) {
+                    ids.push(i);
+                }
+                this.raw.ids = {};
+                this.raw.series = [];
+                this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+                this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+                return ids;
+            }
+            
             if (x instanceof Array) {
                 // TODO
             } else {
