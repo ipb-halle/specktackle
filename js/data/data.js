@@ -1,49 +1,46 @@
 /**
- * data stub.
  *
- * Models for input data should extend this data stub. Options for two dimen-
- * sional data are provided: x and y accessors, x and y limits.
+ * Default data object. Custom data objects should extend this data stub. 
  *
- * Currently the source (src) option must specifiy one or more URL that point
- * to the JSON data.
- * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @constructor
+ * @returns {object} the default data object
  */
 st.data = {};
 
 /**
- * Function returning the base data object that should be extended or modified
- * in models extending the st.data stub.
+ * Builds the default data object that serves as base for custom data objects.
  * 
- * @method data
- * @returns the base data object to be extended/modified
+ * @constructor
+ * @returns {object} the default data object
  */
 function data () {
     return {
-        opts: {
+        opts: { // data options
             title: '',
-            src: [],    // JSON URLs
-            anno: [],
+            src: [],    // JSON URLs or JSON data
+            anno: [],   // JSON URLs or JSON data
             x: 'x',     // x accessor
             y: 'y',     // y accessor
             xlimits: [],// x axis limits: min, max
-            ylimits: [], // y axis limits: min, max
-            annoTypes: [],
-            annoTexts: []
+            ylimits: [],// y axis limits: min, max
+            annoTypes: [],  // annotation types (see st.annotation)
+            annoTexts: []   // annotation titles (string)
         },
         
-        raw: {          // globals summarising contained data
+        raw: {          // global variables summarising the data set
             gxlim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global x limits
             gylim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global y limits
-            ids: {},
-            series: []  // the total data to be displayed (array of data series)
+            ids: {},    // identifier hash set of all series in the data set
+            series: []  // all series in the data set (array of series)
         },
             
         /**
-         * Sets the URL option.
+         * Sets the data source option.
          *
-         * @param {string[]} x - an URL array 
-         * @returns the data object
+         * @param {string|string[]} datarefs An URL (array) or JSON data (array)
+         * @param {string|string[]} annorefs An URL (array) or JSON data (array)
+         * @returns {object} the data object
          */
         add: function (datarefs, annorefs) {
             if (datarefs instanceof Array) {
@@ -55,6 +52,12 @@ function data () {
             }
         },
         
+        /**
+         * Defines elements of the annotation data structure.
+         *
+         * @param {string} type Type of st.annotation
+         * @param {string} text Title of the annotation
+         */
         annotationColumn: function (type, text) {
             if (type.toUpperCase() in st.annotation) {
                 this.opts.annoTypes.push(type);
@@ -67,103 +70,221 @@ function data () {
         /**
          * Removes a data series by its identifier or index.
          *
-         * @param {string[]|number[]} x - indices or identifiers to remove
-         * @returns the data object
+         * @param {string[]|number[]} x The indices or identifiers to remove
+         * @returns {string[]} an array of removed identifiers
          */
         remove: function (x) {
+            // array to collect identifiers of removed series
             var ids = [];
-            if (!x) {
+                   
+            // if no argument is given, clear the chart
+            if (!x && x !== 0) {
+                // collect all identifiers
                 for (var i in this.raw.ids) {
                     ids.push(i);
                 }
+                
+                // reset the identifier set and the global 'raw' container
                 this.raw.ids = {};
                 this.raw.series = [];
                 this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
                 this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+                
+                // return the collected identifiers
                 return ids;
             }
             
-            if (x instanceof Array) {
-                // TODO
+            // turn a single identifier into an array of identifiers
+            if (!(x instanceof Array)) {
+                x = [ x ];
             } else {
-                if (isNaN(x)) {
+                x.sort();
+            }
+            
+            // iterate over the array of identifiers to remove
+            for (i in x) {
+                var xid = x[i];
+                // check whether the identifier is a string...
+                if (isNaN(xid)) {
+                    // find the identifier in the data set and delete it
                     for (var i in this.raw.series) {
-                        if (this.raw.series[i].id === x) {
+                        if (this.raw.series[i].id === xid) {
                             this.raw.series.splice(i, 1);
-                            ids.push(this.raw.ids[x]);
-                            delete this.raw.ids[x];
+                            ids.push(this.raw.ids[xid]);
+                            delete this.raw.ids[xid];
                             break;
                         }
                     }
+                // ...or a number, in which case its an index
                 } else {
-                    if (x < this.raw.series.length) {
-                        var spliced = this.raw.series.splice(x, 1);
+                    // sanity check for the index (track removed entries)
+                    if (xid - i < this.raw.series.length) {
+                        var spliced = this.raw.series.splice(xid - i, 1);
                         ids.push(spliced[0].id);
                         delete this.raw.ids[spliced[0].id];
                     }
                 }
             }
-            
+            // reset the global domain limits
             if (this.raw.series.length === 0) {
                 this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
                 this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
             }
             
+            // return the collected identifiers
             return ids;
         },
         
         /**
-         * Gets the id for a data series at a given index.
+         * Gets the id of a data series at a given index.
          *
-         * @param {int} index - a data model index 
-         * @returns the id of the data model
+         * @param {number} index A data series index 
+         * @returns {string} the identifier of the data series
          */
         id: function (index) {
             return this.raw.series[index].id;
         },
         
         /**
-         * Gets the title for a data series at a given index.
+         * Gets the title of a data series at a given index.
          *
-         * @param {int} index - a data model index 
-         * @returns the title of the data model
+         * @param {number} index A data series index 
+         * @returns {string} the title of the data series
          */
         titleat: function (index) {
             return this.raw.series[index].title;
         },
         
         /**
-         * Gets the x and y accessors for a data model at a given index.
+         * Gets the x and y accessors for a data series at a given index.
          *
-         * @param {int} index - a data model index 
-         * @returns the x and y accessors of the data model
+         * @param {number} index A data series index 
+         * @returns the x and y accessors of the data series`
          */
         accs: function (index) {
             return this.raw.series[index].accs;
         },
         
         /**
-         * Pushes the URLs currently in the URL option into the raw data array
-         * and sets the global data options.
+         * Pushes the source values currently in the source option into 
+         * the raw data array and sets the global data options.
          *
-         * @param {function} callback - callback function
+         * @param {function} callback A callback function
          */
         push: function (callback) {
+            // self-reference for nested functions
             var data = this;
+            // array for XHR promises
             var deferreds = [];
+            // iterate over the source values
             for (var i in this.opts.src) {
+                // check whether source value is a data object
+                // the corresponding annotation reference is assumed to be a 
+                // data object as well in that case
                 if (typeof this.opts.src[i] !== 'string') {
                     this.fetch(this.opts.src[i], this.opts.anno[i]);
-                } else {
+                } else { // resolve the URLs and save the promises
                     deferreds.push(this.fetch(
                         this.opts.src[i], this.opts.anno[i]));
                 }
             }
+            // wait until all promises are fulfilled
             $.when.apply($, deferreds).done(function () {
+                // clear the source buffers
                 data.opts.src = [];
                 data.opts.anno = [];
+                
+                // special case: single value data sets:
+                // expand X and Y range by 1%
+                if (data.raw.gxlim[0] === data.raw.gxlim[1]) {
+                    data.raw.gxlim[0] -= data.raw.gxlim[0] / 100.0;
+                    data.raw.gxlim[1] += data.raw.gxlim[1] / 100.0;
+                }
+                if (data.raw.gylim[0] === data.raw.gylim[1]) {
+                    data.raw.gylim[0] -= data.raw.gylim[0] / 100.0;
+                    data.raw.gylim[1] += data.raw.gylim[1] / 100.0;
+                }
                 callback();
             });
+        },
+        
+        /**
+         * Fetches the data series and adds it as raw entry.
+         *
+         * @param {string|object} src A data source
+         * @param {string|object} anno An annotation source
+         */
+        fetch: function (src, anno) {
+            // self-reference for nested functions
+            var set = this;
+            // the XHR promise
+            var jqxhr = null;
+            // 1) input series referenced by a URL
+            if (typeof src === 'string') {
+                // 1a) input annotations referenced by a URL
+                if (typeof anno === 'string' && anno) {
+                    jqxhr = $.when(
+                        $.get(src),
+                        $.get(anno)
+                    ).then(function(json, json2) {
+                        // assumption: series and anno structure are identical
+                        if (json[0] instanceof Array) {
+                            for (var i in json[0]) {
+                                set.seriesfetch(json[0][i], json2[0][i]);
+                            }
+                        } else {
+                            set.seriesfetch(json[0], json2[0]);
+                        }
+                    });
+                // 1b) input annotations provided as data array (or missing)
+                } else {
+                    jqxhr = $.when(
+                        $.get(src)
+                    ).then(function(json) {
+                        // assumption: series and anno structure are identical
+                        if (json instanceof Array) {
+                            if (!anno) {
+                                anno = [];
+                            }
+                            for (var i in json) {
+                                set.seriesfetch(json[i], anno[i]);
+                            }
+                        } else {
+                            set.seriesfetch(json, anno);
+                        }
+                    });
+                }
+            // 2) input series provided as data array
+            } else {
+                // 2a) input annotations referenced by a URL
+                if (typeof anno === 'string' && anno) {
+                    jqxhr = $.when(
+                        $.get(anno)
+                    ).then(function(json) {
+                        // assumption: series and anno structure are identical
+                        if (src instanceof Array) {
+                            if (!anno) {
+                                anno = [];
+                            }
+                            for (var i in src) {
+                                set.seriesfetch(src[i], json[i]);
+                            }
+                        } else {
+                            set.seriesfetch(src, json);
+                        }
+                    });
+                } else {
+                    // 1b) input annotations provided as data array (or missing)
+                    if (src instanceof Array) {
+                        for (var i in src) {
+                            set.seriesfetch(src[i], anno[i]);
+                        }
+                    } else {
+                        set.seriesfetch(src, anno);
+                    }
+                }
+            }
+            return jqxhr;
         },
         
         /**
@@ -186,21 +307,23 @@ function data () {
  * Function resovling axis limits based on whether key values, numeric values,
  * or no input values are provided.
  * 
- * @method fetch_limits
- * @params {object} series - the data object
- * @params {object} json - the complete data model
- * @params {number[]} limits - the min/max array
- * @params {string} acc - the data accessor
- * @returns the axis limts
+ * @params {object} series The data array
+ * @params {object} json The complete data series
+ * @params {number[]} limits The min/max array
+ * @params {string} acc The data accessor
+ * @returns {number[]} the axis min/max limts
  */
 function fetch_limits (series, json, limits, acc) {
     var lim = [];
+    // sanity check
     if (limits.length === 2) {
+        // both variables are accessors
         if (isNaN(limits[0]) && isNaN(limits[1])) {
             lim = [
                 json[limits[0]],
                 json[limits[1]]
             ];
+        // both variables are constants
         } else if (typeof limits[0] === 'number' 
                 && typeof limits[1] === 'number') {
             lim = [
@@ -208,14 +331,25 @@ function fetch_limits (series, json, limits, acc) {
                 limits[1]
             ];
         } else {
+            // typically a one dimensional array: search
+            if (!acc || acc === '') {
+                lim = d3.extent(series);
+            // typically a set: search
+            } else {
+                lim = d3.extent(series, function (d) {
+                    return d[acc];
+                });
+            }   
+        }
+    // sanity violation: search
+    } else {
+        if (!acc || acc === '') {
+            lim = d3.extent(series);
+        } else {
             lim = d3.extent(series, function (d) {
                 return d[acc];
-            });   
-        }                
-    } else {
-        lim = d3.extent(series, function (d) {
-                return d[acc];
-        });
+            });
+        }
     }
     lim[0] = parseFloat(lim[0]);
     lim[1] = parseFloat(lim[1]);

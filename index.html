@@ -18,10 +18,12 @@
     <script type="text/javascript">
         // demonstration of SpeckTackle charts
         var chart;
+        
         function ms () {                        // MS stub
             $("#stgraph").empty();              // clear DOM child elements
             $("#adddata").removeAttr("disabled")// enable 'Add Data' button
                 .attr("onclick","load(0)");     // point to data loader
+                
             chart = st.chart                    // create a new MS chart
                 .ms()                           // chart type
                 .legend(true)                   // options
@@ -30,10 +32,12 @@
                 .margins([80, 80, 80, 120]);
             chart.render("#stgraph");           // render chart to id 'stgraph'
         };
+        
         function nmr () {                       // NMR stub
             $("#stgraph").empty();
             $("#adddata").removeAttr("disabled")
                 .attr("onclick","load(1)");
+                
             chart = st.chart
                 .nmr()
                 .legend(true)
@@ -42,6 +46,7 @@
                 .margins([80, 80, 80, 80]);
             chart.render("#stgraph");
         };
+        
         function nmr2d () {                     // NMR 2D stub
             $("#stgraph").empty();
             $("#adddata").removeAttr("disabled")
@@ -53,10 +58,12 @@
                 .margins([80, 120, 80, 80]);
             chart.render("#stgraph");
         };
+        
         function series () {                    // Chromatogram stub
             $("#stgraph").empty();
             $("#adddata").removeAttr("disabled")
                 .attr("onclick","load(3)");
+                
             chart = st.chart
                 .series()
                 .legend(true)
@@ -66,10 +73,12 @@
                 .margins([80, 80, 80, 120]);
             chart.render("#stgraph");
         };
+        
         function irjdx () {                     // IR (JDX) stub
             $("#stgraph").empty();
             $("#adddata").removeAttr("disabled")
                 .attr("onclick","load(4)");
+                
             chart = st.chart
                 .ir()
                 .legend(true)
@@ -79,10 +88,12 @@
                 .margins([80, 120, 80, 120]);
             chart.render("#stgraph");
         };
+        
         function uvvisjdx () {                 // UV/VIS (JDX) stub
             $("#stgraph").empty();
             $("#adddata").removeAttr("disabled")
                 .attr("onclick","load(5)");
+                
             chart = st.chart
                 .series()
                 .legend(true)
@@ -93,33 +104,31 @@
                 .margins([80, 120, 80, 120]);
             chart.render("#stgraph");
         };
-        function load (x) {                         // load chart data
+        
+        function load (x) {                        // load chart data
             switch (x) {
-                case 0:                             // MS
-                    var set = st.data.set()         // data type (set)
-                        .ylimits([0, 1000])       // y-axis limits
-                        .x("peaks.mz")
-                        .y("peaks.intensity")
-                        //.ylimits([0, 10000])         // y-axis limits
-                        //.x("data.x")
-                        //.y("data.y")
-                        .title("spectrumId");
+                case 0:                            // MS
+                    var set = st.data.set()        // data type (set)
+                        .ylimits([0, 1000])        // y-axis limits
+                        .x("peaks.mz")             // x-accessor
+                        .y("peaks.intensity")      // y-accessor
+                        .title("spectrumId");      // id-accessor
                         
+                    // annotation structure
                     set.annotationColumn(st.annotation.ANNOTATION, "Ticks");
                     set.annotationColumn(st.annotation.TOOLTIP, "Origin");
                     set.annotationColumn(st.annotation.TOOLTIP_MOL, "Ion");
                     set.annotationColumn(st.annotation.TOOLTIP_MOL, "Frag");
                     
-                    chart.load(set);               // load the data
+                    chart.load(set);               // bind the data set
                     set.add([                      // input array
-                        "resources/data1.json"
-                        //"resources/data2.json",
-                        //"resources/data3.json"
-                        //"resources/multiple.json"
-                        //"http://www.ebi.ac.uk/metabolights/spectra/15769/json"
-                    ], [
-                        //""
-                        "resources/data1_anno.json"
+                        "resources/data1.json",
+                        "resources/data2.json",
+                        "resources/data3.json"
+                    ], [                           // input annotation array
+                        "resources/data1_anno.json",
+                        "",
+                        ""
                     ]);
                     
                     break;
@@ -127,7 +136,7 @@
                     var array = st.data.array()     // data type (array)
                         .xlimits(["xMin", "xMax"])
                         .ylimits(["yMin", "yMax"])
-                        .y("data")                  // array is one dimensional
+                        .y("data")                  // one dimensional array
                         .title("id");
                     chart.load(array);   
                     array.add([
@@ -161,9 +170,20 @@
                         .ylimits(["MINY", "MAXY"])
                         .y("XYDATA")
                         .title("TITLE");
+                    
+                    // annotation structure
+                    array.annotationColumn(st.annotation.ANNOTATION, "Ticks");
+                    array.annotationColumn(st.annotation.TOOLTIP, "Comment");
+                    
                     chart.load(array);
-                    st.parser.jdx("resources/jtpolys.jdx", function (jdx) {
-                        array.add(jdx);
+                    st.parser.jdx("resources/ir.jdx", function (jdx) {
+                        array.add(
+                            jdx, 
+                            [[
+                                [294, "*", "See Reference"],
+                                [697, "C=O", "See Reference"],
+                                [1284, "O-H stretch?", "See Reference"]
+                            ]]);
                     });
                     break;
                 case 5:                             // UV/VIS (JDX)
@@ -173,14 +193,60 @@
                         .y("XYDATA")
                         .title("TITLE");
                     chart.load(array);
-                    st.parser.jdx("resources/blckpac1.jdx", function (jdx) {
+                    st.parser.jdx("resources/uvvis.jdx", function (jdx) {
                         array.add(jdx);
                     });
+                    break;
+                case 6:                            // MS
+                    var set = st.data.set()        
+                        .ylimits([0, 1000])        
+                        .x("peaks.mz")             
+                        .y("peaks.intensity")      
+                        .title("spectrumId");      
+                        
+                    chart.load(set);               
+                    set.add([                      
+                        "resources/single_point_1.json"
+                    ]);
+                    break;
+                case 7:                             // NMR
+                    var array = st.data.array()
+                        .xlimits(["xMin", "xMax"])
+                        .y("data")
+                        .title("id");
+                    chart.load(array);   
+                    array.add([
+                        "resources/single_point_2.json"
+                    ]);
+                    break;
+                case 8:                             // difference chart
+                    var set = st.data.set() 
+                        .x("data.x")             
+                        .y("data.y")      
+                        .title("id");      
+                        
+                    chart.load(set);               
+                    set.add([                      
+                        "resources/difference.json"
+                    ]);
+                    break;
+                case 9:                             // spectral match
+                    var set = st.data.set() 
+                        .x("peaks.mz")             
+                        .y("peaks.intensity")      
+                        .title("spectrumId");      
+                        
+                    chart.load(set);               
+                    set.add([                      
+                        "resources/data3.json",
+                        "resources/data3_inv.json"
+                    ]);
                     break;
             };
             $("#adddata").attr('disabled','disabled');
         };
-        function dynamicms () {                        // dynamic MS stub
+        
+        function dynamicms () {                     // dynamic MS stub
             ms();
             $("#adddata").attr('disabled','disabled');
             var counter = 0;
@@ -210,7 +276,8 @@
                 setTimeout(iter, 2000);
             }, 2000);
         };
-        function dynamicnmr () {                // dynamic NMR stub
+        
+        function dynamicnmr () {            // dynamic NMR stub
             nmr();
             $("#adddata").attr('disabled','disabled');
             var counter = 0;
@@ -240,7 +307,64 @@
                 setTimeout(iter, 2000);
             }, 2000);
         };
-        function multiplecharts () {
+        
+        function singlems () {             // single point ms stub
+            $("#stgraph").empty();              
+            $("#adddata").removeAttr("disabled")
+                .attr("onclick","load(6)");     
+                
+            chart = st.chart                    
+                .ms()                           
+                .legend(true)                   
+                .xlabel("m/z")
+                .ylabel("Abundance")
+                .margins([80, 80, 80, 120]);
+            chart.render("#stgraph");           
+        }; 
+
+        function singlenmr () {             // single point nmr stub
+            $("#stgraph").empty();
+            $("#adddata").removeAttr("disabled")
+                .attr("onclick","load(7)");
+                
+            chart = st.chart
+                .nmr()
+                .legend(true)
+                .title("NMR")
+                .xlabel("ppm")
+                .margins([80, 80, 80, 80]);
+            chart.render("#stgraph");
+        };
+
+        function diffchart () {             // difference chart
+            $("#stgraph").empty();              
+            $("#adddata").removeAttr("disabled")
+                .attr("onclick","load(8)");     
+                
+            chart = st.chart                    
+                .ms()                           
+                .legend(true)                   
+                .xlabel("m/z")
+                .ylabel("Abundance")
+                .margins([80, 80, 80, 120]);
+            chart.render("#stgraph");           
+        }; 
+        
+        function spectralmatch () {             // spectral match
+            $("#stgraph").empty();              
+            $("#adddata").removeAttr("disabled")
+                .attr("onclick","load(9)");     
+                
+            chart = st.chart                    
+                .ms()                           
+                .legend(true)                   
+                .xlabel("m/z")
+                .ylabel("Abundance")
+                .margins([80, 80, 80, 120]);
+            chart.render("#stgraph");           
+        }; 
+        
+        function multiplecharts () {        // multiple charts stub
             $("#stgraph").css("display", "none");
             $("#stgraphm1").empty();
             $("#stgraphm2").empty();
@@ -300,7 +424,7 @@
 </head>
 <body>
     <div id="wrap">
-        <h2>SpeckTackle</h2>
+        <h2>SpeckTackle: Development</h2>
         <ul>
             <li><button onclick="ms()">MS</button></li>
             <li><button onclick="nmr()">NMR</button></li>
@@ -314,10 +438,17 @@
         </ul>
         <hr>
         <ul>
-            <li><button onclick="multiplecharts()">Multiple Charts (refresh)</button></li>
+            <li><button onclick="multiplecharts()">Multiple Charts</button></li>
             <li><button onclick="dynamicms()">Dynamic MS</button></li>
             <li><button onclick="dynamicnmr()">Dynamic NMR</button></li>
+            <li><button onclick="singlems()">Single Point MS</button></li>
+            <li><button onclick="singlenmr()">Single Point NMR</button></li>
             <li id="dynamicload"></li>
+        </ul>
+        <hr>
+        <ul>
+            <li><button onclick="diffchart()">Difference Chart</button></li>
+            <li><button onclick="spectralmatch()">Spectral Match</button></li>
         </ul>
         <hr>
         <!-- Container for all charts: '#stgraph' -->

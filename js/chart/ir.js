@@ -149,7 +149,6 @@ st.chart.ir = function () {
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .style('stroke', color)
                 .style('fill', 'none')
-                .style('stroke-width', 1)
                 .attr('d', line(series));
             // add a single hidden circle element for point tracking
             g.append('svg:circle')
@@ -174,6 +173,18 @@ st.chart.ir = function () {
                 })
                 .attr("cy", function (d) { 
                     return chart.scales.y(d[accs[1]]) 
+                })
+                .each(function(d) {      // address each point
+                    if (d.annotation) {  // check for on-canvas annotations...
+                        g.append('text') // ...append a SVG text element
+                            .attr('class', id + '.anno')
+                            .attr('x', chart.scales.x(d[accs[0]]))
+                            .attr('y', chart.scales.y(d[accs[1]]) + 20)
+                            .attr('text-anchor', 'middle')
+                            .attr('font-size', 'small')
+                            .attr('fill', color)
+                            .text(d.annotation);
+                    }
                 })
             // define point mouse-over behavior
             .on('mouseover', function (d) {

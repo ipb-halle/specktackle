@@ -222,26 +222,31 @@ function chart () {
                     .range([this.height, 0])
             }
             
-            // add a hidden div that serves as tooltip
-            this.tooltips = d3.select(x).append('div')
-                .attr('width', $(x).width())
-                .attr('height', $(x).height())
-                .style('pointer-events', 'none')
-                .attr('class', 'st-tooltips')
-                .style('position', 'absolute')
-                .style('opacity', 0);
-            // split the tooltip div into a key-value pair section for
-            // annotations of type st.annotation.TOOLTIP...
-            this.tooltips.append('div')
-                .attr('id', 'tooltips-meta')
-                .style('height', '50%')
-                .style('width', '100%');
-            // ...and a section for molecules resolved through URLs pointing
-            // to SDfiles for annotations of type st.annotation.TOOLTIP_MOL
-            this.tooltips.append('div')
-                .attr('id', 'tooltips-mol')
-                .style('height', '50%')
-                .style('width', '100%');
+            // check if the tooltip div exists already...
+            if (!$('#st-tooltips').length) {
+                // add a hidden div that serves as tooltip
+                this.tooltips = d3.select('body').append('div')
+                    .attr('width', $(x).width())
+                    .attr('height', $(x).height())
+                    .style('pointer-events', 'none')
+                    .attr('id', 'st-tooltips')
+                    .style('position', 'absolute')
+                    .style('opacity', 0);
+                // split the tooltip div into a key-value pair section for
+                // annotations of type st.annotation.TOOLTIP...
+                this.tooltips.append('div')
+                    .attr('id', 'tooltips-meta')
+                    .style('height', '50%')
+                    .style('width', '100%');
+                // ...and a section for molecules resolved through URLs pointing
+                // to SDfiles for annotations of type st.annotation.TOOLTIP_MOL
+                this.tooltips.append('div')
+                    .attr('id', 'tooltips-mol')
+                    .style('height', '50%')
+                    .style('width', '100%');
+            } else { // ...reference the tooltip div if it exists
+                this.tooltips = d3.select('#st-tooltips');
+            }
             
             // implement custom behavior if defined in the extension
             if (typeof this.behavior == 'function') {
@@ -405,8 +410,11 @@ function chart () {
                 x = this.scales.x.invert(x);
                 y = this.scales.y.invert(y);
 
-                if (height < 0) { // sanity check
-                    height = 0;
+                if (this.data) { // only act on loaded data
+                    var minheight = this.data.raw.gylim[0];
+                    if (height < minheight) { // sanity check
+                        height = minheight;
+                    }
                 }
 
                 // rescale the x and y domain based on the new values
@@ -495,20 +503,24 @@ function chart () {
             // format numbers to two decimals: 1.2345678 to 1.23
             var format = d3.format('.2f');
             // get the mouse position of the event on the panel
-            var pointer = d3.mouse(event);
-            
+            // var pointer = d3.mouse(event);
             // get the translated transformation matrix...
-            var matrix = event.getScreenCTM()
-                .translate(+pointer[0], +pointer[1]);
+            // var matrix = event.getScreenCTM()
+            //    .translate(+pointer[0], +pointer[1]);
             // ...to adjust the x- and y-position of the tooltip
             this.tooltips
-                .style('left', (window.pageXOffset + matrix.e + 10) + 'px')
-                .style('top', (window.pageYOffset + matrix.f - 10) + 'px')
+                // (window.pageXOffset + matrix.e + 10)
+                // (window.pageYOffset + matrix.f - 10)
+                // .style('left', d3.event.clientX + 10 + 'px')
+                // .style('top', d3.event.clientY - 10 + 'px')
+                .style('left', d3.event.pageX + 10 + 'px')
+                .style('top', d3.event.pageY - 10 + 'px')
                 .style('opacity', 0.9)
                 .style('border', 'dashed')
                 .style('border-width', '1px')
                 .style('padding', '3px')
                 .style('border-radius', '10px')
+                .style('z-index', '10')
                 .style('background-color', 'white');
             var x = format(d[accs[0]]); // format the x value
             var y = format(d[accs[1]]); // format the y value
@@ -533,12 +545,16 @@ function chart () {
                 var spinner = st.util.spinner('#tooltips-meta');
                 // wait 500 ms before XHR is executed
                 this.timeout = setTimeout(function () {
-                    // hide the spinner
-                    spinner.css('display', 'none');
+                    // array for mol2svg XHR promises
+                    var deferreds = [];
+                    // hide the tooltip-mol sub-div until
+                    // all promises are fulfilled
+                    d3.selectAll('#tooltips-mol')
+                        .style('display', 'none');
                     // resolve all SDfile URLs one by one 
                     for (var molkey in d.tooltipmol) {
                         var moldivid = '#tooltips-mol-' + molkey;
-                        var moldiv = d3.selectAll('#tooltips-mol')
+                        d3.selectAll('#tooltips-mol')
                             .append('div')
                             .attr('id', 'tooltips-mol-' + molkey)
                             .style('float', 'left')
@@ -548,8 +564,18 @@ function chart () {
                         d3.selectAll(moldivid).html(
                             '<em>' + molkey + '</em><br/>'
                         );
-                        chart.mol2svg.draw(d.tooltipmol[molkey], moldivid);
+                        var jqxhr = chart.mol2svg.draw(
+                            d.tooltipmol[molkey], moldivid);
+                        deferreds.push(jqxhr);
                     }
+                    // wait until all XHR promises are finished
+                    $.when.apply($, deferreds).done(function () {
+                        // hide the spinner
+                        spinner.css('display', 'none');
+                        // make the tooltip-mol sub-div visible
+                        d3.selectAll('#tooltips-mol')
+                            .style('display', 'inline');
+                    });
                 }, 500);
             } else {
                 // clear the tooltip-mol sub-div 
@@ -685,4 +711,4 @@ function chart () {
             };
         }
     };
-}
+};

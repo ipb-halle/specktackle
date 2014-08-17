@@ -43,23 +43,24 @@ st.util.mol2svg = function (width, height) {
      * 
      * @param {string} molfile A URL of the MDL molfile (REST web service)
      * @param {string} id An identifier of the element 
+     * @returns {object} a XHR promise
      */
     var draw = function (molfile, id) {
+        var jqxhr;
         var el = d3.select(id);
         var cacheKey = cache.getKey(molfile);
         if (cache.exists(cacheKey)) {
             var text = cache.get(cacheKey);
             parse(text, el);
         } else {
-            d3.text(molfile, 'text/plain', function (error, text) {
-                if (error) {
-                    console.log('Invalid molfile url error ' + error);
-                } else {
-                    cache.add(cacheKey, text);
-                    parse(text, el);
-                }
+            jqxhr = $.when(
+                $.get(molfile)
+            ).then(function(text) {
+                cache.add(cacheKey, text);
+                parse(text, el);
             });
         }
+        return jqxhr;
     };
 
     /**

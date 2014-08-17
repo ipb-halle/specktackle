@@ -71,7 +71,7 @@ st.chart.ms = function () {
                 .attr('x2', function (d) { 
                     return chart.scales.x(d[accs[0]]);  // x2 = x1
                 })
-                .attr('y2', this.height)                // y2 = 0
+                .attr('y2', chart.scales.y(0))          // y2 = 0
                 .style('stroke', color)  // color by id
                 .each(function(d) {      // address each point
                     if (d.annotation) {  // check for on-canvas annotations...
@@ -88,17 +88,32 @@ st.chart.ms = function () {
             // define point mouse-over behavior
             .on('mouseover', function (d) {
                 // highlight the selected 'signal spike'
-                d3.select(this).style('stroke-width', 2);
+                d3.select(this).attr('stroke-width', 2);
                 // call default action
                 chart.mouseOverAction(this, d, accs);
             })
             // define point mouse-out behavior
             .on('mouseout', function () {
                 // remove the highlight for the selected 'signal spike'
-                d3.select(this).style('stroke-width', '1');
+                d3.select(this).attr('stroke-width', null);
                 // call default action
                 chart.mouseOutAction();
             });
+        }
+        
+        // remove current zero line element
+        this.canvas.selectAll('.zeroline').remove();
+        // check if the global y domain limit is lower than 0...
+        if (this.data.raw.gylim[0] < 0) {
+            // ...append a zero line element
+            this.canvas.append('svg:line')
+                .attr('class', 'zeroline')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
+                .attr('x1', this.scales.x(this.data.raw.gxlim[0]))
+                .attr('y1', this.scales.y(0))
+                .attr('x2', this.scales.x(this.data.raw.gxlim[1]))
+                .attr('y2', this.scales.y(0))
+                .style('stroke', '#333333');
         }
     };
     

@@ -346,23 +346,24 @@ st.util.mol2svg = function (width, height) {
      * 
      * @param {string} molfile A URL of the MDL molfile (REST web service)
      * @param {string} id An identifier of the element 
+     * @returns {object} a XHR promise
      */
     var draw = function (molfile, id) {
+        var jqxhr;
         var el = d3.select(id);
         var cacheKey = cache.getKey(molfile);
         if (cache.exists(cacheKey)) {
             var text = cache.get(cacheKey);
             parse(text, el);
         } else {
-            d3.text(molfile, 'text/plain', function (error, text) {
-                if (error) {
-                    console.log('Invalid molfile url error ' + error);
-                } else {
-                    cache.add(cacheKey, text);
-                    parse(text, el);
-                }
+            jqxhr = $.when(
+                $.get(molfile)
+            ).then(function(text) {
+                cache.add(cacheKey, text);
+                parse(text, el);
             });
         }
+        return jqxhr;
     };
 
     /**
@@ -959,51 +960,48 @@ st.parser.jdx = function (url, callback) {
     });
 };
 /**
- * data stub.
  *
- * Models for input data should extend this data stub. Options for two dimen-
- * sional data are provided: x and y accessors, x and y limits.
+ * Default data object. Custom data objects should extend this data stub. 
  *
- * Currently the source (src) option must specifiy one or more URL that point
- * to the JSON data.
- * 
  * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @constructor
+ * @returns {object} the default data object
  */
 st.data = {};
 
 /**
- * Function returning the base data object that should be extended or modified
- * in models extending the st.data stub.
+ * Builds the default data object that serves as base for custom data objects.
  * 
- * @method data
- * @returns the base data object to be extended/modified
+ * @constructor
+ * @returns {object} the default data object
  */
 function data () {
     return {
-        opts: {
+        opts: { // data options
             title: '',
-            src: [],    // JSON URLs
-            anno: [],
+            src: [],    // JSON URLs or JSON data
+            anno: [],   // JSON URLs or JSON data
             x: 'x',     // x accessor
             y: 'y',     // y accessor
             xlimits: [],// x axis limits: min, max
-            ylimits: [], // y axis limits: min, max
-            annoTypes: [],
-            annoTexts: []
+            ylimits: [],// y axis limits: min, max
+            annoTypes: [],  // annotation types (see st.annotation)
+            annoTexts: []   // annotation titles (string)
         },
         
-        raw: {          // globals summarising contained data
+        raw: {          // global variables summarising the data set
             gxlim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global x limits
             gylim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global y limits
-            ids: {},
-            series: []  // the total data to be displayed (array of data series)
+            ids: {},    // identifier hash set of all series in the data set
+            series: []  // all series in the data set (array of series)
         },
             
         /**
-         * Sets the URL option.
+         * Sets the data source option.
          *
-         * @param {string[]} x - an URL array 
-         * @returns the data object
+         * @param {string|string[]} datarefs An URL (array) or JSON data (array)
+         * @param {string|string[]} annorefs An URL (array) or JSON data (array)
+         * @returns {object} the data object
          */
         add: function (datarefs, annorefs) {
             if (datarefs instanceof Array) {
@@ -1015,6 +1013,12 @@ function data () {
             }
         },
         
+        /**
+         * Defines elements of the annotation data structure.
+         *
+         * @param {string} type Type of st.annotation
+         * @param {string} text Title of the annotation
+         */
         annotationColumn: function (type, text) {
             if (type.toUpperCase() in st.annotation) {
                 this.opts.annoTypes.push(type);
@@ -1027,103 +1031,221 @@ function data () {
         /**
          * Removes a data series by its identifier or index.
          *
-         * @param {string[]|number[]} x - indices or identifiers to remove
-         * @returns the data object
+         * @param {string[]|number[]} x The indices or identifiers to remove
+         * @returns {string[]} an array of removed identifiers
          */
         remove: function (x) {
+            // array to collect identifiers of removed series
             var ids = [];
-            if (!x) {
+                   
+            // if no argument is given, clear the chart
+            if (!x && x !== 0) {
+                // collect all identifiers
                 for (var i in this.raw.ids) {
                     ids.push(i);
                 }
+                
+                // reset the identifier set and the global 'raw' container
                 this.raw.ids = {};
                 this.raw.series = [];
                 this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
                 this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
+                
+                // return the collected identifiers
                 return ids;
             }
             
-            if (x instanceof Array) {
-                // TODO
+            // turn a single identifier into an array of identifiers
+            if (!(x instanceof Array)) {
+                x = [ x ];
             } else {
-                if (isNaN(x)) {
+                x.sort();
+            }
+            
+            // iterate over the array of identifiers to remove
+            for (i in x) {
+                var xid = x[i];
+                // check whether the identifier is a string...
+                if (isNaN(xid)) {
+                    // find the identifier in the data set and delete it
                     for (var i in this.raw.series) {
-                        if (this.raw.series[i].id === x) {
+                        if (this.raw.series[i].id === xid) {
                             this.raw.series.splice(i, 1);
-                            ids.push(this.raw.ids[x]);
-                            delete this.raw.ids[x];
+                            ids.push(this.raw.ids[xid]);
+                            delete this.raw.ids[xid];
                             break;
                         }
                     }
+                // ...or a number, in which case its an index
                 } else {
-                    if (x < this.raw.series.length) {
-                        var spliced = this.raw.series.splice(x, 1);
+                    // sanity check for the index (track removed entries)
+                    if (xid - i < this.raw.series.length) {
+                        var spliced = this.raw.series.splice(xid - i, 1);
                         ids.push(spliced[0].id);
                         delete this.raw.ids[spliced[0].id];
                     }
                 }
             }
-            
+            // reset the global domain limits
             if (this.raw.series.length === 0) {
                 this.raw.gxlim = [ Number.MAX_VALUE, Number.MIN_VALUE];
                 this.raw.gylim = [ Number.MAX_VALUE, Number.MIN_VALUE];
             }
             
+            // return the collected identifiers
             return ids;
         },
         
         /**
-         * Gets the id for a data series at a given index.
+         * Gets the id of a data series at a given index.
          *
-         * @param {int} index - a data model index 
-         * @returns the id of the data model
+         * @param {number} index A data series index 
+         * @returns {string} the identifier of the data series
          */
         id: function (index) {
             return this.raw.series[index].id;
         },
         
         /**
-         * Gets the title for a data series at a given index.
+         * Gets the title of a data series at a given index.
          *
-         * @param {int} index - a data model index 
-         * @returns the title of the data model
+         * @param {number} index A data series index 
+         * @returns {string} the title of the data series
          */
         titleat: function (index) {
             return this.raw.series[index].title;
         },
         
         /**
-         * Gets the x and y accessors for a data model at a given index.
+         * Gets the x and y accessors for a data series at a given index.
          *
-         * @param {int} index - a data model index 
-         * @returns the x and y accessors of the data model
+         * @param {number} index A data series index 
+         * @returns the x and y accessors of the data series`
          */
         accs: function (index) {
             return this.raw.series[index].accs;
         },
         
         /**
-         * Pushes the URLs currently in the URL option into the raw data array
-         * and sets the global data options.
+         * Pushes the source values currently in the source option into 
+         * the raw data array and sets the global data options.
          *
-         * @param {function} callback - callback function
+         * @param {function} callback A callback function
          */
         push: function (callback) {
+            // self-reference for nested functions
             var data = this;
+            // array for XHR promises
             var deferreds = [];
+            // iterate over the source values
             for (var i in this.opts.src) {
+                // check whether source value is a data object
+                // the corresponding annotation reference is assumed to be a 
+                // data object as well in that case
                 if (typeof this.opts.src[i] !== 'string') {
                     this.fetch(this.opts.src[i], this.opts.anno[i]);
-                } else {
+                } else { // resolve the URLs and save the promises
                     deferreds.push(this.fetch(
                         this.opts.src[i], this.opts.anno[i]));
                 }
             }
+            // wait until all promises are fulfilled
             $.when.apply($, deferreds).done(function () {
+                // clear the source buffers
                 data.opts.src = [];
                 data.opts.anno = [];
+                
+                // special case: single value data sets:
+                // expand X and Y range by 1%
+                if (data.raw.gxlim[0] === data.raw.gxlim[1]) {
+                    data.raw.gxlim[0] -= data.raw.gxlim[0] / 100.0;
+                    data.raw.gxlim[1] += data.raw.gxlim[1] / 100.0;
+                }
+                if (data.raw.gylim[0] === data.raw.gylim[1]) {
+                    data.raw.gylim[0] -= data.raw.gylim[0] / 100.0;
+                    data.raw.gylim[1] += data.raw.gylim[1] / 100.0;
+                }
                 callback();
             });
+        },
+        
+        /**
+         * Fetches the data series and adds it as raw entry.
+         *
+         * @param {string|object} src A data source
+         * @param {string|object} anno An annotation source
+         */
+        fetch: function (src, anno) {
+            // self-reference for nested functions
+            var set = this;
+            // the XHR promise
+            var jqxhr = null;
+            // 1) input series referenced by a URL
+            if (typeof src === 'string') {
+                // 1a) input annotations referenced by a URL
+                if (typeof anno === 'string' && anno) {
+                    jqxhr = $.when(
+                        $.get(src),
+                        $.get(anno)
+                    ).then(function(json, json2) {
+                        // assumption: series and anno structure are identical
+                        if (json[0] instanceof Array) {
+                            for (var i in json[0]) {
+                                set.seriesfetch(json[0][i], json2[0][i]);
+                            }
+                        } else {
+                            set.seriesfetch(json[0], json2[0]);
+                        }
+                    });
+                // 1b) input annotations provided as data array (or missing)
+                } else {
+                    jqxhr = $.when(
+                        $.get(src)
+                    ).then(function(json) {
+                        // assumption: series and anno structure are identical
+                        if (json instanceof Array) {
+                            if (!anno) {
+                                anno = [];
+                            }
+                            for (var i in json) {
+                                set.seriesfetch(json[i], anno[i]);
+                            }
+                        } else {
+                            set.seriesfetch(json, anno);
+                        }
+                    });
+                }
+            // 2) input series provided as data array
+            } else {
+                // 2a) input annotations referenced by a URL
+                if (typeof anno === 'string' && anno) {
+                    jqxhr = $.when(
+                        $.get(anno)
+                    ).then(function(json) {
+                        // assumption: series and anno structure are identical
+                        if (src instanceof Array) {
+                            if (!anno) {
+                                anno = [];
+                            }
+                            for (var i in src) {
+                                set.seriesfetch(src[i], json[i]);
+                            }
+                        } else {
+                            set.seriesfetch(src, json);
+                        }
+                    });
+                } else {
+                    // 1b) input annotations provided as data array (or missing)
+                    if (src instanceof Array) {
+                        for (var i in src) {
+                            set.seriesfetch(src[i], anno[i]);
+                        }
+                    } else {
+                        set.seriesfetch(src, anno);
+                    }
+                }
+            }
+            return jqxhr;
         },
         
         /**
@@ -1146,21 +1268,23 @@ function data () {
  * Function resovling axis limits based on whether key values, numeric values,
  * or no input values are provided.
  * 
- * @method fetch_limits
- * @params {object} series - the data object
- * @params {object} json - the complete data model
- * @params {number[]} limits - the min/max array
- * @params {string} acc - the data accessor
- * @returns the axis limts
+ * @params {object} series The data array
+ * @params {object} json The complete data series
+ * @params {number[]} limits The min/max array
+ * @params {string} acc The data accessor
+ * @returns {number[]} the axis min/max limts
  */
 function fetch_limits (series, json, limits, acc) {
     var lim = [];
+    // sanity check
     if (limits.length === 2) {
+        // both variables are accessors
         if (isNaN(limits[0]) && isNaN(limits[1])) {
             lim = [
                 json[limits[0]],
                 json[limits[1]]
             ];
+        // both variables are constants
         } else if (typeof limits[0] === 'number' 
                 && typeof limits[1] === 'number') {
             lim = [
@@ -1168,14 +1292,25 @@ function fetch_limits (series, json, limits, acc) {
                 limits[1]
             ];
         } else {
+            // typically a one dimensional array: search
+            if (!acc || acc === '') {
+                lim = d3.extent(series);
+            // typically a set: search
+            } else {
+                lim = d3.extent(series, function (d) {
+                    return d[acc];
+                });
+            }   
+        }
+    // sanity violation: search
+    } else {
+        if (!acc || acc === '') {
+            lim = d3.extent(series);
+        } else {
             lim = d3.extent(series, function (d) {
                 return d[acc];
-            });   
-        }                
-    } else {
-        lim = d3.extent(series, function (d) {
-                return d[acc];
-        });
+            });
+        }
     }
     lim[0] = parseFloat(lim[0]);
     lim[1] = parseFloat(lim[1]);
@@ -1184,22 +1319,22 @@ function fetch_limits (series, json, limits, acc) {
 
 
 /**
- * Model for a two dimensional data set with x and y values given as array
- * of objects.
+ * Model of a two dimensional data set with x and y values.
  *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.data.set
- * @returns the data set
+ * @constructor
+ * @extends st.data.data
+ * @returns {object} a data structure of type 'set'
  */
 st.data.set = function () {
-    // init base data to be extended
+    // base data structure to be extended
     var set = data();
     
     /**
      * Sets the title accessor.
      *
-     * @param {string} x - a title accessor
-     * @returns the data object
+     * @param {string} x A title accessor
+     * @returns {object} the data object
      */
     set.title = function (x) {
         this.opts.title = x;
@@ -1207,10 +1342,10 @@ st.data.set = function () {
     };
     
     /**
-     * Sets the x accessor.
+     * Sets the x data accessor.
      *
-     * @param {string} x - a x accessor
-     * @returns the data object
+     * @param {string} x A x data accessor
+     * @returns {object} the data object
      */
     set.x = function (x) {
         this.opts.x = x;
@@ -1218,10 +1353,10 @@ st.data.set = function () {
     };
     
     /**
-     * Sets the y accessor.
+     * Sets the y data accessor.
      *
-     * @param {string} y - a y accessor
-     * @returns the data object
+     * @param {string} y A y data accessor
+     * @returns {object} the data object
      */
     set.y = function (y) {
         this.opts.y = y;
@@ -1229,10 +1364,10 @@ st.data.set = function () {
     };
     
     /**
-     * Sets the x limits.
+     * Sets the x domain limits.
      *
-     * @param {object[]} limits - a two element array of min and max limits
-     * @returns the data object
+     * @param {number[]} limits A two element array of min and max limits
+     * @returns {object} the data object
      */
     set.xlimits = function (limits) {
         set.opts.xlimits = limits;
@@ -1240,147 +1375,125 @@ st.data.set = function () {
     };
     
     /**
-     * Sets the y limits.
+     * Sets the y domain limits.
      *
-     * @param {object[]} limits - a two element array of min and max limits
-     * @returns the data object
+     * @param {number[]} limits A two element array of min and max limits
+     * @returns {object} the data object
      */
     set.ylimits = function (limits) {
         set.opts.ylimits = limits;
         return this;
     };
-
-    /**
-     * Fetches the data and adds the model as raw entry.
-     *
-     * @param {string} src - a data url
-     */
-    set.fetch = function (src, anno) {
-        var set = this;
-        var jqxhr = null;
-        if (typeof src === 'string') {
-            if (typeof anno === 'string' && anno) {
-                jqxhr = $.when(
-                    $.get(src),
-                    $.get(anno)
-                ).then(function(json, json2) {
-                    if (json[0] instanceof Array) {
-                        for (var i in json[0]) {
-                            set_fetch(json[0][i], json2[0][i], set);
-                        }
-                    } else {
-                        set_fetch(json[0], json2[0], set);
-                    }
-                });
-            } else {
-                jqxhr = $.when(
-                    $.get(src)
-                ).then(function(json) {
-                    if (json instanceof Array) {
-                        for (var i in json) {
-                            set_fetch(json[i], anno[i], set);
-                        }
-                    } else {
-                        set_fetch(json, anno, set);
-                    }
-                });
-            }
-        } else {
-            if (typeof anno === 'string' && anno) {
-                jqxhr = $.when(
-                    $.get(anno)
-                ).then(function(json) {
-                    if (src instanceof Array) {
-                        for (var i in src) {
-                            set_fetch(src[i], json[i], set);
-                        }
-                    } else {
-                        set_fetch(src, json, set);
-                    }
-                });
-            } else {
-                if (src instanceof Array) {
-                    for (var i in src) {
-                        set_fetch(src[i], anno[i], set);
-                    }
-                } else {
-                    set_fetch(src, anno, set);
-                }
-            }
-        }
-        return jqxhr;
-    };
     
     /**
-     * Gets the unbinned data array for the current view.
+     * Gets the unbinned data array for the current chart.
      *
-     * @param {int} width - the chart width
-     * @param {function} xscale - the d3 x axis scale
-     * @returns the unbinned data array
+     * @param {number} width The chart width
+     * @param {function} xscale The d3 x axis scale
+     * @returns {object[]} the unbinned data array
      */
     set.get = function (width, xscale) {
+        // global data container for all series
         var rawbinned = [];
+        // define domain extrema in x
         var ext = [
             xscale.invert(0),
             xscale.invert(width)
         ];
+        // arrange based on x-axis direction
         ext = st.util.domain(xscale, ext);
+        // iterate over all series
         for (var i in this.raw.series) {
             var series = this.raw.series[i];
             var binned = [];
+            // iterate over the current series...
             for (var j in series.data) {
                 var x = series.x(j);
+                //...and select data points within the domain extrema
                 if (x >= ext[0] && x <= ext[1]) {
                     binned.push(series.data[j]);
                 }
             }
+            // add the filtered series to the global data container
             rawbinned.push(binned);
         }
+        // return the global data container
         return rawbinned;
     };
     
     /**
-     * Gets the binned data array for the current view.
+     * Gets the binned data array for the current chart.
      *
-     * @param {int} width - the chart width
-     * @param {function} xscale - the d3 x axis scale
-     * @param {boolean} invert - whether to bin using min
-     * @returns the binned data array
+     * @param {number} width The chart width
+     * @param {function} xscale The d3 x axis scale
+     * @param {boolean} invert Whether to bin using min instead of max
+     * @returns {object[]} the binned data array
      */
     set.bin = function (width, xscale, invert) {
+        // global data container for all series
         var rawbinned = [];
+        // define domain extrema in x
         var ext = [
             xscale.invert(0),
             xscale.invert(width)
         ];
+        // arrange based on x-axis direction
         ext = st.util.domain(xscale, ext);
-        var binWidth = 1 // px
+        // define bin width in px
+        var binWidth = 1
+        
+        // find global max number of bins
+        var gnbins = 0;
+        // iterate over all series
         for (var i in this.raw.series) {
-            var series = this.raw.series[i];
-            var serieslength = series.data.length;
-            var tmp = series.size;
-            if (tmp[2] === 0) {
+            // get the series
+            var tmp = this.raw.series[i].size;
+            if (tmp[2] === 0) { // whether nbins is already initialised
                 tmp[2] = Math.ceil(width / binWidth);
             }
-            var step = Math.abs(ext[1] - ext[0]) / (tmp[2] - 1);
+            // check if tmp nbins is greather than the current global nbins
+            if (gnbins < tmp[2]) {
+                gnbins = tmp[2];
+            }
+        }
+        
+        // calculate the bin step size
+        var step = Math.abs(ext[1] - ext[0]) / (gnbins - 1);
+        
+        // iterate over all series
+        for (var i in this.raw.series) {
+            // get the series
+            var series = this.raw.series[i];
+            // get the number of data points in this series
+            var serieslength = series.data.length;
+            // get the size array: [domain min, domain max, nbins]
+            var tmp = series.size;
+            // local data container for binned series
             var binned = [];
-            var cor = 0; // shorten data array
-            while (series.size[0] > 0) {
-                var x = series.x(series.size[0]);
+            // counter to shorten the data array if applicable
+            var cor = 0;
+            
+            // reverse min limit to include unrendered data points if required
+            while (tmp[0] > 0) {
+                var x = series.x(tmp[0]);
                 if (x < ext[0]) {
                     break;
                 }
-                series.size[0] -= 1;
+                tmp[0] -= 1;
             }
-            while (series.size[1] < serieslength) {
-                var x = series.x(series.size[1]);
+            // forward max limit to include unrendered data points if required
+            while (tmp[1] < serieslength) {
+                var x = series.x(tmp[1]);
                 if (x > ext[1]) {
                     break;
                 }
-                series.size[1] += 1;
+                tmp[1] += 1;
             }
-            for (var j = series.size[0]; j < series.size[1]; j++) {
+            
+            // iterate over all data points within the min/max domain limits
+            for (var j = tmp[0]; j < tmp[1]; j++) {
                 var x = series.x(j);
+                // skip irrelevant data points
                 if (x < ext[0]) {
                     tmp[0] = j;
                     continue;
@@ -1388,151 +1501,200 @@ st.data.set = function () {
                     tmp[1] = j;
                     break;
                 }
+                
+                // get the target bin
                 var bin = Math.floor((x - ext[0]) / step);
+                // get the current data point in the bin
                 var dpb = binned[bin];
+                // get the data point to be added to the bin
                 var dps = series.data[j];
+                // if the bin is already populated with a data point...
                 if (dpb) {
+                    // a) ...bin by minimum
                     if (invert) {
                         if (dpb[series.accs[1]] < dps[series.accs[1]]) {
                             binned[bin - cor] = dpb;
                         } else {
+                            if (dpb.annotation) {
+                                dps.annotation = dpb.annotation;
+                            } else if (dpb.tooltip) {
+                                dps.tooltip = dpb.tooltip;
+                            } else if (dpb.tooltipmol) {
+                                dps.tooltipmol = dpb.tooltipmol;
+                            }
                             binned[bin - cor] = dps;
-                        }                    
+                        }   
+                    // b) ...bin by maximum
                     } else {
                         if (Math.abs(dpb[series.accs[1]]) > 
                             Math.abs(dps[series.accs[1]])) {
                             binned[bin - cor] = dpb;
                         } else {
+                            if (dpb.annotation) {
+                                dps.annotation = dpb.annotation;
+                            } else if (dpb.tooltip) {
+                                dps.tooltip = dpb.tooltip;
+                            } else if (dpb.tooltipmol) {
+                                dps.tooltipmol = dpb.tooltipmol;
+                            }
                             binned[bin - cor] = dps;
                         }
                     }
+                // ...add the current data point to the unpopulated bin
                 } else {
                     cor = bin - binned.length;
                     binned[bin - cor] = dps;
                 }
             }
+            // correct the local nbins value if the array could be shortened
             if (cor > 0) {
                 tmp[2] = binned.length;
             }
+            // assign the current data size array to its series
             series.size = tmp;
+            // add the binned array to the global container
             rawbinned.push(binned);
         }
         return rawbinned;
     };
     
-    return set;
-};
+    /**
+     * Function parsing the input data (and annotations).
+     *
+     * @param {string[]} json The raw data series
+     * @param {string[]} json2 The raw annotation data
+     * @param {object} set The target data set
+     */
+    set.seriesfetch = function (json, json2) {
+        var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+        id = 'st' + id;                     // series id
+        var title = json[set.opts.title];   // series title
+        var xlim = [];                  // series x limits
+        var ylim = [];                  // series y limits
+        var size = [];                  // series size: min, max, nBins
+        var xacc = this.opts.x;          // series x accessor
+        var yacc = this.opts.y;          // series y accessor
+        
+        if (!title || title.length === 0) {
+            title = id;
+        }
+        
+        if (id in this.raw.ids) {
+            console.log("SpeckTackle: Non unique identifier: " + id);
+            return;
+        }
+        
+        var acc = ''; // resolve accessor stub
+        if (xacc.lastIndexOf('.') !== -1) {
+            acc = xacc.substr(0, xacc.lastIndexOf('.'))
+            xacc = xacc.substr(xacc.lastIndexOf('.') + 1)
+            yacc = yacc.substr(yacc.lastIndexOf('.') + 1)
+        }
 
-function set_fetch (json, json2, set) {
-    var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
-    id = 'st' + id;                     // model id
-    var title = json[set.opts.title];   // model title
-    var xlim = [];                  // model x limits
-    var ylim = [];                  // model y limits
-    var size = [];                  // model size: min, max, nBins
-    var xacc = set.opts.x;          // model x accessor
-    var yacc = set.opts.y;          // model y accessor
-    
-    if (!title || title.length === 0) {
-        title = id;
-    }
-    
-    if (id in set.raw.ids) {
-        console.log("SpeckTackle: Non unique identifier: " + id);
-        return;
-    }
-    
-    var acc = '';                   // resolve accessor stub
-    if (xacc.lastIndexOf('.') !== -1) {
-        acc = xacc.substr(0, xacc.lastIndexOf('.'))
-        xacc = xacc.substr(xacc.lastIndexOf('.') + 1)
-        yacc = yacc.substr(yacc.lastIndexOf('.') + 1)
-    }
-
-    var data = (acc === '') ? json : json[acc];
-    // resolve limits
-    xlim = fetch_limits(data, json, set.opts.xlimits, xacc);
-    ylim = fetch_limits(data, json, set.opts.ylimits, yacc);
-    size = [0, data.length, 0];
-    
-    // assign annotations
-    if (json2) {
-        var bisector = d3.bisector(function (d) {
-            return d[xacc];
-        }).left;
-        for (var i in json2) {
-            var ref = json2[i][0];
-            var refpos = bisector(data, ref);
-            if (refpos !== -1 && ref === data[refpos][xacc]) {
-                for (var j = 0; j < set.opts.annoTypes.length; j++) {
-                    if (set.opts.annoTypes[j] === st.annotation.ANNOTATION) {
-                        data[refpos].annotation = json2[i][j + 1];
-                    } else if (set.opts.annoTypes[j] === st.annotation.TOOLTIP) {
-                        if (!data[refpos].tooltip) {
-                            data[refpos].tooltip = {};
+        var data = (acc === '') ? json : json[acc];
+        // resolve limits
+        xlim = fetch_limits(data, json, this.opts.xlimits, xacc);
+        ylim = fetch_limits(data, json, this.opts.ylimits, yacc);
+        size = [0, data.length, 0];
+        
+        // assign annotations
+        if (json2) {
+            // define bisector for value lookup
+            var bisector = d3.bisector(function (d) {
+                return d[xacc];
+            }).left;
+            var annolength = this.opts.annoTypes.length;
+            // iterate over each annotation record
+            for (var i in json2) {
+                // ignore annotation record if of invalid length
+                if (json2[i].length - 1 !== annolength) {
+                    continue;
+                }
+                // get the annotation reference value
+                var ref = json2[i][0];
+                // find the data point in the data series
+                var refpos = bisector(data, ref);
+                if (refpos !== -1 && ref === data[refpos][xacc]) {
+                    var refpoint = data[refpos];
+                    // iterate over each element of the annotation record
+                    for (var j = 0; j < annolength; j++) {
+                        var reftype = this.opts.annoTypes[j];
+                        var val = json2[i][j + 1];
+                        if (reftype === st.annotation.ANNOTATION) {
+                            refpoint.annotation = val;
+                        } else if (reftype === st.annotation.TOOLTIP) {
+                            if (!refpoint.tooltip) {
+                                refpoint.tooltip = {};
+                            }
+                            refpoint.tooltip[this.opts.annoTexts[j]] = val;
+                        } else if (reftype === st.annotation.TOOLTIP_MOL) {
+                            if (val !== '') {
+                                if (!refpoint.tooltipmol) {
+                                    refpoint.tooltipmol = {};
+                                }
+                                refpoint.tooltipmol[
+                                    this.opts.annoTexts[j]] = val;
+                            }
                         }
-                        data[refpos].tooltip[set.opts.annoTexts[j]] = json2[i][j + 1];
-                    } else if (set.opts.annoTypes[j] === st.annotation.TOOLTIP_MOL) {
-                        if (!data[refpos].tooltipmol) {
-                            data[refpos].tooltipmol = {};
-                        }
-                        data[refpos].tooltipmol[set.opts.annoTexts[j]] = json2[i][j + 1];
                     }
                 }
             }
         }
-    }
-    
-    // replace global limits if required
-    if (xlim[0] < set.raw.gxlim[0]) {
-        set.raw.gxlim[0] = xlim[0];
-    }
-    if (ylim[0] < set.raw.gylim[0]) {
-        set.raw.gylim[0] = ylim[0];
-    }
-    if (xlim[1] > set.raw.gxlim[1]) {
-        set.raw.gxlim[1] = xlim[1];
-    }
-    if (ylim[1] > set.raw.gylim[1]) {
-        set.raw.gylim[1] = ylim[1];
-    }                
-    
-    set.raw.ids[id] = true;
-    
-    // add model as raw entry
-    set.raw.series.push({
-        id: id,
-        title: title,
-        xlim: xlim,
-        ylim: ylim,
-        accs: [xacc, yacc],
-        size: size,
-        data: data,
-        x: function (i) { // x accessor function
-            return this.data[i][this.accs[0]];
-        },
-        y: function (i) {   // y accessor function
-            return this.data[i][this.accs[1]];
+        
+        // replace global limits if required
+        if (xlim[0] < this.raw.gxlim[0]) {
+            this.raw.gxlim[0] = xlim[0];
         }
-    });
-}
+        if (ylim[0] < this.raw.gylim[0]) {
+            this.raw.gylim[0] = ylim[0];
+        }
+        if (xlim[1] > this.raw.gxlim[1]) {
+            this.raw.gxlim[1] = xlim[1];
+        }
+        if (ylim[1] > this.raw.gylim[1]) {
+            this.raw.gylim[1] = ylim[1];
+        }                
+        
+        this.raw.ids[id] = true;
+        
+        // add series as raw entry
+        this.raw.series.push({
+            id: id,
+            title: title,
+            xlim: xlim,
+            ylim: ylim,
+            accs: [xacc, yacc],
+            size: size,
+            data: data,
+            x: function (i) { // x accessor function
+                return this.data[i][this.accs[0]];
+            },
+            y: function (i) {   // y accessor function
+                return this.data[i][this.accs[1]];
+            }
+        });
+    };
+    
+    return set;
+};
 
 /**
- * Model for a one dimensional data array with y values given as array.
+ * Model of a one dimensional data array with y values.
  *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
- * @method st.data.array
- * @returns the data array
+ * @constructor
+ * @extends st.data.data
+ * @returns {object} a data structure of type 'set'
  */
 st.data.array = function () {
-    // init base data to be extended
+    // base data structure to be extended
     var array = data();
     
     /**
      * Sets the title accessor.
      *
-     * @param {string} x - a title accessor
-     * @returns the data object
+     * @param {string} x A title accessor
+     * @returns {object} the data object
      */
     array.title = function (x) {
         this.opts.title = x;
@@ -1542,8 +1704,8 @@ st.data.array = function () {
     /**
      * Sets the y accessor.
      *
-     * @param {string} y - a y accessor
-     * @returns the data object
+     * @param {string} y A y data accessor
+     * @returns {object} the data object
      */
     array.y = function (y) {
         this.opts.y = y;
@@ -1551,10 +1713,10 @@ st.data.array = function () {
     };
     
     /**
-     * Sets the x limits.
+     * Sets the x domain limits.
      *
-     * @param {object[]} limits - a two element array of min and max limits
-     * @returns the data object
+     * @param {number[]} limits A two element array of min and max limits
+     * @returns {object} the data object
      */
     array.xlimits = function (x) {
         this.opts.xlimits = x;
@@ -1562,54 +1724,47 @@ st.data.array = function () {
     };
     
     /**
-     * Sets the y limits.
+     * Sets the y domain limits.
      *
-     * @param {object[]} limits - a two element array of min and max limits
+     * @param {number[]} limits A two element array of min and max limits
      * @returns the data object
      */
     array.ylimits = function (x) {
         this.opts.ylimits = x;
         return this;
     };
-
-    /**
-     * Fetches the data and adds the model as raw entry.
-     *
-     * @param {string} src - a data url
-     */
-    array.fetch = function (src) {
-        var array = this;
-        var jqxhr = null;
-        if (typeof src === 'string') {
-            jqxhr = $.getJSON(src, function (json) {
-                array_fetch(json, array);
-            });
-        } else {
-            array_fetch(src, array);
-        }
-        return jqxhr;
-    };
     
     /**
-     * Gets the unbinned data array for the current view.
+     * Gets the unbinned data array for the current chart.
      *
-     * @param {int} width - the chart width
-     * @param {function} xscale - the d3 x axis scale
-     * @returns the unbinned data array
+     * @param {number} width The chart width
+     * @param {function} xscale The d3 x axis scale
+     * @returns {object[]} the unbinned data array
      */
     array.get = function (width, xscale) {
+        // global data container for all series
         var rawbinned = [];
+        // define domain extrema in x
         var ext = [
             xscale.invert(0),
             xscale.invert(width)
         ];
+        // arrange based on x-axis direction
         ext = st.util.domain(xscale, ext);
+        // iterate over all series
         for (var i in this.raw.series) {
+            // get the current series
             var series = this.raw.series[i];
+            // get the number of data points
             var serieslength = series.data.length;
+            // calculate the step size in x for the series
             var seriesstep = (series.xlim[1] - series.xlim[0]) / serieslength;
+            // get the size array: [domain min, domain max, nbins]
             var tmp = series.size;
+            // local data container for binned series
             var binned = [];
+            
+            // reverse min limit to include unrendered data points if required
             while (series.size[0] > 0) {
                 var x = series.size[0] * seriesstep + series.xlim[0];
                 if (x < ext[0]) {
@@ -1617,6 +1772,7 @@ st.data.array = function () {
                 }
                 series.size[0] -= 1;
             }
+            // forward max limit to include unrendered data points if required
             while (series.size[1] < serieslength) {
                 var x = series.size[1] * seriesstep + series.xlim[0];
                 if (x > ext[1]) {
@@ -1624,8 +1780,12 @@ st.data.array = function () {
                 }
                 series.size[1] += 1;
             }
+            
+            // iterate over all data points
             for (var j = series.size[0]; j < series.size[1]; j++) {
+                // calculate the x value for the current index
                 var x = j * seriesstep + series.xlim[0];
+                // skip irrelevant data points
                 if (x < ext[0]) {
                     tmp[0] = j;
                     continue;
@@ -1633,46 +1793,79 @@ st.data.array = function () {
                     tmp[1] = j;
                     break;
                 }
+                
+                // get the current y value
                 var ys = series.data[j];
+                // build the data point
                 var dp = {
                     x: x
                 };
                 dp[series.accs[1]] = ys;
                 binned.push(dp);
             }
+            // assign the current data size array to its series
             series.size = tmp;
+            // add the unbinned array to the global container
             rawbinned.push(binned);
         }
         return rawbinned;
     };
     
     /**
-     * Gets the binned data array for the current view.
+     * Gets the binned data array for the current chart.
      *
-     * @param {int} width - the chart width
-     * @param {function} xscale - the d3 x axis scale
-     * @param {boolean} invert - whether to bin using min
-     * @returns the binned data array
+     * @param {number} width The chart width
+     * @param {function} xscale The d3 x axis scale
+     * @param {boolean} invert Whether to bin using min instead of max
+     * @returns {object[]} the binned data array
      */
     array.bin = function (width, xscale, invert) {
+        // global data container for all series
         var rawbinned = [];
+        // define domain extrema in x
         var ext = [
             xscale.invert(0),
             xscale.invert(width)
         ];
+        // arrange based on x-axis direction
         ext = st.util.domain(xscale, ext);
-        var binWidth = 1 // px
+        // define bin width in px
+        var binWidth = 1;
+        
+        // find global max number of bins
+        var gnbins = 0;
+        // iterate over all series
         for (var i in this.raw.series) {
-            var series = this.raw.series[i];
-            var serieslength = series.data.length;
-            var seriesstep = (series.xlim[1] - series.xlim[0]) / serieslength;
-            var tmp = series.size;
-            if (tmp[2] === 0) {
+            // get the series
+            var tmp = this.raw.series[i].size;
+            if (tmp[2] === 0) { // whether nbins is already initialised
                 tmp[2] = Math.ceil(width / binWidth);
             }
-            var step = Math.abs(ext[1] - ext[0]) / (tmp[2] - 1);
+            // check if tmp nbins is greather than the current global nbins
+            if (gnbins < tmp[2]) {
+                gnbins = tmp[2];
+            }
+        }
+        
+        // calculate the bin step size
+        var step = Math.abs(ext[1] - ext[0]) / (gnbins - 1);
+        
+        // iterate over all series
+        for (var i in this.raw.series) {
+            // get the series
+            var series = this.raw.series[i];
+            // get the number of data points in this series
+            var serieslength = series.data.length;
+            // calculate the step size in x for the series
+            var seriesstep = (series.xlim[1] - series.xlim[0]) / serieslength;
+            // get the size array: [domain min, domain max, nbins]
+            var tmp = series.size;
+            // local data container for binned series
             var binned = [];
-            var cor = 0; // shorten data array
+            // counter to shorten the data array if applicable
+            var cor = 0;
+            
+            // reverse min limit to include unrendered data points if required
             while (series.size[0] > 0) {
                 var x = series.size[0] * seriesstep + series.xlim[0];
                 if (x < ext[0]) {
@@ -1680,6 +1873,7 @@ st.data.array = function () {
                 }
                 series.size[0] -= 1;
             }
+            // forward max limit to include unrendered data points if required
             while (series.size[1] < serieslength) {
                 var x = series.size[1] * seriesstep + series.xlim[0];
                 if (x > ext[1]) {
@@ -1687,8 +1881,12 @@ st.data.array = function () {
                 }
                 series.size[1] += 1;
             }
+            
+            // iterate over all data points
             for (var j = series.size[0]; j < series.size[1]; j++) {
+                // calculate the x value for the current index
                 var x = j * seriesstep + series.xlim[0];
+                // skip irrelevant data points
                 if (x < ext[0]) {
                     tmp[0] = j;
                     continue;
@@ -1696,29 +1894,55 @@ st.data.array = function () {
                     tmp[1] = j;
                     break;
                 }
+                
+                // get the target bin
                 var bin = Math.floor((x - ext[0]) / step);
+                // get the current data point in the bin
                 var dpb = binned[bin];
+                // get the data point to be added to the bin
                 var ys = series.data[j];
+                // if the bin is already populated with a data point...
                 if (dpb) {
+                    // a) ...bin by minimum
                     if (invert) {
                         if (dpb[series.accs[1]] < ys) {
                             binned[bin - cor] = dpb;
                         } else {
-                            binned[bin - cor] = { 
+                            var dp = { 
                                 x: x
                             };
-                            binned[bin - cor][series.accs[1]] = ys;
+                            dp[series.accs[1]] = ys;
+                            var tmpdp = binned[bin - cor];
+                            if (tmpdp.annotation) {
+                                dp.annotation = binned[bin - cor].annotation;
+                            } else if (tmpdp.tooltip) {
+                                dp.tooltip = binned[bin - cor].tooltip;
+                            } else if (tmpdp.tooltipmol) {
+                                dp.tooltipmol = binned[bin - cor].tooltipmol;
+                            }
+                            binned[bin - cor] = dp;
                         }
+                    // b) ...bin by maximum
                     } else {
                         if (Math.abs(dpb[series.accs[1]]) > Math.abs(ys)) {
                             binned[bin - cor] = dpb;
                         } else {
-                            binned[bin - cor] = { 
+                            var dp = { 
                                 x: x
                             };
-                            binned[bin - cor][series.accs[1]] = ys;
+                            dp[series.accs[1]] = ys;
+                            var tmpdp = binned[bin - cor];
+                            if (tmpdp.annotation) {
+                                dp.annotation = tmpdp.annotation;
+                            } else if (tmpdp.tooltip) {
+                                dp.tooltip = tmpdp.tooltip;
+                            } else if (tmpdp.tooltipmol) {
+                                dp.tooltipmol = tmpdp.tooltipmol;
+                            }
+                            binned[bin - cor] = dp;
                         }
                     }
+                // ...add the current data point to the unpopulated bin
                 } else {
                     cor = bin - binned.length;
                     binned[bin - cor] = { 
@@ -1726,75 +1950,135 @@ st.data.array = function () {
                     };
                     binned[bin - cor][series.accs[1]] = ys;
                 }
+                
+                // assign annotations
+                if (series.annos && Object.keys(series.annos).length) {
+                    if (j in series.annos) {
+                        var refpoint = binned[bin - cor];
+                        var ref = series.annos[j];
+                        for (var k = 0; k < ref.length; k++) {
+                            var reftype = this.opts.annoTypes[k];
+                            var val = ref[k + 1];
+                            if (reftype === st.annotation.ANNOTATION) {
+                                refpoint.annotation = val;
+                            } else if (reftype === st.annotation.TOOLTIP) {
+                                if (!refpoint.tooltip) {
+                                    refpoint.tooltip = {};
+                                }
+                                refpoint.tooltip[this.opts.annoTexts[k]] = val;
+                            } else if (reftype === st.annotation.TOOLTIP_MOL) {
+                                if (val !== '') {
+                                    if (!refpoint.tooltipmol) {
+                                        refpoint.tooltipmol = {};
+                                    }
+                                    refpoint.tooltipmol[
+                                        this.opts.annoTexts[k]] = val;
+                                }
+                            }
+                        }
+                        binned[bin - cor] = refpoint;
+                    }
+                }
             }
+            // correct the local nbins value if the array could be shortened
             if (cor > 0) {
                 tmp[2] = binned.length;
             }
+            // assign the current data size array to its series
             series.size = tmp;
+            // add the binned array to the global container
             rawbinned.push(binned);
         }
         return rawbinned;
     };
     
+    /**
+     * Function parsing the input data (and annotations).
+     *
+     * @param {string[]} json The raw data series
+     * @param {string[]} json2 The raw annotation data
+     * @param {object} set The target data set
+     */
+    array.seriesfetch = function (json, json2) {
+        var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
+        id = 'st' + id;                       // model id
+        var title = json[this.opts.title];   // model title
+        var xlim = [];                  // model x limits
+        var ylim = [];                  // model y limits
+        var size = [];                  // model size: min, max, nBins
+        var xacc = 'x';                 // model x accessor
+        var yacc = this.opts.y;        // model y accessor
+
+        if (!title || title.length === 0) {
+            title = id;
+        }
+        
+        if (id in this.raw.ids) {
+            console.log("SpeckTackle: Non unique identifier: " + id);
+            return;
+        }
+        
+        var data = (yacc === '') ? json : json[yacc]; // resolve accessor stub
+        // resolve limits
+        xlim = fetch_limits(data, json, this.opts.xlimits, xacc);
+        ylim = fetch_limits(data, json, this.opts.ylimits);
+        size = [0, data.length, 0];
+        
+        // assign annotations
+        annos = {};
+        if (json2) {
+            var annolength = this.opts.annoTypes.length;
+            // iterate over each annotation record
+            for (var i in json2) {
+                // ignore annotation record if of invalid length
+                if (json2[i].length - 1 !== annolength) {
+                    continue;
+                }
+                // get the annotation reference index
+                var refpos = json2[i][0];
+                if (refpos < size[1]) {
+                    annos[refpos] = json2[i];
+                }
+            }
+        }
+        
+        // replace global limits if required
+        if (xlim[0] < this.raw.gxlim[0]) {
+            this.raw.gxlim[0] = xlim[0];
+        }
+        if (ylim[0] < this.raw.gylim[0]) {
+            this.raw.gylim[0] = ylim[0];
+        }
+        if (xlim[1] > this.raw.gxlim[1]) {
+            this.raw.gxlim[1] = xlim[1];
+        }
+        if (ylim[1] > this.raw.gylim[1]) {
+            this.raw.gylim[1] = ylim[1];
+        }
+
+        this.raw.ids[id] = true;    
+
+        // add series as raw entry
+        this.raw.series.push({
+            id: id,        
+            title: title,
+            xlim: xlim,
+            ylim: ylim,
+            accs: [xacc, yacc],
+            size: size,
+            annos: annos,
+            data: data,
+            x: function (i) {
+                return i; // return i by default
+            },
+            y: function (i) {
+                return this.data[i][this.accs[1]];
+            }
+        });
+    };
+    
     return array;
 };
-
-function array_fetch (json, array) {
-    var id = st.util.hashcode((new Date().getTime() * Math.random()) + '');
-    id = 'st' + id;                       // model id
-    var title = json[array.opts.title];   // model title
-    var xlim = [];                  // model x limits
-    var ylim = [];                  // model y limits
-    var size = [];                  // model size: min, max, nBins
-    var xacc = 'x';                 // model x accessor
-    var yacc = array.opts.y;        // model y accessor
-
-    if (!title || title.length === 0) {
-        title = id;
-    }
-    
-    if (id in array.raw.ids) {
-        console.log("SpeckTackle: Non unique identifier: " + id);
-        return;
-    }
-    
-    var data = (yacc === '') ? json : json[yacc];
-    xlim = fetch_limits(data, json, array.opts.xlimits, xacc);
-    ylim = fetch_limits(data, json, array.opts.ylimits, yacc);
-    size = [0, data.length, 0];
-    
-    if (xlim[0] < array.raw.gxlim[0]) {
-        array.raw.gxlim[0] = xlim[0];
-    }
-    if (ylim[0] < array.raw.gylim[0]) {
-        array.raw.gylim[0] = ylim[0];
-    }
-    if (xlim[1] > array.raw.gxlim[1]) {
-        array.raw.gxlim[1] = xlim[1];
-    }
-    if (ylim[1] > array.raw.gylim[1]) {
-        array.raw.gylim[1] = ylim[1];
-    }   
-
-    array.raw.ids[id] = true;    
-
-    // add model as raw entry
-    array.raw.series.push({
-        id: id,        
-        title: title,
-        xlim: xlim,
-        ylim: ylim,
-        accs: [xacc, yacc],
-        size: size,
-        data: data,
-        x: function (i) {
-            return i; // by default, just return i
-        },
-        y: function (i) {
-            return this.data[i][this.accs[1]];
-        }
-    });
-}
 
 /**
  * Base chart to be extended by custom charts.
@@ -2012,26 +2296,31 @@ function chart () {
                     .range([this.height, 0])
             }
             
-            // add a hidden div that serves as tooltip
-            this.tooltips = d3.select(x).append('div')
-                .attr('width', $(x).width())
-                .attr('height', $(x).height())
-                .style('pointer-events', 'none')
-                .attr('class', 'st-tooltips')
-                .style('position', 'absolute')
-                .style('opacity', 0);
-            // split the tooltip div into a key-value pair section for
-            // annotations of type st.annotation.TOOLTIP...
-            this.tooltips.append('div')
-                .attr('id', 'tooltips-meta')
-                .style('height', '50%')
-                .style('width', '100%');
-            // ...and a section for molecules resolved through URLs pointing
-            // to SDfiles for annotations of type st.annotation.TOOLTIP_MOL
-            this.tooltips.append('div')
-                .attr('id', 'tooltips-mol')
-                .style('height', '50%')
-                .style('width', '100%');
+            // check if the tooltip div exists already...
+            if (!$('#st-tooltips').length) {
+                // add a hidden div that serves as tooltip
+                this.tooltips = d3.select('body').append('div')
+                    .attr('width', $(x).width())
+                    .attr('height', $(x).height())
+                    .style('pointer-events', 'none')
+                    .attr('id', 'st-tooltips')
+                    .style('position', 'absolute')
+                    .style('opacity', 0);
+                // split the tooltip div into a key-value pair section for
+                // annotations of type st.annotation.TOOLTIP...
+                this.tooltips.append('div')
+                    .attr('id', 'tooltips-meta')
+                    .style('height', '50%')
+                    .style('width', '100%');
+                // ...and a section for molecules resolved through URLs pointing
+                // to SDfiles for annotations of type st.annotation.TOOLTIP_MOL
+                this.tooltips.append('div')
+                    .attr('id', 'tooltips-mol')
+                    .style('height', '50%')
+                    .style('width', '100%');
+            } else { // ...reference the tooltip div if it exists
+                this.tooltips = d3.select('#st-tooltips');
+            }
             
             // implement custom behavior if defined in the extension
             if (typeof this.behavior == 'function') {
@@ -2195,8 +2484,11 @@ function chart () {
                 x = this.scales.x.invert(x);
                 y = this.scales.y.invert(y);
 
-                if (height < 0) { // sanity check
-                    height = 0;
+                if (this.data) { // only act on loaded data
+                    var minheight = this.data.raw.gylim[0];
+                    if (height < minheight) { // sanity check
+                        height = minheight;
+                    }
                 }
 
                 // rescale the x and y domain based on the new values
@@ -2285,20 +2577,24 @@ function chart () {
             // format numbers to two decimals: 1.2345678 to 1.23
             var format = d3.format('.2f');
             // get the mouse position of the event on the panel
-            var pointer = d3.mouse(event);
-            
+            // var pointer = d3.mouse(event);
             // get the translated transformation matrix...
-            var matrix = event.getScreenCTM()
-                .translate(+pointer[0], +pointer[1]);
+            // var matrix = event.getScreenCTM()
+            //    .translate(+pointer[0], +pointer[1]);
             // ...to adjust the x- and y-position of the tooltip
             this.tooltips
-                .style('left', (window.pageXOffset + matrix.e + 10) + 'px')
-                .style('top', (window.pageYOffset + matrix.f - 10) + 'px')
+                // (window.pageXOffset + matrix.e + 10)
+                // (window.pageYOffset + matrix.f - 10)
+                // .style('left', d3.event.clientX + 10 + 'px')
+                // .style('top', d3.event.clientY - 10 + 'px')
+                .style('left', d3.event.pageX + 10 + 'px')
+                .style('top', d3.event.pageY - 10 + 'px')
                 .style('opacity', 0.9)
                 .style('border', 'dashed')
                 .style('border-width', '1px')
                 .style('padding', '3px')
                 .style('border-radius', '10px')
+                .style('z-index', '10')
                 .style('background-color', 'white');
             var x = format(d[accs[0]]); // format the x value
             var y = format(d[accs[1]]); // format the y value
@@ -2323,12 +2619,16 @@ function chart () {
                 var spinner = st.util.spinner('#tooltips-meta');
                 // wait 500 ms before XHR is executed
                 this.timeout = setTimeout(function () {
-                    // hide the spinner
-                    spinner.css('display', 'none');
+                    // array for mol2svg XHR promises
+                    var deferreds = [];
+                    // hide the tooltip-mol sub-div until
+                    // all promises are fulfilled
+                    d3.selectAll('#tooltips-mol')
+                        .style('display', 'none');
                     // resolve all SDfile URLs one by one 
                     for (var molkey in d.tooltipmol) {
                         var moldivid = '#tooltips-mol-' + molkey;
-                        var moldiv = d3.selectAll('#tooltips-mol')
+                        d3.selectAll('#tooltips-mol')
                             .append('div')
                             .attr('id', 'tooltips-mol-' + molkey)
                             .style('float', 'left')
@@ -2338,8 +2638,18 @@ function chart () {
                         d3.selectAll(moldivid).html(
                             '<em>' + molkey + '</em><br/>'
                         );
-                        chart.mol2svg.draw(d.tooltipmol[molkey], moldivid);
+                        var jqxhr = chart.mol2svg.draw(
+                            d.tooltipmol[molkey], moldivid);
+                        deferreds.push(jqxhr);
                     }
+                    // wait until all XHR promises are finished
+                    $.when.apply($, deferreds).done(function () {
+                        // hide the spinner
+                        spinner.css('display', 'none');
+                        // make the tooltip-mol sub-div visible
+                        d3.selectAll('#tooltips-mol')
+                            .style('display', 'inline');
+                    });
                 }, 500);
             } else {
                 // clear the tooltip-mol sub-div 
@@ -2475,7 +2785,7 @@ function chart () {
             };
         }
     };
-}
+};
 
 /**
  * Default chart for continuous data (Chromatograms, UV/VIS, etc.). 
@@ -2754,7 +3064,7 @@ st.chart.ms = function () {
                 .attr('x2', function (d) { 
                     return chart.scales.x(d[accs[0]]);  // x2 = x1
                 })
-                .attr('y2', this.height)                // y2 = 0
+                .attr('y2', chart.scales.y(0))          // y2 = 0
                 .style('stroke', color)  // color by id
                 .each(function(d) {      // address each point
                     if (d.annotation) {  // check for on-canvas annotations...
@@ -2771,17 +3081,32 @@ st.chart.ms = function () {
             // define point mouse-over behavior
             .on('mouseover', function (d) {
                 // highlight the selected 'signal spike'
-                d3.select(this).style('stroke-width', 2);
+                d3.select(this).attr('stroke-width', 2);
                 // call default action
                 chart.mouseOverAction(this, d, accs);
             })
             // define point mouse-out behavior
             .on('mouseout', function () {
                 // remove the highlight for the selected 'signal spike'
-                d3.select(this).style('stroke-width', '1');
+                d3.select(this).attr('stroke-width', null);
                 // call default action
                 chart.mouseOutAction();
             });
+        }
+        
+        // remove current zero line element
+        this.canvas.selectAll('.zeroline').remove();
+        // check if the global y domain limit is lower than 0...
+        if (this.data.raw.gylim[0] < 0) {
+            // ...append a zero line element
+            this.canvas.append('svg:line')
+                .attr('class', 'zeroline')
+                .attr('clip-path', 'url(#clip-' + this.target + ')')
+                .attr('x1', this.scales.x(this.data.raw.gxlim[0]))
+                .attr('y1', this.scales.y(0))
+                .attr('x2', this.scales.x(this.data.raw.gxlim[1]))
+                .attr('y2', this.scales.y(0))
+                .style('stroke', '#333333');
         }
     };
     
@@ -2937,7 +3262,6 @@ st.chart.ir = function () {
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
                 .style('stroke', color)
                 .style('fill', 'none')
-                .style('stroke-width', 1)
                 .attr('d', line(series));
             // add a single hidden circle element for point tracking
             g.append('svg:circle')
@@ -2962,6 +3286,18 @@ st.chart.ir = function () {
                 })
                 .attr("cy", function (d) { 
                     return chart.scales.y(d[accs[1]]) 
+                })
+                .each(function(d) {      // address each point
+                    if (d.annotation) {  // check for on-canvas annotations...
+                        g.append('text') // ...append a SVG text element
+                            .attr('class', id + '.anno')
+                            .attr('x', chart.scales.x(d[accs[0]]))
+                            .attr('y', chart.scales.y(d[accs[1]]) + 20)
+                            .attr('text-anchor', 'middle')
+                            .attr('font-size', 'small')
+                            .attr('fill', color)
+                            .text(d.annotation);
+                    }
                 })
             // define point mouse-over behavior
             .on('mouseover', function (d) {
