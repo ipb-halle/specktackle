@@ -38,6 +38,8 @@ st.chart.ms = function () {
     
     /**
      * Renders the data: defines how data points are drawn onto the canvas.
+     *
+     * @returns {object} the binned data set for the current x-axis scale
      */
     ms.renderdata = function () {
         // get the binned data set for the current x-axis scale
@@ -115,6 +117,7 @@ st.chart.ms = function () {
                 .attr('y2', this.scales.y(0))
                 .style('stroke', '#333333');
         }
+        return data;
     };
     
     return ms;

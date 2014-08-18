@@ -29,6 +29,7 @@
                 .legend(true)                   // options
                 .xlabel("m/z")
                 .ylabel("Abundance")
+                .labels(true)
                 .margins([80, 80, 80, 120]);
             chart.render("#stgraph");           // render chart to id 'stgraph'
         };
@@ -43,6 +44,7 @@
                 .legend(true)
                 .title("NMR")
                 .xlabel("ppm")
+                .labels(true)
                 .margins([80, 80, 80, 80]);
             chart.render("#stgraph");
         };
@@ -67,6 +69,7 @@
             chart = st.chart
                 .series()
                 .legend(true)
+                .labels(true)
                 .xlabel("Time [s]")
                 .ylabel("Abundance")
                 .title("Chromatogram")
@@ -84,6 +87,7 @@
                 .legend(true)
                 .xlabel("1/cm")
                 .ylabel("Transmittance")
+                .labels(true)
                 .title("Infrared Spectrum")
                 .margins([80, 120, 80, 120]);
             chart.render("#stgraph");
@@ -109,7 +113,7 @@
             switch (x) {
                 case 0:                            // MS
                     var set = st.data.set()        // data type (set)
-                        .ylimits([0, 1000])        // y-axis limits
+                        .ylimits([0, 1100])        // y-axis limits
                         .x("peaks.mz")             // x-accessor
                         .y("peaks.intensity")      // y-accessor
                         .title("spectrumId");      // id-accessor

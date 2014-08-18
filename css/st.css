@@ -58,7 +58,9 @@
     stroke: lightgray;
 }
 
-.st-label {
+.st-labels {
+    font-family: Verdana, sans-serif;
+    font-size: x-small;
     text-anchor: middle;
 }
 
@@ -83,6 +85,13 @@
 }
 
 .st-legend {
+    padding: 5px;
+    font-family: Verdana, sans-serif;
+    font-size: x-small;
+    box-shadow: 2px 2px 1px #888;
+}
+
+.st-options {
     padding: 5px;
     font-family: Verdana, sans-serif;
     font-size: x-small;

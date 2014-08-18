@@ -101,6 +101,48 @@ st.chart.nmr = function () {
                 .attr('font-size', 'large')
                 .text(this.opts.title)
         }
+        
+        // draw the options
+        if (this.opts.labels) {
+            // create a new group element for the label option
+            var labels = this.canvas.append('g')
+                .attr('class', 'st-options');
+            
+            // append the options title
+            labels.append('text')      
+                .attr('x', this.width)
+                .attr('y', this.height - (this.height / 4))
+                .text('Options');
+            
+            // append the label
+            var labelopt = labels.append('g');
+            labelopt.append('svg:circle')
+                .attr('cx', this.width + 5)
+                .attr('cy', this.height - (this.height / 5))
+                .attr('r', 2)
+                .style('fill', '#333333')
+                .style('stroke', '#333333');
+             // append the label text
+            labelopt.append('text')      
+                .attr('x', this.width + 12)
+                .attr('y', this.height - (this.height / 5) + 2)
+                .text('Labels')
+                .attr('id', 'st-label')
+                .style('cursor', 'pointer');
+            // define option highlight on mouse down events
+            labelopt.on('mousedown', function() { 
+                // switch the font-weight using the stroke attribute
+                var label = d3.select(this);
+                if (label.style('stroke') === 'none') {
+                    label.style('stroke', '#333333');
+                } else {
+                    label.style('stroke', 'none');
+                }
+                // inefficient: store binned data?
+                var data = chart.renderdata();
+                chart.renderlabels(data);
+            })
+        }
             
         // implement custom behavior if defined in the extension
         if (typeof this.behavior == 'function') {
@@ -236,7 +278,8 @@ st.chart.nmr = function () {
             // clean up: re-draw the data set
             if (typeof this.renderdata == 'function' && 
                 this.data !== null) {
-                this.renderdata();
+                var data = this.renderdata();
+                this.renderlabels(data);
             }
         } else {
             // hide the selection rectangle
@@ -266,7 +309,8 @@ st.chart.nmr = function () {
         // re-draw the data set
         if (typeof this.renderdata == 'function') {
             this.data.reset();
-            this.renderdata();
+            var data = this.renderdata();
+            this.renderlabels(data);       // draw the labels
         }
     };
     
@@ -287,7 +331,8 @@ st.chart.nmr = function () {
                 init_mouse (chart);         // re-initialise the mouse behavior      
                 chart.canvas.select('.st-xaxis')
                     .call(chart.xaxis);     // draw the x-axis   
-                chart.renderdata();         // draw the data set
+                var data = chart.renderdata();  // draw the data set
+                chart.renderlabels(data);       // draw the labels
                 if (chart.opts.legend) {
                     chart.renderLegend();   // draw the legend
                 }
@@ -311,6 +356,8 @@ st.chart.nmr = function () {
     
     /**
      * Renders the data.
+     *
+     * @returns {object} the binned data set for the current x-axis scale
      */
     nmr.renderdata = function () {
         // get the binned data set for the current x-axis scale
@@ -346,6 +393,7 @@ st.chart.nmr = function () {
                 .style('stroke-width', 1)
                 .attr('d', line(series));
         }
+        return data;
     };
     
     return nmr;
@@ -363,7 +411,8 @@ function init_mouse (chart) {
         .on("zoom", function() {
             if (typeof chart.renderdata == 'function' && 
                 chart.data !== null) {
-                chart.renderdata();
+                var data = chart.renderdata();
+                chart.renderlabels(data);       // draw the labels
             }
         });
     chart.panel.call(mousewheel)

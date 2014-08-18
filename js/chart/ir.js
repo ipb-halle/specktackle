@@ -112,11 +112,16 @@ st.chart.ir = function () {
     
     /**
      * Renders the data.
+     *
+     * @returns {object} the binned data set for the current x-axis scale
      */
     ir.renderdata = function () {
         // get the binned data set for the current x-axis scale
         // param: true -> bin by y value minima
         var data = this.data.bin(this.width, this.scales.x, true);
+        // dirty hack: set flag to indicate binning by minima
+        // used in the chart object for label placement
+        this.data.raw.minima = 1;
         // reference the data set for use in series.behavior
         this.plotted = data;
         // self-reference for nested functions
@@ -201,6 +206,7 @@ st.chart.ir = function () {
                 chart.mouseOutAction();
             });
         }
+        return data;
     };
     
     return ir;

@@ -30,6 +30,7 @@ function chart () {
             xreverse: false,    // whether to reverse the x-axis
             yreverse: false,    // whether to reverse the y-axis
             legend: false,      // whether to display the legend
+            labels: false,      // whether to display signal labels
             margins: [80, 80, 80, 120]  // canvas margins: t, r, b, l
         },
         
@@ -105,6 +106,17 @@ function chart () {
          */
         legend: function (display) {
             this.opts.legend = display;
+            return this;
+        },
+        
+        /**
+         * Sets whether to display labels.
+         *
+         * @param {boolean} display Whether to display labels
+         * @returns {object} the base chart
+         */
+        labels: function (display) {
+            this.opts.labels = display;
             return this;
         },
         
@@ -266,6 +278,48 @@ function chart () {
                     .attr('font-size', 'large')
                     .text(this.opts.title)
             }
+            
+            // draw the options
+            if (this.opts.labels) {
+                // create a new group element for the label option
+                var labels = this.canvas.append('g')
+                    .attr('class', 'st-options');
+                
+                // append the options title
+                labels.append('text')      
+                    .attr('x', this.width)
+                    .attr('y', this.height - (this.height / 4))
+                    .text('Options');
+                
+                // append the label
+                var labelopt = labels.append('g');
+                labelopt.append('svg:circle')
+                    .attr('cx', this.width + 5)
+                    .attr('cy', this.height - (this.height / 5))
+                    .attr('r', 2)
+                    .style('fill', '#333333')
+                    .style('stroke', '#333333');
+                 // append the label text
+                labelopt.append('text')      
+                    .attr('x', this.width + 12)
+                    .attr('y', this.height - (this.height / 5) + 2)
+                    .text('Labels')
+                    .attr('id', 'st-label')
+                    .style('cursor', 'pointer');
+                // define option highlight on mouse down events
+                labelopt.on('mousedown', function() { 
+                    // switch the font-weight using the stroke attribute
+                    var label = d3.select(this);
+                    if (label.style('stroke') === 'none') {
+                        label.style('stroke', '#333333');
+                    } else {
+                        label.style('stroke', 'none');
+                    }
+                    // inefficient: store binned data?
+                    var data = chart.renderdata();
+                    chart.renderlabels(data);
+                })
+            }
         },
         
         /**
@@ -314,6 +368,103 @@ function chart () {
                     .attr('text-anchor', 'middle')
                     .attr('x', 0 - this.height / 2)
                     .attr('y', 0 - margins[3] / 2);
+            }
+        },
+        
+        /**
+         * Adds signal labels to the chart.
+         *
+         * @param {object[]} data The drawn data object
+         */
+        renderlabels: function (data) {
+            var label = d3.select('#st-label');
+            if (label.style('stroke') === 'none' || !this.data) {
+                // remove current SVG elements of the series's class
+                this.canvas.selectAll('.st-labels').remove();
+                return;
+            }
+            
+            // define domain extrema in x
+            var ext = [
+                this.scales.x.invert(0),
+                this.scales.x.invert(this.width)
+            ];
+            // arrange based on x-axis direction
+            ext = st.util.domain(this.scales.x, ext);
+            // define bin width in px
+            var binwidth = 50;
+            // the maximum number of bins
+            var nbins = Math.ceil(this.width / binwidth);
+            // the domain step size
+            var step = Math.abs(ext[1] - ext[0]) / (nbins - 1);
+            // local data container for labels
+            var bins = [];
+            
+            // format numbers to two decimals: 1.2345678 to 1.23
+            var format = d3.format('.2f');
+            
+            // define label position and label binning behavior based on
+            // whether the data was binned by min or max
+            var binfunc;
+            var yoffset;
+            if (this.data.raw.minima) {
+                yoffset = 10;
+                binfunc = function (y1, y2) {
+                    return y1 > y2;
+                };
+            } else {
+                yoffset = -5;
+                binfunc = function (y1, y2) {
+                    return y1 < y2;
+                };
+            }
+            
+            // iterate over all data series
+            for (var i = 0; i < data.length; i++) {
+                // get the series data set
+                var series = data[i];  
+                // get the series data accessors
+                var accs = this.data.accs(i);
+                // keep track of the last visited data point
+                var lastdp = series[0];
+                for (var j = 1; j < series.length; j++) {
+                    var curdp = series[j];
+                    if (binfunc(curdp[accs[1]], lastdp[accs[1]])) {
+                        var x = lastdp[accs[0]];
+                        // get the target bin
+                        var bin = Math.floor((x - ext[0]) / step);
+                        // get the current data point in the bin
+                        var dpb = bins[bin];
+                        // if the bin is already populated with a data point...
+                        if (dpb) {
+                            if (binfunc(dpb[accs[1]], lastdp[accs[1]])) {
+                                bins[bin] = lastdp;
+                            }
+                        // ...add the current data point to the unpopulated bin
+                        } else {
+                            bins[bin] = lastdp;
+                        }
+                    }
+                    lastdp = curdp;
+                }
+            }
+            
+            // remove current SVG elements of the series's class
+            this.canvas.selectAll('.st-labels').remove();
+            for (var i in bins) {
+                if (bins[i]) {
+                    var x = bins[i][accs[0]];
+                    // get the chart coordinate values for the data point
+                    var xinv = this.scales.x(x);
+                    var yinv = this.scales.y(bins[i][accs[1]]);
+                    // append the SVG text elements
+                    var g = this.canvas.append('g')
+                        .attr('class', 'st-labels')
+                    g.append('text')
+                        .attr('x', xinv)
+                        .attr('y', yinv + yoffset)
+                        .text(format(x));
+                }
             }
         },
         
@@ -429,7 +580,8 @@ function chart () {
                 // clean up: re-draw the data set
                 if (typeof this.renderdata == 'function' && 
                     this.data !== null) {
-                    this.renderdata();
+                    var data = this.renderdata();
+                    this.renderlabels(data);
                 }
             } else {
                 // hide the selection rectangle
@@ -482,7 +634,8 @@ function chart () {
             // re-draw the data set
             if (typeof this.renderdata == 'function') {
                 this.data.reset();
-                this.renderdata();
+                var data = this.renderdata();
+                this.renderlabels(data);
             }
         },
         
@@ -692,7 +845,8 @@ function chart () {
                         .call(chart.xaxis);     // draw the x-axis
                     chart.canvas.select('.st-yaxis')
                         .call(chart.yaxis);     // draw the y-axis
-                    chart.renderdata();         // draw the data set
+                    var data = chart.renderdata();  // draw the data set
+                    chart.renderlabels(data);       // draw the labels
                     if (chart.opts.legend) {
                         chart.renderLegend();   // draw the legend
                     }

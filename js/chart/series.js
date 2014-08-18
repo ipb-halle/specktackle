@@ -124,6 +124,8 @@ st.chart.series = function () {
     
     /**
      * Renders the data.
+     *
+     * @returns {object} the binned data set for the current x-axis scale
      */
     series.renderdata = function () {
         // get the binned data set for the current x-axis scale
@@ -201,6 +203,7 @@ st.chart.series = function () {
                 chart.mouseOutAction();
             });
         }
+        return data;
     };
     
     return series;
