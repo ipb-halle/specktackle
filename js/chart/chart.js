@@ -316,8 +316,10 @@ function chart () {
                         label.style('stroke', 'none');
                     }
                     // inefficient: store binned data?
-                    var data = chart.renderdata();
-                    chart.renderlabels(data);
+                    if (chart.data !== null) {
+                        var data = chart.renderdata();
+                        chart.renderlabels(data);
+                    }
                 })
             }
         },
@@ -377,7 +379,7 @@ function chart () {
          * @param {object[]} data The drawn data object
          */
         renderlabels: function (data) {
-            var label = d3.select('#st-label');
+            var label = this.panel.select('#st-label');
             if (label.style('stroke') === 'none' || !this.data) {
                 // remove current SVG elements of the series's class
                 this.canvas.selectAll('.st-labels').remove();
@@ -418,7 +420,10 @@ function chart () {
                     return y1 < y2;
                 };
             }
-            
+            // keep track of the number of points
+            // to calculate the averagey value
+            var n = 0;
+            var avg = 0;
             // iterate over all data series
             for (var i = 0; i < data.length; i++) {
                 // get the series data set
@@ -427,17 +432,20 @@ function chart () {
                 var accs = this.data.accs(i);
                 // keep track of the last visited data point
                 var lastdp = series[0];
+                n = n + series.length;
                 for (var j = 1; j < series.length; j++) {
                     var curdp = series[j];
-                    if (binfunc(curdp[accs[1]], lastdp[accs[1]])) {
-                        var x = lastdp[accs[0]];
+                    var x = lastdp[accs[0]];
+                    var y = lastdp[accs[1]];
+                    var avg = avg + y;
+                    if (binfunc(curdp[accs[1]], y)) {
                         // get the target bin
                         var bin = Math.floor((x - ext[0]) / step);
                         // get the current data point in the bin
                         var dpb = bins[bin];
                         // if the bin is already populated with a data point...
                         if (dpb) {
-                            if (binfunc(dpb[accs[1]], lastdp[accs[1]])) {
+                            if (binfunc(dpb[accs[1]], y)) {
                                 bins[bin] = lastdp;
                             }
                         // ...add the current data point to the unpopulated bin
@@ -448,21 +456,40 @@ function chart () {
                     lastdp = curdp;
                 }
             }
+            // get average
+            avg = avg / n;
             
             // remove current SVG elements of the series's class
             this.canvas.selectAll('.st-labels').remove();
+            var g = this.canvas.append('g')
+                .attr('class', 'st-labels')
+                .attr('text-anchor', 'middle');
+            var pxinv = 0;
+            var pyinv = 0;
             for (var i in bins) {
-                if (bins[i]) {
+                if (bins[i] && avg < bins[i][accs[1]]) {
                     var x = bins[i][accs[0]];
                     // get the chart coordinate values for the data point
                     var xinv = this.scales.x(x);
                     var yinv = this.scales.y(bins[i][accs[1]]);
+                    if (Math.abs(xinv - pxinv) < 20 &&
+                        Math.abs(yinv - pyinv) < 20) {
+                        pxinv = xinv;
+                        pyinv = yinv;
+                        continue;
+                    }
+                    pxinv = xinv;
+                    pyinv = yinv;
                     // append the SVG text elements
-                    var g = this.canvas.append('g')
-                        .attr('class', 'st-labels')
+                    var fill = '#333333'
+                    if (yinv < 0) {
+                        yinv = 0;
+                        fill = 'gray';
+                    }
                     g.append('text')
                         .attr('x', xinv)
                         .attr('y', yinv + yoffset)
+                        .style('fill', fill)
                         .text(format(x));
                 }
             }
