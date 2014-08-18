@@ -368,24 +368,6 @@ st.chart.nmr = function () {
         var chart = this;
         
         // iterate over all data series
-        // var glim = [ Number.MAX_VALUE, Number.MIN_VALUE];
-        // for (var i = 0; i < data.length; i++) {
-            // var series = data[i];           // get the series data
-            // var accs = this.data.accs(i);   // get the series data accessors
-            // var lim = d3.extent(series, function (d) {
-                // return d[accs[1]];
-            // });
-            // if (lim[0] < glim[0]) {
-                // glim[0] = lim[0];
-            // }
-            // if (lim[1] > glim[1]) {
-                // glim[1] = lim[1];
-            // }
-        // }
-        // console.log(glim);
-        // this.scales.y.domain(glim);
-        
-        // iterate over all data series
         for (var i = 0; i < data.length; i++) {
             var series = data[i];           // get the series data
             var id = this.data.id(i);       // get the series identifier

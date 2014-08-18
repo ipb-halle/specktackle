@@ -379,6 +379,10 @@ function chart () {
          * @param {object[]} data The drawn data object
          */
         renderlabels: function (data) {
+            if (!this.opts.labels) {
+                return;
+            }
+        
             var label = this.panel.select('#st-label');
             if (label.style('stroke') === 'none' || !this.data) {
                 // remove current SVG elements of the series's class
