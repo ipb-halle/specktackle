@@ -2615,6 +2615,9 @@ function chart () {
                 }
                 // add the HTML string to the tooltip
                 d3.selectAll('#tooltips-meta').html(tooltip + '<br/>');
+                if (!d.tooltipmol) {
+                    return;
+                }
                 // initiate the spinner on the tooltip-mol sub-div 
                 var spinner = st.util.spinner('#tooltips-meta');
                 // wait 500 ms before XHR is executed
