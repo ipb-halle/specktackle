@@ -1,4 +1,23 @@
-﻿.st-unselectable, .st-base {
+﻿#st-options {
+    padding: 5px;
+    font-family: Verdana, sans-serif;
+    font-size: x-small;
+    box-shadow: 2px 2px 1px #888;
+}
+
+#st-popup {
+    position: absolute;
+    left: 0;
+    top: 0;
+    border: dashed;
+    border-radius: 10px;
+    border-width: 1px;
+    padding: 3px;
+    font-size: small;
+    font-family: Verdana, sans-serif;
+}
+
+.st-unselectable, .st-base {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -85,13 +104,6 @@
 }
 
 .st-legend {
-    padding: 5px;
-    font-family: Verdana, sans-serif;
-    font-size: x-small;
-    box-shadow: 2px 2px 1px #888;
-}
-
-.st-options {
     padding: 5px;
     font-family: Verdana, sans-serif;
     font-size: x-small;

@@ -184,7 +184,7 @@ function chart () {
                     chart.mouseOut(this);
                 })
                 .on('dblclick.zoom', function () {  // --- mouse options ---
-                    chart.mouseDbl();
+                    chart.mouseDbl(this);
                 });
                 
             // append the chart canvas as group within the chart panel
@@ -283,7 +283,7 @@ function chart () {
             if (this.opts.labels) {
                 // create a new group element for the label option
                 var labels = this.canvas.append('g')
-                    .attr('class', 'st-options');
+                    .attr('id', 'st-options');
                 
                 // append the options title
                 labels.append('text')      
@@ -471,7 +471,7 @@ function chart () {
             var pxinv = 0;
             var pyinv = 0;
             for (var i in bins) {
-                if (bins[i] && avg < bins[i][accs[1]]) {
+                if (bins[i] && binfunc(avg, bins[i][accs[1]])) {
                     var x = bins[i][accs[0]];
                     // get the chart coordinate values for the data point
                     var xinv = this.scales.x(x);
@@ -497,6 +497,102 @@ function chart () {
                         .text(format(x));
                 }
             }
+        },
+        
+        /**
+         * Adds annotation group accessors to the chart.
+         */
+        rendergroups: function () {
+            if (Object.keys(this.data.raw.annoGroups).length === 0) {
+                return;
+            }
+            
+            // self-reference for nested functions
+            var chart = this;
+            var labels = this.canvas.select('#st-options');
+            var yoffset = 0;
+            if (labels[0][0] === null) {
+                // create a new group element for the label option
+                labels = this.canvas.append('g')
+                    .attr('id', 'st-options');
+                // append the options title
+                labels.append('text')      
+                    .attr('x', this.width)
+                    .attr('y', this.height - (this.height / 4))
+                    .text('Options');
+            } else {
+                // currently only a single option is in use
+                yoffset = 15;
+            }
+            
+            // append the label
+            var labelopt = labels.append('g');
+            labelopt.append('svg:circle')
+                .attr('cx', this.width + 5)
+                .attr('cy', this.height - (this.height / 5) + yoffset)
+                .attr('r', 2)
+                .style('fill', '#333333')
+                .style('stroke', '#333333');
+             // append the label text
+            labelopt.append('text')      
+                .attr('x', this.width + 12)
+                .attr('y', this.height - (this.height / 5) + 2 + yoffset)
+                .text('Groups')
+                .attr('id', 'st-groups')
+                .style('cursor', 'pointer');
+            // define action on mouse up events
+            labelopt.on('mouseup', function() {
+                // switch the font-weight using the stroke attribute
+                var label = d3.select(this);
+                if (label.style('stroke') === 'none') {
+                    // highlight the selected option
+                    label.style('stroke', '#333333');
+                    // create the popup div
+                    var popup = d3.select(chart.target).append('div')
+                        .attr('id', 'st-popup')
+                        .style('left', d3.event.pageX + 5 + 'px')
+                        .style('top', d3.event.pageY + 5 + 'px')
+                        .style('opacity', 0.9)
+                        .style('background-color', 'white');
+                    keys = [];
+                    // populate the keys array...
+                    for (var key in chart.data.raw.annoGroups) {
+                        keys.push(key);
+                    }
+                    // ...and add to the popup div
+                    popup.append('ul')
+                        .selectAll('li').data(keys).enter()
+                        .append('li')
+                        .style('display', 'block')
+                        .style('cursor', 'pointer')
+                        .html(function(d) { 
+                            if (chart.data.raw.annoGroups[d]) {
+                                return '<strong>' + d + '</strong>';
+                            } 
+                            return d;
+                        })
+                        // action on key selection
+                        .on('mousedown', function(d) { 
+                            // flag the selected key, reset all others
+                            for (key in chart.data.raw.annoGroups) {
+                                if (key == d && !chart.data.raw.annoGroups[d]) {
+                                    chart.data.raw.annoGroups[d] = 1;
+                                } else {
+                                    chart.data.raw.annoGroups[key] = 0;
+                                }
+                            }
+                            // reset the chart
+                            chart.mouseDbl();
+                            // reset the option
+                            label.style('stroke', 'none');
+                            $('#st-popup').remove();
+                        });   
+                } else {
+                    // reset the option
+                    label.style('stroke', 'none');
+                    $('#st-popup').remove();
+                }
+            });   
         },
         
         /**
@@ -641,8 +737,21 @@ function chart () {
 
         /**
          * Defines the default zoom action for mouse double-click events.
+         *
+         * @param {object} event A mouse event
          */
-        mouseDbl: function () {
+        mouseDbl: function (event) {
+            if (event) {
+                // get the corected mouse position on the canvas
+                var pointerX = d3.mouse(event)[0] - this.opts.margins[3],
+                    pointerY = d3.mouse(event)[1] - this.opts.margins[0];
+                // abort if event happened outside the canvas
+                if (pointerX < 0 || pointerX > this.width ||
+                    pointerY < 0 || pointerY > this.height) {
+                        return;
+                }
+            }
+        
             if (this.data === null) {   // default for empty charts
                 var xdom = st.util.domain(this.scales.x, [0, 1]);
                 var ydom = st.util.domain(this.scales.y, [0, 1]);
@@ -676,8 +785,9 @@ function chart () {
          * @param {object} event A mouse event
          * @param {object} d A series data point
          * @param {string[]} accs A series data point accessor array
+         * @param {string} group An annotation group if any
          */
-        mouseOverAction: function (event, d, accs) {
+        mouseOverAction: function (event, d, accs, group) {
             this.tooltips   // show the tooltip
                 .style('display', 'inline');
             this.tooltips   // fade in the tooltip
@@ -716,16 +826,20 @@ function chart () {
             // self-reference for nested functions
             var chart = this;
             // check whether tooltips are assigned to the series point
-            if (d.tooltip || d.tooltipmol) {
+            if (group && group !== '' && d.annos) {
+                if (!(group in d.annos)) {
+                    return;
+                }
+                var groupannos = d.annos[group];
                 // copy the tooltip-meta sub-div 
                 var tooltip = d3.selectAll('#tooltips-meta').html();
                 // add the tooltip key-value pairs to the tooltip HTML
-                for (var key in d.tooltip) {
-                    tooltip += key + ': ' + d.tooltip[key] + '<br/>';
+                for (var key in groupannos.tooltip) {
+                    tooltip += key + ': ' + groupannos.tooltip[key] + '<br/>';
                 }
                 // add the HTML string to the tooltip
                 d3.selectAll('#tooltips-meta').html(tooltip + '<br/>');
-                if (!d.tooltipmol) {
+                if (!groupannos.tooltipmol) {
                     return;
                 }
                 // initiate the spinner on the tooltip-mol sub-div 
@@ -739,7 +853,7 @@ function chart () {
                     d3.selectAll('#tooltips-mol')
                         .style('display', 'none');
                     // resolve all SDfile URLs one by one 
-                    for (var molkey in d.tooltipmol) {
+                    for (var molkey in groupannos.tooltipmol) {
                         var moldivid = '#tooltips-mol-' + molkey;
                         d3.selectAll('#tooltips-mol')
                             .append('div')
@@ -752,7 +866,7 @@ function chart () {
                             '<em>' + molkey + '</em><br/>'
                         );
                         var jqxhr = chart.mol2svg.draw(
-                            d.tooltipmol[molkey], moldivid);
+                            groupannos.tooltipmol[molkey], moldivid);
                         deferreds.push(jqxhr);
                     }
                     // wait until all XHR promises are finished
@@ -878,6 +992,7 @@ function chart () {
                         .call(chart.yaxis);     // draw the y-axis
                     var data = chart.renderdata();  // draw the data set
                     chart.renderlabels(data);       // draw the labels
+                    chart.rendergroups();           // draw the anno groups
                     if (chart.opts.legend) {
                         chart.renderLegend();   // draw the legend
                     }

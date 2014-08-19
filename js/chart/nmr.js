@@ -292,7 +292,18 @@ st.chart.nmr = function () {
     /**
      * Defines the default zoom action for mouse double-click events.
      */
-    nmr.mouseDbl = function () {
+    nmr.mouseDbl = function (event) {
+        if (event) {
+            // get the corected mouse position on the canvas
+            var pointerX = d3.mouse(event)[0] - this.opts.margins[3],
+                pointerY = d3.mouse(event)[1] - this.opts.margins[0];
+            // abort if event happened outside the canvas
+            if (pointerX < 0 || pointerX > this.width ||
+                pointerY < 0 || pointerY > this.height) {
+                    return;
+            }
+        }
+    
         if (this.data === null) {   // default for empty charts
             this.scales.x.domain([1, 0]).nice();
             this.scales.y.domain([0, 1]).nice();
@@ -335,6 +346,7 @@ st.chart.nmr = function () {
                     .call(chart.xaxis);     // draw the x-axis   
                 var data = chart.renderdata();  // draw the data set
                 chart.renderlabels(data);       // draw the labels
+                chart.rendergroups();           // draw the anno groups
                 if (chart.opts.legend) {
                     chart.renderLegend();   // draw the legend
                 }
@@ -364,6 +376,14 @@ st.chart.nmr = function () {
     nmr.renderdata = function () {
         // get the binned data set for the current x-axis scale
         var data = this.data.bin(this.width, this.scales.x);
+        // get annotation group
+        var group = '';
+        for (var key in this.data.raw.annoGroups) {
+            if (this.data.raw.annoGroups[key]) {
+                group = key;
+                break;
+            }
+        }    
         // self-reference for nested functions
         var chart = this;
         
@@ -395,6 +415,21 @@ st.chart.nmr = function () {
                 .style('fill', 'none')
                 .style('stroke-width', 1)
                 .attr('d', line(series));
+            g.data(series).each(function(d) {      // address each point
+                    if (d.annos) {  // check for on-canvas annotations...
+                        if (!(group in d.annos)) {
+                            return;
+                        }
+                        g.append('text') // ...append a SVG text element
+                            .attr('class', id + '.anno')
+                            .attr('x', chart.scales.x(d[accs[0]]))
+                            .attr('y', chart.scales.y(d[accs[1]]) - 5)
+                            .attr('text-anchor', 'middle')
+                            .attr('font-size', 'small')
+                            .attr('fill', color)
+                            .text(d.annos[group].annotation);
+                    }
+                });
         }
         return data;
     };
@@ -432,6 +467,6 @@ function init_mouse (chart) {
             chart.mouseOut(this);
         })
         .on('dblclick.zoom', function () {  // --- mouse options ---
-            chart.mouseDbl();
+            chart.mouseDbl(this);
         })
 }

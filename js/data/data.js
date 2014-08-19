@@ -32,7 +32,9 @@ function data () {
             gxlim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global x limits
             gylim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global y limits
             ids: {},    // identifier hash set of all series in the data set
-            series: []  // all series in the data set (array of series)
+            series: [], // all series in the data set (array of series)
+            minima: 0,      // whether minimum binned is to be applied 
+            annoGroups: {}  // annotation groups (string)
         },
             
         /**

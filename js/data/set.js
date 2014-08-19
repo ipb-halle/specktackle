@@ -132,9 +132,9 @@ st.data.set = function () {
         for (var i in this.raw.series) {
             // get the series
             var tmp = this.raw.series[i].size;
-            if (tmp[2] === 0) { // whether nbins is already initialised
+            // if (tmp[2] === 0) { // whether nbins is already initialised
                 tmp[2] = Math.ceil(width / binWidth);
-            }
+            // }
             // check if tmp nbins is greather than the current global nbins
             if (gnbins < tmp[2]) {
                 gnbins = tmp[2];
@@ -189,7 +189,7 @@ st.data.set = function () {
                 // get the target bin
                 var bin = Math.floor((x - ext[0]) / step);
                 // get the current data point in the bin
-                var dpb = binned[bin];
+                var dpb = binned[bin - cor];
                 // get the data point to be added to the bin
                 var dps = series.data[j];
                 // if the bin is already populated with a data point...
@@ -199,12 +199,8 @@ st.data.set = function () {
                         if (dpb[series.accs[1]] < dps[series.accs[1]]) {
                             binned[bin - cor] = dpb;
                         } else {
-                            if (dpb.annotation) {
-                                dps.annotation = dpb.annotation;
-                            } else if (dpb.tooltip) {
-                                dps.tooltip = dpb.tooltip;
-                            } else if (dpb.tooltipmol) {
-                                dps.tooltipmol = dpb.tooltipmol;
+                            if (dpb.annos) {
+                                dps.annos = dpb.annos;
                             }
                             binned[bin - cor] = dps;
                         }   
@@ -214,12 +210,8 @@ st.data.set = function () {
                             Math.abs(dps[series.accs[1]])) {
                             binned[bin - cor] = dpb;
                         } else {
-                            if (dpb.annotation) {
-                                dps.annotation = dpb.annotation;
-                            } else if (dpb.tooltip) {
-                                dps.tooltip = dpb.tooltip;
-                            } else if (dpb.tooltipmol) {
-                                dps.tooltipmol = dpb.tooltipmol;
+                            if (dpb.annos) {
+                                dps.annos = dpb.annos;
                             }
                             binned[bin - cor] = dps;
                         }
@@ -291,32 +283,48 @@ st.data.set = function () {
             // iterate over each annotation record
             for (var i in json2) {
                 // ignore annotation record if of invalid length
-                if (json2[i].length - 1 !== annolength) {
+                if (json2[i].length - 2 !== annolength) {
                     continue;
                 }
+                // get the annotation group
+                var refgroup = json2[i][0];
+                if (!(refgroup in this.raw.annoGroups)) {
+                    this.raw.annoGroups[refgroup] = 0;
+                }
                 // get the annotation reference value
-                var ref = json2[i][0];
+                var ref = json2[i][1];
                 // find the data point in the data series
                 var refpos = bisector(data, ref);
                 if (refpos !== -1 && ref === data[refpos][xacc]) {
                     var refpoint = data[refpos];
+                    // add annotation hash to the data point
+                    if (!refpoint.annos) {
+                        refpoint.annos = {};
+                    }
+                    // add group to the annotation hash
+                    var dpannos = refpoint.annos;
+                    if (!(refgroup in dpannos)) {
+                        dpannos[refgroup] = {};
+                    }
+                    var annosgroup = dpannos[refgroup];
+                    
                     // iterate over each element of the annotation record
                     for (var j = 0; j < annolength; j++) {
                         var reftype = this.opts.annoTypes[j];
-                        var val = json2[i][j + 1];
+                        var val = json2[i][j + 2];
                         if (reftype === st.annotation.ANNOTATION) {
-                            refpoint.annotation = val;
+                            annosgroup.annotation = val;
                         } else if (reftype === st.annotation.TOOLTIP) {
-                            if (!refpoint.tooltip) {
-                                refpoint.tooltip = {};
+                            if (!annosgroup.tooltip) {
+                                annosgroup.tooltip = {};
                             }
-                            refpoint.tooltip[this.opts.annoTexts[j]] = val;
+                            annosgroup.tooltip[this.opts.annoTexts[j]] = val;
                         } else if (reftype === st.annotation.TOOLTIP_MOL) {
                             if (val !== '') {
-                                if (!refpoint.tooltipmol) {
-                                    refpoint.tooltipmol = {};
+                                if (!annosgroup.tooltipmol) {
+                                    annosgroup.tooltipmol = {};
                                 }
-                                refpoint.tooltipmol[
+                                annosgroup.tooltipmol[
                                     this.opts.annoTexts[j]] = val;
                             }
                         }

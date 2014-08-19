@@ -119,6 +119,14 @@ st.chart.ir = function () {
         // get the binned data set for the current x-axis scale
         // param: true -> bin by y value minima
         var data = this.data.bin(this.width, this.scales.x, true);
+        // get annotation group
+        var group = '';
+        for (var key in this.data.raw.annoGroups) {
+            if (this.data.raw.annoGroups[key]) {
+                group = key;
+                break;
+            }
+        }
         // dirty hack: set flag to indicate binning by minima
         // used in the chart object for label placement
         this.data.raw.minima = 1;
@@ -180,7 +188,10 @@ st.chart.ir = function () {
                     return chart.scales.y(d[accs[1]]) 
                 })
                 .each(function(d) {      // address each point
-                    if (d.annotation) {  // check for on-canvas annotations...
+                    if (d.annos) {  // check for on-canvas annotations...
+                        if (!(group in d.annos)) {
+                            return;
+                        }
                         g.append('text') // ...append a SVG text element
                             .attr('class', id + '.anno')
                             .attr('x', chart.scales.x(d[accs[0]]))
@@ -188,7 +199,7 @@ st.chart.ir = function () {
                             .attr('text-anchor', 'middle')
                             .attr('font-size', 'small')
                             .attr('fill', color)
-                            .text(d.annotation);
+                            .text(d.annos[group].annotation);
                     }
                 })
             // define point mouse-over behavior
@@ -196,7 +207,7 @@ st.chart.ir = function () {
                 // highlight the selected circle
                 d3.select(this).attr('opacity', 0.8);
                 // call default action
-                chart.mouseOverAction(this, d, accs);
+                chart.mouseOverAction(this, d, accs, group);
             })
             // define point mouse-out behavior
             .on('mouseout', function () {

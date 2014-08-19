@@ -993,7 +993,9 @@ function data () {
             gxlim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global x limits
             gylim: [ Number.MAX_VALUE, Number.MIN_VALUE], // global y limits
             ids: {},    // identifier hash set of all series in the data set
-            series: []  // all series in the data set (array of series)
+            series: [], // all series in the data set (array of series)
+            minima: 0,      // whether minimum binned is to be applied 
+            annoGroups: {}  // annotation groups (string)
         },
             
         /**
@@ -1448,9 +1450,9 @@ st.data.set = function () {
         for (var i in this.raw.series) {
             // get the series
             var tmp = this.raw.series[i].size;
-            if (tmp[2] === 0) { // whether nbins is already initialised
+            // if (tmp[2] === 0) { // whether nbins is already initialised
                 tmp[2] = Math.ceil(width / binWidth);
-            }
+            // }
             // check if tmp nbins is greather than the current global nbins
             if (gnbins < tmp[2]) {
                 gnbins = tmp[2];
@@ -1505,7 +1507,7 @@ st.data.set = function () {
                 // get the target bin
                 var bin = Math.floor((x - ext[0]) / step);
                 // get the current data point in the bin
-                var dpb = binned[bin];
+                var dpb = binned[bin - cor];
                 // get the data point to be added to the bin
                 var dps = series.data[j];
                 // if the bin is already populated with a data point...
@@ -1515,12 +1517,8 @@ st.data.set = function () {
                         if (dpb[series.accs[1]] < dps[series.accs[1]]) {
                             binned[bin - cor] = dpb;
                         } else {
-                            if (dpb.annotation) {
-                                dps.annotation = dpb.annotation;
-                            } else if (dpb.tooltip) {
-                                dps.tooltip = dpb.tooltip;
-                            } else if (dpb.tooltipmol) {
-                                dps.tooltipmol = dpb.tooltipmol;
+                            if (dpb.annos) {
+                                dps.annos = dpb.annos;
                             }
                             binned[bin - cor] = dps;
                         }   
@@ -1530,12 +1528,8 @@ st.data.set = function () {
                             Math.abs(dps[series.accs[1]])) {
                             binned[bin - cor] = dpb;
                         } else {
-                            if (dpb.annotation) {
-                                dps.annotation = dpb.annotation;
-                            } else if (dpb.tooltip) {
-                                dps.tooltip = dpb.tooltip;
-                            } else if (dpb.tooltipmol) {
-                                dps.tooltipmol = dpb.tooltipmol;
+                            if (dpb.annos) {
+                                dps.annos = dpb.annos;
                             }
                             binned[bin - cor] = dps;
                         }
@@ -1607,32 +1601,48 @@ st.data.set = function () {
             // iterate over each annotation record
             for (var i in json2) {
                 // ignore annotation record if of invalid length
-                if (json2[i].length - 1 !== annolength) {
+                if (json2[i].length - 2 !== annolength) {
                     continue;
                 }
+                // get the annotation group
+                var refgroup = json2[i][0];
+                if (!(refgroup in this.raw.annoGroups)) {
+                    this.raw.annoGroups[refgroup] = 0;
+                }
                 // get the annotation reference value
-                var ref = json2[i][0];
+                var ref = json2[i][1];
                 // find the data point in the data series
                 var refpos = bisector(data, ref);
                 if (refpos !== -1 && ref === data[refpos][xacc]) {
                     var refpoint = data[refpos];
+                    // add annotation hash to the data point
+                    if (!refpoint.annos) {
+                        refpoint.annos = {};
+                    }
+                    // add group to the annotation hash
+                    var dpannos = refpoint.annos;
+                    if (!(refgroup in dpannos)) {
+                        dpannos[refgroup] = {};
+                    }
+                    var annosgroup = dpannos[refgroup];
+                    
                     // iterate over each element of the annotation record
                     for (var j = 0; j < annolength; j++) {
                         var reftype = this.opts.annoTypes[j];
-                        var val = json2[i][j + 1];
+                        var val = json2[i][j + 2];
                         if (reftype === st.annotation.ANNOTATION) {
-                            refpoint.annotation = val;
+                            annosgroup.annotation = val;
                         } else if (reftype === st.annotation.TOOLTIP) {
-                            if (!refpoint.tooltip) {
-                                refpoint.tooltip = {};
+                            if (!annosgroup.tooltip) {
+                                annosgroup.tooltip = {};
                             }
-                            refpoint.tooltip[this.opts.annoTexts[j]] = val;
+                            annosgroup.tooltip[this.opts.annoTexts[j]] = val;
                         } else if (reftype === st.annotation.TOOLTIP_MOL) {
                             if (val !== '') {
-                                if (!refpoint.tooltipmol) {
-                                    refpoint.tooltipmol = {};
+                                if (!annosgroup.tooltipmol) {
+                                    annosgroup.tooltipmol = {};
                                 }
-                                refpoint.tooltipmol[
+                                annosgroup.tooltipmol[
                                     this.opts.annoTexts[j]] = val;
                             }
                         }
@@ -1838,9 +1848,9 @@ st.data.array = function () {
         for (var i in this.raw.series) {
             // get the series
             var tmp = this.raw.series[i].size;
-            if (tmp[2] === 0) { // whether nbins is already initialised
+            // if (tmp[2] === 0) { // whether nbins is already initialised
                 tmp[2] = Math.ceil(width / binWidth);
-            }
+            // }
             // check if tmp nbins is greather than the current global nbins
             if (gnbins < tmp[2]) {
                 gnbins = tmp[2];
@@ -1898,7 +1908,7 @@ st.data.array = function () {
                 // get the target bin
                 var bin = Math.floor((x - ext[0]) / step);
                 // get the current data point in the bin
-                var dpb = binned[bin];
+                var dpb = binned[bin - cor];
                 // get the data point to be added to the bin
                 var ys = series.data[j];
                 // if the bin is already populated with a data point...
@@ -1913,12 +1923,8 @@ st.data.array = function () {
                             };
                             dp[series.accs[1]] = ys;
                             var tmpdp = binned[bin - cor];
-                            if (tmpdp.annotation) {
-                                dp.annotation = binned[bin - cor].annotation;
-                            } else if (tmpdp.tooltip) {
-                                dp.tooltip = binned[bin - cor].tooltip;
-                            } else if (tmpdp.tooltipmol) {
-                                dp.tooltipmol = binned[bin - cor].tooltipmol;
+                            if (tmpdp.annos) {
+                                dp.annos = binned[bin - cor].annos;
                             }
                             binned[bin - cor] = dp;
                         }
@@ -1932,12 +1938,8 @@ st.data.array = function () {
                             };
                             dp[series.accs[1]] = ys;
                             var tmpdp = binned[bin - cor];
-                            if (tmpdp.annotation) {
-                                dp.annotation = tmpdp.annotation;
-                            } else if (tmpdp.tooltip) {
-                                dp.tooltip = tmpdp.tooltip;
-                            } else if (tmpdp.tooltipmol) {
-                                dp.tooltipmol = tmpdp.tooltipmol;
+                            if (tmpdp.annos) {
+                                dp.annos = tmpdp.annos;
                             }
                             binned[bin - cor] = dp;
                         }
@@ -1956,22 +1958,40 @@ st.data.array = function () {
                     if (j in series.annos) {
                         var refpoint = binned[bin - cor];
                         var ref = series.annos[j];
+                        
+                        // get the annotation group
+                        var refgroup = ref[0];
+                        if (!(refgroup in this.raw.annoGroups)) {
+                            this.raw.annoGroups[refgroup] = 0;
+                        }
+                        // add annotation hash to the data point
+                        if (!refpoint.annos) {
+                            refpoint.annos = {};
+                        }
+                        // add group to the annotation hash
+                        var dpannos = refpoint.annos;
+                        if (!(refgroup in dpannos)) {
+                            dpannos[refgroup] = {};
+                        }
+                        var annosgroup = dpannos[refgroup];
+                        
+                        // iterate over each element of the annotation record
                         for (var k = 0; k < ref.length; k++) {
                             var reftype = this.opts.annoTypes[k];
-                            var val = ref[k + 1];
+                            var val = ref[k + 2];
                             if (reftype === st.annotation.ANNOTATION) {
-                                refpoint.annotation = val;
+                                annosgroup.annotation = val;
                             } else if (reftype === st.annotation.TOOLTIP) {
-                                if (!refpoint.tooltip) {
-                                    refpoint.tooltip = {};
+                                if (!annosgroup.tooltip) {
+                                    annosgroup.tooltip = {};
                                 }
-                                refpoint.tooltip[this.opts.annoTexts[k]] = val;
+                                annosgroup.tooltip[this.opts.annoTexts[k]] = val;
                             } else if (reftype === st.annotation.TOOLTIP_MOL) {
                                 if (val !== '') {
-                                    if (!refpoint.tooltipmol) {
-                                        refpoint.tooltipmol = {};
+                                    if (!annosgroup.tooltipmol) {
+                                        annosgroup.tooltipmol = {};
                                     }
-                                    refpoint.tooltipmol[
+                                    annosgroup.tooltipmol[
                                         this.opts.annoTexts[k]] = val;
                                 }
                             }
@@ -2031,11 +2051,11 @@ st.data.array = function () {
             // iterate over each annotation record
             for (var i in json2) {
                 // ignore annotation record if of invalid length
-                if (json2[i].length - 1 !== annolength) {
+                if (json2[i].length - 2 !== annolength) {
                     continue;
                 }
                 // get the annotation reference index
-                var refpos = json2[i][0];
+                var refpos = json2[i][1];
                 if (refpos < size[1]) {
                     annos[refpos] = json2[i];
                 }
@@ -2258,7 +2278,7 @@ function chart () {
                     chart.mouseOut(this);
                 })
                 .on('dblclick.zoom', function () {  // --- mouse options ---
-                    chart.mouseDbl();
+                    chart.mouseDbl(this);
                 });
                 
             // append the chart canvas as group within the chart panel
@@ -2357,7 +2377,7 @@ function chart () {
             if (this.opts.labels) {
                 // create a new group element for the label option
                 var labels = this.canvas.append('g')
-                    .attr('class', 'st-options');
+                    .attr('id', 'st-options');
                 
                 // append the options title
                 labels.append('text')      
@@ -2545,7 +2565,7 @@ function chart () {
             var pxinv = 0;
             var pyinv = 0;
             for (var i in bins) {
-                if (bins[i] && avg < bins[i][accs[1]]) {
+                if (bins[i] && binfunc(avg, bins[i][accs[1]])) {
                     var x = bins[i][accs[0]];
                     // get the chart coordinate values for the data point
                     var xinv = this.scales.x(x);
@@ -2571,6 +2591,102 @@ function chart () {
                         .text(format(x));
                 }
             }
+        },
+        
+        /**
+         * Adds annotation group accessors to the chart.
+         */
+        rendergroups: function () {
+            if (Object.keys(this.data.raw.annoGroups).length === 0) {
+                return;
+            }
+            
+            // self-reference for nested functions
+            var chart = this;
+            var labels = this.canvas.select('#st-options');
+            var yoffset = 0;
+            if (labels[0][0] === null) {
+                // create a new group element for the label option
+                labels = this.canvas.append('g')
+                    .attr('id', 'st-options');
+                // append the options title
+                labels.append('text')      
+                    .attr('x', this.width)
+                    .attr('y', this.height - (this.height / 4))
+                    .text('Options');
+            } else {
+                // currently only a single option is in use
+                yoffset = 15;
+            }
+            
+            // append the label
+            var labelopt = labels.append('g');
+            labelopt.append('svg:circle')
+                .attr('cx', this.width + 5)
+                .attr('cy', this.height - (this.height / 5) + yoffset)
+                .attr('r', 2)
+                .style('fill', '#333333')
+                .style('stroke', '#333333');
+             // append the label text
+            labelopt.append('text')      
+                .attr('x', this.width + 12)
+                .attr('y', this.height - (this.height / 5) + 2 + yoffset)
+                .text('Groups')
+                .attr('id', 'st-groups')
+                .style('cursor', 'pointer');
+            // define action on mouse up events
+            labelopt.on('mouseup', function() {
+                // switch the font-weight using the stroke attribute
+                var label = d3.select(this);
+                if (label.style('stroke') === 'none') {
+                    // highlight the selected option
+                    label.style('stroke', '#333333');
+                    // create the popup div
+                    var popup = d3.select(chart.target).append('div')
+                        .attr('id', 'st-popup')
+                        .style('left', d3.event.pageX + 5 + 'px')
+                        .style('top', d3.event.pageY + 5 + 'px')
+                        .style('opacity', 0.9)
+                        .style('background-color', 'white');
+                    keys = [];
+                    // populate the keys array...
+                    for (var key in chart.data.raw.annoGroups) {
+                        keys.push(key);
+                    }
+                    // ...and add to the popup div
+                    popup.append('ul')
+                        .selectAll('li').data(keys).enter()
+                        .append('li')
+                        .style('display', 'block')
+                        .style('cursor', 'pointer')
+                        .html(function(d) { 
+                            if (chart.data.raw.annoGroups[d]) {
+                                return '<strong>' + d + '</strong>';
+                            } 
+                            return d;
+                        })
+                        // action on key selection
+                        .on('mousedown', function(d) { 
+                            // flag the selected key, reset all others
+                            for (key in chart.data.raw.annoGroups) {
+                                if (key == d && !chart.data.raw.annoGroups[d]) {
+                                    chart.data.raw.annoGroups[d] = 1;
+                                } else {
+                                    chart.data.raw.annoGroups[key] = 0;
+                                }
+                            }
+                            // reset the chart
+                            chart.mouseDbl();
+                            // reset the option
+                            label.style('stroke', 'none');
+                            $('#st-popup').remove();
+                        });   
+                } else {
+                    // reset the option
+                    label.style('stroke', 'none');
+                    $('#st-popup').remove();
+                }
+            });   
         },
         
         /**
@@ -2715,8 +2831,21 @@ function chart () {
 
         /**
          * Defines the default zoom action for mouse double-click events.
+         *
+         * @param {object} event A mouse event
          */
-        mouseDbl: function () {
+        mouseDbl: function (event) {
+            if (event) {
+                // get the corected mouse position on the canvas
+                var pointerX = d3.mouse(event)[0] - this.opts.margins[3],
+                    pointerY = d3.mouse(event)[1] - this.opts.margins[0];
+                // abort if event happened outside the canvas
+                if (pointerX < 0 || pointerX > this.width ||
+                    pointerY < 0 || pointerY > this.height) {
+                        return;
+                }
+            }
+        
             if (this.data === null) {   // default for empty charts
                 var xdom = st.util.domain(this.scales.x, [0, 1]);
                 var ydom = st.util.domain(this.scales.y, [0, 1]);
@@ -2750,8 +2879,9 @@ function chart () {
          * @param {object} event A mouse event
          * @param {object} d A series data point
          * @param {string[]} accs A series data point accessor array
+         * @param {string} group An annotation group if any
          */
-        mouseOverAction: function (event, d, accs) {
+        mouseOverAction: function (event, d, accs, group) {
             this.tooltips   // show the tooltip
                 .style('display', 'inline');
             this.tooltips   // fade in the tooltip
@@ -2790,16 +2920,20 @@ function chart () {
             // self-reference for nested functions
             var chart = this;
             // check whether tooltips are assigned to the series point
-            if (d.tooltip || d.tooltipmol) {
+            if (group && group !== '' && d.annos) {
+                if (!(group in d.annos)) {
+                    return;
+                }
+                var groupannos = d.annos[group];
                 // copy the tooltip-meta sub-div 
                 var tooltip = d3.selectAll('#tooltips-meta').html();
                 // add the tooltip key-value pairs to the tooltip HTML
-                for (var key in d.tooltip) {
-                    tooltip += key + ': ' + d.tooltip[key] + '<br/>';
+                for (var key in groupannos.tooltip) {
+                    tooltip += key + ': ' + groupannos.tooltip[key] + '<br/>';
                 }
                 // add the HTML string to the tooltip
                 d3.selectAll('#tooltips-meta').html(tooltip + '<br/>');
-                if (!d.tooltipmol) {
+                if (!groupannos.tooltipmol) {
                     return;
                 }
                 // initiate the spinner on the tooltip-mol sub-div 
@@ -2813,7 +2947,7 @@ function chart () {
                     d3.selectAll('#tooltips-mol')
                         .style('display', 'none');
                     // resolve all SDfile URLs one by one 
-                    for (var molkey in d.tooltipmol) {
+                    for (var molkey in groupannos.tooltipmol) {
                         var moldivid = '#tooltips-mol-' + molkey;
                         d3.selectAll('#tooltips-mol')
                             .append('div')
@@ -2826,7 +2960,7 @@ function chart () {
                             '<em>' + molkey + '</em><br/>'
                         );
                         var jqxhr = chart.mol2svg.draw(
-                            d.tooltipmol[molkey], moldivid);
+                            groupannos.tooltipmol[molkey], moldivid);
                         deferreds.push(jqxhr);
                     }
                     // wait until all XHR promises are finished
@@ -2952,6 +3086,7 @@ function chart () {
                         .call(chart.yaxis);     // draw the y-axis
                     var data = chart.renderdata();  // draw the data set
                     chart.renderlabels(data);       // draw the labels
+                    chart.rendergroups();           // draw the anno groups
                     if (chart.opts.legend) {
                         chart.renderLegend();   // draw the legend
                     }
@@ -3228,6 +3363,14 @@ st.chart.ms = function () {
     ms.renderdata = function () {
         // get the binned data set for the current x-axis scale
         var data = this.data.bin(this.width, this.scales.x);
+        // get annotation group
+        var group = '';
+        for (var key in this.data.raw.annoGroups) {
+            if (this.data.raw.annoGroups[key]) {
+                group = key;
+                break;
+            }
+        }
         // self-reference for nested functions
         var chart = this;
         // iterate over all data series
@@ -3260,7 +3403,10 @@ st.chart.ms = function () {
                 .attr('y2', chart.scales.y(0))          // y2 = 0
                 .style('stroke', color)  // color by id
                 .each(function(d) {      // address each point
-                    if (d.annotation) {  // check for on-canvas annotations...
+                    if (d.annos) {  // check for on-canvas annotations...
+                        if (!(group in d.annos)) {
+                            return;
+                        }
                         g.append('text') // ...append a SVG text element
                             .attr('class', id + '.anno')
                             .attr('x', chart.scales.x(d[accs[0]]))
@@ -3268,7 +3414,7 @@ st.chart.ms = function () {
                             .attr('text-anchor', 'middle')
                             .attr('font-size', 'small')
                             .attr('fill', color)
-                            .text(d.annotation);
+                            .text(d.annos[group].annotation);
                     }
                 })
             // define point mouse-over behavior
@@ -3276,7 +3422,7 @@ st.chart.ms = function () {
                 // highlight the selected 'signal spike'
                 d3.select(this).attr('stroke-width', 2);
                 // call default action
-                chart.mouseOverAction(this, d, accs);
+                chart.mouseOverAction(this, d, accs, group);
             })
             // define point mouse-out behavior
             .on('mouseout', function () {
@@ -3426,6 +3572,14 @@ st.chart.ir = function () {
         // get the binned data set for the current x-axis scale
         // param: true -> bin by y value minima
         var data = this.data.bin(this.width, this.scales.x, true);
+        // get annotation group
+        var group = '';
+        for (var key in this.data.raw.annoGroups) {
+            if (this.data.raw.annoGroups[key]) {
+                group = key;
+                break;
+            }
+        }
         // dirty hack: set flag to indicate binning by minima
         // used in the chart object for label placement
         this.data.raw.minima = 1;
@@ -3487,7 +3641,10 @@ st.chart.ir = function () {
                     return chart.scales.y(d[accs[1]]) 
                 })
                 .each(function(d) {      // address each point
-                    if (d.annotation) {  // check for on-canvas annotations...
+                    if (d.annos) {  // check for on-canvas annotations...
+                        if (!(group in d.annos)) {
+                            return;
+                        }
                         g.append('text') // ...append a SVG text element
                             .attr('class', id + '.anno')
                             .attr('x', chart.scales.x(d[accs[0]]))
@@ -3495,7 +3652,7 @@ st.chart.ir = function () {
                             .attr('text-anchor', 'middle')
                             .attr('font-size', 'small')
                             .attr('fill', color)
-                            .text(d.annotation);
+                            .text(d.annos[group].annotation);
                     }
                 })
             // define point mouse-over behavior
@@ -3503,7 +3660,7 @@ st.chart.ir = function () {
                 // highlight the selected circle
                 d3.select(this).attr('opacity', 0.8);
                 // call default action
-                chart.mouseOverAction(this, d, accs);
+                chart.mouseOverAction(this, d, accs, group);
             })
             // define point mouse-out behavior
             .on('mouseout', function () {
@@ -3811,7 +3968,18 @@ st.chart.nmr = function () {
     /**
      * Defines the default zoom action for mouse double-click events.
      */
-    nmr.mouseDbl = function () {
+    nmr.mouseDbl = function (event) {
+        if (event) {
+            // get the corected mouse position on the canvas
+            var pointerX = d3.mouse(event)[0] - this.opts.margins[3],
+                pointerY = d3.mouse(event)[1] - this.opts.margins[0];
+            // abort if event happened outside the canvas
+            if (pointerX < 0 || pointerX > this.width ||
+                pointerY < 0 || pointerY > this.height) {
+                    return;
+            }
+        }
+    
         if (this.data === null) {   // default for empty charts
             this.scales.x.domain([1, 0]).nice();
             this.scales.y.domain([0, 1]).nice();
@@ -3854,6 +4022,7 @@ st.chart.nmr = function () {
                     .call(chart.xaxis);     // draw the x-axis   
                 var data = chart.renderdata();  // draw the data set
                 chart.renderlabels(data);       // draw the labels
+                chart.rendergroups();           // draw the anno groups
                 if (chart.opts.legend) {
                     chart.renderLegend();   // draw the legend
                 }
@@ -3883,6 +4052,14 @@ st.chart.nmr = function () {
     nmr.renderdata = function () {
         // get the binned data set for the current x-axis scale
         var data = this.data.bin(this.width, this.scales.x);
+        // get annotation group
+        var group = '';
+        for (var key in this.data.raw.annoGroups) {
+            if (this.data.raw.annoGroups[key]) {
+                group = key;
+                break;
+            }
+        }    
         // self-reference for nested functions
         var chart = this;
         
@@ -3914,6 +4091,21 @@ st.chart.nmr = function () {
                 .style('fill', 'none')
                 .style('stroke-width', 1)
                 .attr('d', line(series));
+            g.data(series).each(function(d) {      // address each point
+                    if (d.annos) {  // check for on-canvas annotations...
+                        if (!(group in d.annos)) {
+                            return;
+                        }
+                        g.append('text') // ...append a SVG text element
+                            .attr('class', id + '.anno')
+                            .attr('x', chart.scales.x(d[accs[0]]))
+                            .attr('y', chart.scales.y(d[accs[1]]) - 5)
+                            .attr('text-anchor', 'middle')
+                            .attr('font-size', 'small')
+                            .attr('fill', color)
+                            .text(d.annos[group].annotation);
+                    }
+                });
         }
         return data;
     };
@@ -3951,7 +4143,7 @@ function init_mouse (chart) {
             chart.mouseOut(this);
         })
         .on('dblclick.zoom', function () {  // --- mouse options ---
-            chart.mouseDbl();
+            chart.mouseDbl(this);
         })
 }
 
