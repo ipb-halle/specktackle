@@ -1517,7 +1517,7 @@ st.data.set = function () {
                         if (dpb[series.accs[1]] < dps[series.accs[1]]) {
                             binned[bin - cor] = dpb;
                         } else {
-                            if (dpb.annos) {
+                            if (dpb.annos && !dps.annos) {
                                 dps.annos = dpb.annos;
                             }
                             binned[bin - cor] = dps;
@@ -1528,7 +1528,7 @@ st.data.set = function () {
                             Math.abs(dps[series.accs[1]])) {
                             binned[bin - cor] = dpb;
                         } else {
-                            if (dpb.annos) {
+                            if (dpb.annos && !dps.annos) {
                                 dps.annos = dpb.annos;
                             }
                             binned[bin - cor] = dps;
@@ -1955,10 +1955,9 @@ st.data.array = function () {
                 
                 // assign annotations
                 if (series.annos && Object.keys(series.annos).length) {
-                    if (j in series.annos) {
+                    if (j in series.annos && !binned[bin - cor].annos) {
                         var refpoint = binned[bin - cor];
                         var ref = series.annos[j];
-                        
                         // get the annotation group
                         var refgroup = ref[0];
                         if (!(refgroup in this.raw.annoGroups)) {
@@ -2045,7 +2044,7 @@ st.data.array = function () {
         size = [0, data.length, 0];
         
         // assign annotations
-        annos = {};
+        var annos = {};
         if (json2) {
             var annolength = this.opts.annoTypes.length;
             // iterate over each annotation record
@@ -2648,7 +2647,7 @@ function chart () {
                         .style('top', d3.event.pageY + 5 + 'px')
                         .style('opacity', 0.9)
                         .style('background-color', 'white');
-                    keys = [];
+                    var keys = [];
                     // populate the keys array...
                     for (var key in chart.data.raw.annoGroups) {
                         keys.push(key);
@@ -3782,7 +3781,7 @@ st.chart.nmr = function () {
         if (this.opts.labels) {
             // create a new group element for the label option
             var labels = this.canvas.append('g')
-                .attr('class', 'st-options');
+                .attr('id', 'st-options');
             
             // append the options title
             labels.append('text')      

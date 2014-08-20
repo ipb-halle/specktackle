@@ -554,7 +554,7 @@ function chart () {
                         .style('top', d3.event.pageY + 5 + 'px')
                         .style('opacity', 0.9)
                         .style('background-color', 'white');
-                    keys = [];
+                    var keys = [];
                     // populate the keys array...
                     for (var key in chart.data.raw.annoGroups) {
                         keys.push(key);

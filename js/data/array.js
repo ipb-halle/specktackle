@@ -268,10 +268,9 @@ st.data.array = function () {
                 
                 // assign annotations
                 if (series.annos && Object.keys(series.annos).length) {
-                    if (j in series.annos) { // BOOLEAN IF DISPLAYED
+                    if (j in series.annos && !binned[bin - cor].annos) {
                         var refpoint = binned[bin - cor];
                         var ref = series.annos[j];
-                        
                         // get the annotation group
                         var refgroup = ref[0];
                         if (!(refgroup in this.raw.annoGroups)) {
@@ -358,7 +357,7 @@ st.data.array = function () {
         size = [0, data.length, 0];
         
         // assign annotations
-        annos = {};
+        var annos = {};
         if (json2) {
             var annolength = this.opts.annoTypes.length;
             // iterate over each annotation record

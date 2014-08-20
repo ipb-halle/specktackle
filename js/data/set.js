@@ -199,7 +199,7 @@ st.data.set = function () {
                         if (dpb[series.accs[1]] < dps[series.accs[1]]) {
                             binned[bin - cor] = dpb;
                         } else {
-                            if (dpb.annos) {
+                            if (dpb.annos && !dps.annos) {
                                 dps.annos = dpb.annos;
                             }
                             binned[bin - cor] = dps;
@@ -210,7 +210,7 @@ st.data.set = function () {
                             Math.abs(dps[series.accs[1]])) {
                             binned[bin - cor] = dpb;
                         } else {
-                            if (dpb.annos) {
+                            if (dpb.annos && !dps.annos) {
                                 dps.annos = dpb.annos;
                             }
                             binned[bin - cor] = dps;

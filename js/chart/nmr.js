@@ -106,7 +106,7 @@ st.chart.nmr = function () {
         if (this.opts.labels) {
             // create a new group element for the label option
             var labels = this.canvas.append('g')
-                .attr('class', 'st-options');
+                .attr('id', 'st-options');
             
             // append the options title
             labels.append('text')      
