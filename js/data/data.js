@@ -229,6 +229,9 @@ function data () {
                         $.get(src),
                         $.get(anno)
                     ).then(function(json, json2) {
+                        if (typeof json === 'string') {
+                            json = $.parseJSON(json);
+                        }
                         // assumption: series and anno structure are identical
                         if (json[0] instanceof Array) {
                             for (var i in json[0]) {
@@ -243,6 +246,9 @@ function data () {
                     jqxhr = $.when(
                         $.get(src)
                     ).then(function(json) {
+                        if (typeof json === 'string') {
+                            json = $.parseJSON(json);
+                        }
                         // assumption: series and anno structure are identical
                         if (json instanceof Array) {
                             if (!anno) {
