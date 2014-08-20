@@ -904,17 +904,33 @@ function chart () {
          * Draws the chart legend in the top right corner.
          */
         renderLegend: function () {
+        
             // remove the current legend
-            this.canvas.select('.st-legend').remove();
-            // create a new group element for the data series records
-            var legend = this.canvas.append('g')
+            d3.select(this.target).select('.st-legend').remove();
+            // build a new div container for the legend 
+            var legend = d3.select(this.target).append('div')
                 .attr('class', 'st-legend')
-                .style('cursor', 'pointer');
+                .style('width', this.opts.margins[1] + 'px')
+                .style('height', (this.height / 2) + 'px')
+                .style('top', -(this.height + this.opts.margins[2]) + 'px')
+                .style('left', this.width + this.opts.margins[3] + 'px')
+                .style('position', 'relative'); 
+            // inner div with 'hidden' scroll bars        
+            legend = legend.append('div')
+                .style('position', 'absolute')
+                .style('overflow', 'scroll')
+                .style('top', 0 + 'px')
+                .style('left', 0 + 'px')
+                .style('width', this.opts.margins[1] + 30 + 'px')
+                //.style('height', (this.height / 2) + 'px')
+                .style('bottom', -30 + 'px');
                 
             // self-reference for nested functions
             var colors = this.colors;
             // self-reference for nested functions
             var chart = this;
+            // create a svg container
+            var lg = legend.append('svg:svg');
             
             // iterate over all data series
             for (var i = 0; i < this.data.raw.series.length; i++) {
@@ -922,23 +938,26 @@ function chart () {
                 var id = this.data.raw.series[i].id;
                 // get the series title
                 var title = this.data.raw.series[i].title;
+                 // create a new group element for the data series records
+                var llg = lg.append('g')
+                    .attr('stid', id)
+                    .style('cursor', 'pointer');
                 
                 // create a new group element for each series
-                var lg = legend.append('g').attr('stid', id);
-                lg.append('svg:rect')   // append the legend symbol
-                    .attr('x', this.width + 5)
+                llg.append('svg:rect')   // append the legend symbol
+                    .attr('x', 5)
                     .attr('y', function () { return i * 20; })
                     .attr('width', 10)
                     .attr('height', 10)
                     .style('fill', function () { return colors.get(id); });
-                lg.append('text')       // append the data series's legend text
-                    .attr('x', this.width + 20)
+                llg.append('text')       // append the data series's legend text
+                    .attr('x', 20)
                     .attr('y', function () { return i * 20 + 9; })
                     .text(function () {
                         return title;
                     });
                 // define series highlights on mouse over events
-                lg.on('mouseover', function() { 
+                llg.on('mouseover', function() { 
                     // select the series
                     d3.select(this).style('fill', 'red');
                     var selectid = d3.select(this).attr('stid');
@@ -954,7 +973,7 @@ function chart () {
                     }
                 })
                 // define series highlight removal on mouse out events
-                lg.on('mouseout', function() {
+                llg.on('mouseout', function() {
                     // select the series
                     d3.select(this).style('fill', 'black');
                     var selectid = d3.select(this).attr('stid');
