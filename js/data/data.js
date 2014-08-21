@@ -1,5 +1,4 @@
 /**
- *
  * Default data object. Custom data objects should extend this data stub. 
  *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
@@ -36,6 +35,66 @@ function data () {
             minima: 0,      // whether minimum binned is to be applied 
             annoGroups: {}  // annotation groups (string)
         },
+        
+        /**
+         * Sets the title accessor.
+         *
+         * @param {string} x A title accessor
+         * @returns {object} the data object
+         */
+        title: function (x) {
+            if (x && typeof x === 'string') {
+                this.opts.title = x;
+            } else {
+                console.log('Invalid title option.');
+            }
+            return this;
+        },
+        
+        /**
+         * Sets the y accessor.
+         *
+         * @param {string} y A y data accessor
+         * @returns {object} the data object
+         */
+        y: function (y) {
+            if (y && typeof y === 'string') {
+                this.opts.y = y;
+            } else {
+                console.log('Invalid y accessor option.');
+            }
+            return this;
+        },
+        
+        /**
+         * Sets the x domain limits.
+         *
+         * @param {number[]} limits A two element array of min and max limits
+         * @returns {object} the data object
+         */
+        xlimits: function (x) {
+            if (x && x instanceof Array) {
+                this.opts.xlimits = x;
+            } else {
+                console.log('Invalid x domain limits.');
+            }
+            return this;
+        },
+        
+        /**
+         * Sets the y domain limits.
+         *
+         * @param {number[]} limits A two element array of min and max limits
+         * @returns the data object
+         */
+        ylimits: function (x) {
+            if (x && x instanceof Array) {
+                this.opts.ylimits = x;
+            } else {
+                console.log('Invalid y domain limits.');
+            }
+            return this;
+        },
             
         /**
          * Sets the data source option.
@@ -46,8 +105,13 @@ function data () {
          */
         add: function (datarefs, annorefs) {
             if (datarefs instanceof Array) {
-                this.opts.src.push.apply(this.opts.src, datarefs);
-                this.opts.anno.push.apply(this.opts.anno, annorefs);
+                if (!annorefs || annorefs instanceof Array) {
+                    this.opts.src.push.apply(this.opts.src, datarefs);
+                    this.opts.anno.push.apply(this.opts.anno, annorefs);
+                } else {
+                    console.log('Raw data and annotation data must be ' +
+                        'of the same type.');
+                }
             } else {
                 this.opts.src.push(datarefs);
                 this.opts.anno.push(annorefs);
@@ -192,6 +256,10 @@ function data () {
             }
             // wait until all promises are fulfilled
             $.when.apply($, deferreds).done(function () {
+                if (!data.opts.src.length) {
+                    return;
+                }
+                
                 // clear the source buffers
                 data.opts.src = [];
                 data.opts.anno = [];
@@ -228,7 +296,11 @@ function data () {
                     jqxhr = $.when(
                         $.get(src),
                         $.get(anno)
-                    ).then(function(json, json2) {
+                    )
+                    .fail(function() {
+                        console.log('Fetch failed for: ' + src + '\n' + anno);
+                    })
+                    .then(function(json, json2) {
                         if (typeof json === 'string') {
                             json = $.parseJSON(json);
                         }
@@ -245,7 +317,11 @@ function data () {
                 } else {
                     jqxhr = $.when(
                         $.get(src)
-                    ).then(function(json) {
+                    )
+                    .fail(function() {
+                        console.log('Fetch failed for: ' + src);
+                    })
+                    .then(function(json) {
                         if (typeof json === 'string') {
                             json = $.parseJSON(json);
                         }
@@ -268,7 +344,11 @@ function data () {
                 if (typeof anno === 'string' && anno) {
                     jqxhr = $.when(
                         $.get(anno)
-                    ).then(function(json) {
+                    )
+                    .fail(function() {
+                        console.log('Fetch failed for: ' + anno);
+                    })
+                    .then(function(json) {
                         // assumption: series and anno structure are identical
                         if (src instanceof Array) {
                             if (!anno) {

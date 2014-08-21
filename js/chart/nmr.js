@@ -42,6 +42,15 @@ st.chart.nmr = function () {
         this.width = $(x).width() - margins[1] - margins[3];
         this.height = $(x).height() - margins[0] - margins[2];
     
+        // sanity check
+        if (this.width <= 0) {
+            console.log('Invalid chart width: ' + this.width);
+            return;
+        } else if (this.height <= 0) {
+            console.log('Invalid chart height: ' + this.height);
+            return;
+        }
+    
         // self-reference for nested functions
         var chart = this;
 
@@ -93,17 +102,27 @@ st.chart.nmr = function () {
         
         // draw the title
         if (this.opts.title && this.opts.title.length !== 0) {
-            this.panel.append('text')
-                .attr('class', 'st-title')
-                .attr('x', margins[3] + (this.width / 2))
-                .attr('y', margins[0] * 0.75)
-                .attr('text-anchor', 'middle')
-                .attr('font-size', 'large')
-                .text(this.opts.title)
+            if (margins[0] < 20) {
+                console.log('Not enough space for chart title: ' + 
+                    'increase top margin (min 20)');
+            } else {
+                this.panel.append('text')
+                    .attr('class', 'st-title')
+                    .attr('x', margins[3] + (this.width / 2))
+                    .attr('y', margins[0] * 0.75)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 'large')
+                    .text(this.opts.title)
+            }
         }
         
         // draw the options
         if (this.opts.labels) {
+            if (margins[1] < 60) {
+                console.log('Not enough space for label option: ' + 
+                    'increase right margin (min 60)');
+                return;
+            }
             // create a new group element for the label option
             var labels = this.canvas.append('g')
                 .attr('id', 'st-options');
@@ -138,17 +157,8 @@ st.chart.nmr = function () {
                 } else {
                     label.style('stroke', 'none');
                 }
-                // inefficient: store binned data?
-                if (chart.data !== null) {
-                    var data = chart.renderdata();
-                    chart.renderlabels(data);
-                }
+                draw(chart);
             })
-        }
-            
-        // implement custom behavior if defined in the extension
-        if (typeof this.behavior == 'function') {
-            this.behavior();
         }
         
         return this;
@@ -278,11 +288,8 @@ st.chart.nmr = function () {
             // clean up: re-draw the x-axis
             this.canvas.select('.st-xaxis').call(this.xaxis);
             // clean up: re-draw the data set
-            if (typeof this.renderdata == 'function' && 
-                this.data !== null) {
-                var data = this.renderdata();
-                this.renderlabels(data);
-            }
+            draw(this);
+            this.renderlabels(data);
         } else {
             // hide the selection rectangle
             selection.attr('display', 'none');
@@ -320,11 +327,7 @@ st.chart.nmr = function () {
         // re-draw the x-axis
         this.canvas.select('.st-xaxis').call(this.xaxis);
         // re-draw the data set
-        if (typeof this.renderdata == 'function') {
-            this.data.reset();
-            var data = this.renderdata();
-            this.renderlabels(data);       // draw the labels
-        }
+        draw(this);
     };
     
     /**
@@ -333,6 +336,17 @@ st.chart.nmr = function () {
      * @param {object} data A data set
      */
     nmr.load = function (data) {
+        // sanity check
+        if (!data) {
+            console.log('Missing data object.');
+            return;
+        } else if (typeof data.push !== 'function' ||
+            typeof data.add !== 'function' ||
+            typeof data.remove !== 'function') {
+            console.log('Invalid data object.');
+            return;
+        }
+        
         var chart = this;       // self-reference for nested functions
         this.data = data;       // associate with the chart
         var oldadd = data.add;  // copy of the old function
@@ -344,8 +358,7 @@ st.chart.nmr = function () {
                 init_mouse(chart);          // re-initialise the mouse behavior      
                 chart.canvas.select('.st-xaxis')
                     .call(chart.xaxis);     // draw the x-axis   
-                var data = chart.renderdata();  // draw the data set
-                chart.renderlabels(data);       // draw the labels
+                draw(chart);
                 chart.rendergroups();           // draw the anno groups
                 if (chart.opts.legend) {
                     chart.renderLegend();   // draw the legend
@@ -447,11 +460,7 @@ function init_mouse (chart) {
         .y(chart.scales.y)
         .center([0, chart.scales.y(0)])
         .on("zoom", function() {
-            if (typeof chart.renderdata == 'function' && 
-                chart.data !== null) {
-                var data = chart.renderdata();
-                chart.renderlabels(data);       // draw the labels
-            }
+            draw(chart);
         });
     chart.panel.call(mousewheel)
         .on('mousedown.zoom', function () { // --- mouse options ---

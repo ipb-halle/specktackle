@@ -14,50 +14,6 @@ st.data.array = function () {
     var array = data();
     
     /**
-     * Sets the title accessor.
-     *
-     * @param {string} x A title accessor
-     * @returns {object} the data object
-     */
-    array.title = function (x) {
-        this.opts.title = x;
-        return this;
-    };
-    
-    /**
-     * Sets the y accessor.
-     *
-     * @param {string} y A y data accessor
-     * @returns {object} the data object
-     */
-    array.y = function (y) {
-        this.opts.y = y;
-        return this;
-    };
-    
-    /**
-     * Sets the x domain limits.
-     *
-     * @param {number[]} limits A two element array of min and max limits
-     * @returns {object} the data object
-     */
-    array.xlimits = function (x) {
-        this.opts.xlimits = x;
-        return this;
-    };
-    
-    /**
-     * Sets the y domain limits.
-     *
-     * @param {number[]} limits A two element array of min and max limits
-     * @returns the data object
-     */
-    array.ylimits = function (x) {
-        this.opts.ylimits = x;
-        return this;
-    };
-    
-    /**
      * Gets the unbinned data array for the current chart.
      *
      * @param {number} width The chart width

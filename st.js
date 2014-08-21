@@ -358,9 +358,18 @@ st.util.mol2svg = function (width, height) {
         } else {
             jqxhr = $.when(
                 $.get(molfile)
-            ).then(function(text) {
+            )
+            .fail(function() {
+                console.log('Request failed for: ' + molfile);
+            })
+            .then(function(text) {
                 cache.add(cacheKey, text);
-                parse(text, el);
+                try {
+                    parse(text, el);
+                } catch (err) {
+                    console.log('Mol2Svg Error:' + err);
+                    el.html('');
+                }
             });
         }
         return jqxhr;
@@ -960,7 +969,6 @@ st.parser.jdx = function (url, callback) {
     });
 };
 /**
- *
  * Default data object. Custom data objects should extend this data stub. 
  *
  * @author Stephan Beisken <beisken@ebi.ac.uk>
@@ -997,6 +1005,66 @@ function data () {
             minima: 0,      // whether minimum binned is to be applied 
             annoGroups: {}  // annotation groups (string)
         },
+        
+        /**
+         * Sets the title accessor.
+         *
+         * @param {string} x A title accessor
+         * @returns {object} the data object
+         */
+        title: function (x) {
+            if (x && typeof x === 'string') {
+                this.opts.title = x;
+            } else {
+                console.log('Invalid title option.');
+            }
+            return this;
+        },
+        
+        /**
+         * Sets the y accessor.
+         *
+         * @param {string} y A y data accessor
+         * @returns {object} the data object
+         */
+        y: function (y) {
+            if (y && typeof y === 'string') {
+                this.opts.y = y;
+            } else {
+                console.log('Invalid y accessor option.');
+            }
+            return this;
+        },
+        
+        /**
+         * Sets the x domain limits.
+         *
+         * @param {number[]} limits A two element array of min and max limits
+         * @returns {object} the data object
+         */
+        xlimits: function (x) {
+            if (x && x instanceof Array) {
+                this.opts.xlimits = x;
+            } else {
+                console.log('Invalid x domain limits.');
+            }
+            return this;
+        },
+        
+        /**
+         * Sets the y domain limits.
+         *
+         * @param {number[]} limits A two element array of min and max limits
+         * @returns the data object
+         */
+        ylimits: function (x) {
+            if (x && x instanceof Array) {
+                this.opts.ylimits = x;
+            } else {
+                console.log('Invalid y domain limits.');
+            }
+            return this;
+        },
             
         /**
          * Sets the data source option.
@@ -1007,8 +1075,13 @@ function data () {
          */
         add: function (datarefs, annorefs) {
             if (datarefs instanceof Array) {
-                this.opts.src.push.apply(this.opts.src, datarefs);
-                this.opts.anno.push.apply(this.opts.anno, annorefs);
+                if (!annorefs || annorefs instanceof Array) {
+                    this.opts.src.push.apply(this.opts.src, datarefs);
+                    this.opts.anno.push.apply(this.opts.anno, annorefs);
+                } else {
+                    console.log('Raw data and annotation data must be ' +
+                        'of the same type.');
+                }
             } else {
                 this.opts.src.push(datarefs);
                 this.opts.anno.push(annorefs);
@@ -1153,6 +1226,10 @@ function data () {
             }
             // wait until all promises are fulfilled
             $.when.apply($, deferreds).done(function () {
+                if (!data.opts.src.length) {
+                    return;
+                }
+                
                 // clear the source buffers
                 data.opts.src = [];
                 data.opts.anno = [];
@@ -1189,7 +1266,11 @@ function data () {
                     jqxhr = $.when(
                         $.get(src),
                         $.get(anno)
-                    ).then(function(json, json2) {
+                    )
+                    .fail(function() {
+                        console.log('Fetch failed for: ' + src + '\n' + anno);
+                    })
+                    .then(function(json, json2) {
                         if (typeof json === 'string') {
                             json = $.parseJSON(json);
                         }
@@ -1206,7 +1287,11 @@ function data () {
                 } else {
                     jqxhr = $.when(
                         $.get(src)
-                    ).then(function(json) {
+                    )
+                    .fail(function() {
+                        console.log('Fetch failed for: ' + src);
+                    })
+                    .then(function(json) {
                         if (typeof json === 'string') {
                             json = $.parseJSON(json);
                         }
@@ -1229,7 +1314,11 @@ function data () {
                 if (typeof anno === 'string' && anno) {
                     jqxhr = $.when(
                         $.get(anno)
-                    ).then(function(json) {
+                    )
+                    .fail(function() {
+                        console.log('Fetch failed for: ' + anno);
+                    })
+                    .then(function(json) {
                         // assumption: series and anno structure are identical
                         if (src instanceof Array) {
                             if (!anno) {
@@ -1339,57 +1428,17 @@ st.data.set = function () {
     var set = data();
     
     /**
-     * Sets the title accessor.
-     *
-     * @param {string} x A title accessor
-     * @returns {object} the data object
-     */
-    set.title = function (x) {
-        this.opts.title = x;
-        return this;
-    };
-    
-    /**
      * Sets the x data accessor.
      *
      * @param {string} x A x data accessor
      * @returns {object} the data object
      */
     set.x = function (x) {
-        this.opts.x = x;
-        return this;
-    };
-    
-    /**
-     * Sets the y data accessor.
-     *
-     * @param {string} y A y data accessor
-     * @returns {object} the data object
-     */
-    set.y = function (y) {
-        this.opts.y = y;
-        return this;
-    };
-    
-    /**
-     * Sets the x domain limits.
-     *
-     * @param {number[]} limits A two element array of min and max limits
-     * @returns {object} the data object
-     */
-    set.xlimits = function (limits) {
-        set.opts.xlimits = limits;
-        return this;
-    };
-    
-    /**
-     * Sets the y domain limits.
-     *
-     * @param {number[]} limits A two element array of min and max limits
-     * @returns {object} the data object
-     */
-    set.ylimits = function (limits) {
-        set.opts.ylimits = limits;
+        if (x && typeof x === 'string') {
+            this.opts.x = x;
+        } else {
+            console.log('Invalid y accessor option.');
+        }
         return this;
     };
     
@@ -1705,50 +1754,6 @@ st.data.set = function () {
 st.data.array = function () {
     // base data structure to be extended
     var array = data();
-    
-    /**
-     * Sets the title accessor.
-     *
-     * @param {string} x A title accessor
-     * @returns {object} the data object
-     */
-    array.title = function (x) {
-        this.opts.title = x;
-        return this;
-    };
-    
-    /**
-     * Sets the y accessor.
-     *
-     * @param {string} y A y data accessor
-     * @returns {object} the data object
-     */
-    array.y = function (y) {
-        this.opts.y = y;
-        return this;
-    };
-    
-    /**
-     * Sets the x domain limits.
-     *
-     * @param {number[]} limits A two element array of min and max limits
-     * @returns {object} the data object
-     */
-    array.xlimits = function (x) {
-        this.opts.xlimits = x;
-        return this;
-    };
-    
-    /**
-     * Sets the y domain limits.
-     *
-     * @param {number[]} limits A two element array of min and max limits
-     * @returns the data object
-     */
-    array.ylimits = function (x) {
-        this.opts.ylimits = x;
-        return this;
-    };
     
     /**
      * Gets the unbinned data array for the current chart.
@@ -2149,7 +2154,12 @@ function chart () {
          * @returns {object} the base chart
          */
         title: function (title) {
-            this.opts.title = title;
+            if (title && typeof title === 'string') {
+                this.opts.title = title;
+            } else {
+                console.log('Invalid title option.');
+            }
+            
             return this;
         },
         
@@ -2160,7 +2170,11 @@ function chart () {
          * @returns {object} the base chart
          */
         xlabel: function (xlabel) {
-            this.opts.xlabel = xlabel;
+            if (xlabel && typeof xlabel === 'string') {
+                this.opts.xlabel = xlabel;
+            } else {
+                console.log('Invalid x-axis label option.');
+            }
             return this;
         },
         
@@ -2171,7 +2185,11 @@ function chart () {
          * @returns {object} the base chart
          */
         ylabel: function (ylabel) {
-            this.opts.ylabel = ylabel;
+            if (ylabel && typeof ylabel === 'string') {
+                this.opts.ylabel = ylabel;
+            } else {
+                console.log('Invalid y-axis label option.');
+            }
             return this;
         },
         
@@ -2182,7 +2200,11 @@ function chart () {
          * @returns {object} the base chart
          */
         xreverse: function (reverse) {
-            this.opts.xreverse = reverse;
+            if (reverse && typeof reverse === 'boolean') {
+                this.opts.xreverse = reverse;
+            } else {
+                console.log('Invalid x-axis reverse option.');
+            }
             return this;
         },
         
@@ -2193,7 +2215,11 @@ function chart () {
          * @returns {object} the base chart
          */
         yreverse: function (reverse) {
-            this.opts.yreverse = reverse;
+            if (reverse && typeof reverse === 'boolean') {
+                this.opts.yreverse = reverse;
+            } else {
+                console.log('Invalid y-axis reverse option.');
+            }
             return this;
         },
         
@@ -2204,7 +2230,11 @@ function chart () {
          * @returns {object} the base chart
          */
         legend: function (display) {
-            this.opts.legend = display;
+            if (display && typeof display === 'boolean') {
+                this.opts.legend = display;
+            } else {
+                console.log('Invalid legend option.');
+            }
             return this;
         },
         
@@ -2215,7 +2245,11 @@ function chart () {
          * @returns {object} the base chart
          */
         labels: function (display) {
-            this.opts.labels = display;
+            if (display && typeof display === 'boolean') {
+                this.opts.labels = display;
+            } else {
+                console.log('Invalid labels option.');
+            }
             return this;
         },
         
@@ -2226,7 +2260,11 @@ function chart () {
          * @returns {object} the base chart
          */
         margins: function (margs) {
-            this.opts.margins = margs;
+            if (margs && margs instanceof Array && margs.length === 4) {
+               this.opts.margins = margs;
+            } else {
+                console.log('Invalid margins array.');
+            }
             return this;
         },
         
@@ -2260,6 +2298,15 @@ function chart () {
             // ...calculate width and height of the canvas inside the panel
             this.width = $(x).width() - margins[1] - margins[3];
             this.height = $(x).height() - margins[0] - margins[2];
+
+            // sanity check
+            if (this.width <= 0) {
+                console.log('Invalid chart width: ' + this.width);
+                return;
+            } else if (this.height <= 0) {
+                console.log('Invalid chart height: ' + this.height);
+                return;
+            }
         
             // self-reference for nested functions
             var chart = this;
@@ -2369,17 +2416,27 @@ function chart () {
             
             // draw the title
             if (this.opts.title && this.opts.title.length !== 0) {
-                this.panel.append('text')
-                    .attr('class', 'st-title')
-                    .attr('x', margins[3] + (this.width / 2))
-                    .attr('y', margins[0] * 0.75)
-                    .attr('text-anchor', 'middle')
-                    .attr('font-size', 'large')
-                    .text(this.opts.title)
+                if (margins[0] < 20) {
+                    console.log('Not enough space for chart title: ' + 
+                        'increase top margin (min 20)');
+                } else {
+                    this.panel.append('text')
+                        .attr('class', 'st-title')
+                        .attr('x', margins[3] + (this.width / 2))
+                        .attr('y', margins[0] * 0.75)
+                        .attr('text-anchor', 'middle')
+                        .attr('font-size', 'large')
+                        .text(this.opts.title)
+                }
             }
             
             // draw the options
             if (this.opts.labels) {
+                if (margins[1] < 60) {
+                    console.log('Not enough space for label option: ' + 
+                        'increase right margin (min 60)');
+                    return;
+                }
                 // create a new group element for the label option
                 var labels = this.canvas.append('g')
                     .attr('id', 'st-options');
@@ -2414,11 +2471,7 @@ function chart () {
                     } else {
                         label.style('stroke', 'none');
                     }
-                    // inefficient: store binned data?
-                    if (chart.data !== null) {
-                        var data = chart.renderdata();
-                        chart.renderlabels(data);
-                    }
+                    draw(chart);
                 })
             }
         },
@@ -2804,11 +2857,7 @@ function chart () {
                 this.canvas.select('.st-xaxis').call(this.xaxis);
                 this.canvas.select('.st-yaxis').call(this.yaxis);
                 // clean up: re-draw the data set
-                if (typeof this.renderdata == 'function' && 
-                    this.data !== null) {
-                    var data = this.renderdata();
-                    this.renderlabels(data);
-                }
+                draw(this);
             } else {
                 // hide the selection rectangle
                 selection.attr('display', 'none');
@@ -2871,11 +2920,8 @@ function chart () {
             this.canvas.select('.st-xaxis').call(this.xaxis);
             this.canvas.select('.st-yaxis').call(this.yaxis);
             // re-draw the data set
-            if (typeof this.renderdata == 'function') {
-                this.data.reset();
-                var data = this.renderdata();
-                this.renderlabels(data);
-            }
+            this.data.reset();
+            draw(this);
         },
         
         /**
@@ -2975,6 +3021,10 @@ function chart () {
                         // make the tooltip-mol sub-div visible
                         d3.selectAll('#tooltips-mol')
                             .style('display', 'inline');
+                    })
+                    .fail(function () {
+                        // hide the spinner
+                        spinner.css('display', 'none');
                     });
                 }, 500);
             } else {
@@ -3097,25 +3147,39 @@ function chart () {
          * @param {object} data A data set
          */
         load: function (data) {
+            // sanity check
+            if (!data) {
+                console.log('Missing data object.');
+                return;
+            } else if (typeof data.push !== 'function' ||
+                typeof data.add !== 'function' ||
+                typeof data.remove !== 'function') {
+                console.log('Invalid data object.');
+                return;
+            }
+            
             var chart = this;       // self-reference for nested functions
             this.data = data;       // associate with the chart
             var oldadd = data.add;  // copy of the old function
             data.add = function() { // redefine
-                oldadd.apply(this, arguments);   // execute old copy
-                chart.data.push(function () {    // define callback
-                    chart.xscale();              // rescale x
-                    chart.yscale();              // rescale y
-                    chart.canvas.select('.st-xaxis')
-                        .call(chart.xaxis);     // draw the x-axis
-                    chart.canvas.select('.st-yaxis')
-                        .call(chart.yaxis);     // draw the y-axis
-                    var data = chart.renderdata();  // draw the data set
-                    chart.renderlabels(data);       // draw the labels
-                    chart.rendergroups();           // draw the anno groups
-                    if (chart.opts.legend) {
-                        chart.renderLegend();   // draw the legend
-                    }
-                });
+                try {
+                    oldadd.apply(this, arguments);   // execute old copy
+                    chart.data.push(function () {    // define callback
+                        chart.xscale();              // rescale x
+                        chart.yscale();              // rescale y
+                        chart.canvas.select('.st-xaxis')
+                            .call(chart.xaxis);     // draw the x-axis
+                        chart.canvas.select('.st-yaxis')
+                            .call(chart.yaxis);     // draw the y-axis
+                        draw(chart);
+                        chart.rendergroups();           // draw the anno groups
+                        if (chart.opts.legend) {
+                            chart.renderLegend();   // draw the legend
+                        }
+                    });
+                } catch (err) {
+                    console.log('Data load failed: ' + err);
+                }
             };
             var oldremove = data.remove;    // copy of the old function
             data.remove = function() {      // redefine
@@ -3134,6 +3198,26 @@ function chart () {
         }
     };
 };
+
+/**
+ * Draws the chart and signal labels.
+ *
+ * @param {object} chart A chart object
+ */
+function draw (chart) {
+    if (typeof chart.renderdata == 'function' && 
+        typeof chart.renderlabels == 'function' &&
+        chart.data !== null) {
+        try {
+            // inefficient: store binned data?
+            var data = chart.renderdata(); // draw the data set
+            chart.renderlabels(data);      // draw the labels
+        } catch (err) {
+            chart.data.remove();
+            console.log('Error rendering the data: ' + err);
+        }
+    }
+}
 
 /**
  * Default chart for continuous data (Chromatograms, UV/VIS, etc.). 
@@ -3743,6 +3827,15 @@ st.chart.nmr = function () {
         this.width = $(x).width() - margins[1] - margins[3];
         this.height = $(x).height() - margins[0] - margins[2];
     
+        // sanity check
+        if (this.width <= 0) {
+            console.log('Invalid chart width: ' + this.width);
+            return;
+        } else if (this.height <= 0) {
+            console.log('Invalid chart height: ' + this.height);
+            return;
+        }
+    
         // self-reference for nested functions
         var chart = this;
 
@@ -3794,17 +3887,27 @@ st.chart.nmr = function () {
         
         // draw the title
         if (this.opts.title && this.opts.title.length !== 0) {
-            this.panel.append('text')
-                .attr('class', 'st-title')
-                .attr('x', margins[3] + (this.width / 2))
-                .attr('y', margins[0] * 0.75)
-                .attr('text-anchor', 'middle')
-                .attr('font-size', 'large')
-                .text(this.opts.title)
+            if (margins[0] < 20) {
+                console.log('Not enough space for chart title: ' + 
+                    'increase top margin (min 20)');
+            } else {
+                this.panel.append('text')
+                    .attr('class', 'st-title')
+                    .attr('x', margins[3] + (this.width / 2))
+                    .attr('y', margins[0] * 0.75)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 'large')
+                    .text(this.opts.title)
+            }
         }
         
         // draw the options
         if (this.opts.labels) {
+            if (margins[1] < 60) {
+                console.log('Not enough space for label option: ' + 
+                    'increase right margin (min 60)');
+                return;
+            }
             // create a new group element for the label option
             var labels = this.canvas.append('g')
                 .attr('id', 'st-options');
@@ -3839,17 +3942,8 @@ st.chart.nmr = function () {
                 } else {
                     label.style('stroke', 'none');
                 }
-                // inefficient: store binned data?
-                if (chart.data !== null) {
-                    var data = chart.renderdata();
-                    chart.renderlabels(data);
-                }
+                draw(chart);
             })
-        }
-            
-        // implement custom behavior if defined in the extension
-        if (typeof this.behavior == 'function') {
-            this.behavior();
         }
         
         return this;
@@ -3979,11 +4073,8 @@ st.chart.nmr = function () {
             // clean up: re-draw the x-axis
             this.canvas.select('.st-xaxis').call(this.xaxis);
             // clean up: re-draw the data set
-            if (typeof this.renderdata == 'function' && 
-                this.data !== null) {
-                var data = this.renderdata();
-                this.renderlabels(data);
-            }
+            draw(this);
+            this.renderlabels(data);
         } else {
             // hide the selection rectangle
             selection.attr('display', 'none');
@@ -4021,11 +4112,7 @@ st.chart.nmr = function () {
         // re-draw the x-axis
         this.canvas.select('.st-xaxis').call(this.xaxis);
         // re-draw the data set
-        if (typeof this.renderdata == 'function') {
-            this.data.reset();
-            var data = this.renderdata();
-            this.renderlabels(data);       // draw the labels
-        }
+        draw(this);
     };
     
     /**
@@ -4034,6 +4121,17 @@ st.chart.nmr = function () {
      * @param {object} data A data set
      */
     nmr.load = function (data) {
+        // sanity check
+        if (!data) {
+            console.log('Missing data object.');
+            return;
+        } else if (typeof data.push !== 'function' ||
+            typeof data.add !== 'function' ||
+            typeof data.remove !== 'function') {
+            console.log('Invalid data object.');
+            return;
+        }
+        
         var chart = this;       // self-reference for nested functions
         this.data = data;       // associate with the chart
         var oldadd = data.add;  // copy of the old function
@@ -4045,8 +4143,7 @@ st.chart.nmr = function () {
                 init_mouse(chart);          // re-initialise the mouse behavior      
                 chart.canvas.select('.st-xaxis')
                     .call(chart.xaxis);     // draw the x-axis   
-                var data = chart.renderdata();  // draw the data set
-                chart.renderlabels(data);       // draw the labels
+                draw(chart);
                 chart.rendergroups();           // draw the anno groups
                 if (chart.opts.legend) {
                     chart.renderLegend();   // draw the legend
@@ -4148,11 +4245,7 @@ function init_mouse (chart) {
         .y(chart.scales.y)
         .center([0, chart.scales.y(0)])
         .on("zoom", function() {
-            if (typeof chart.renderdata == 'function' && 
-                chart.data !== null) {
-                var data = chart.renderdata();
-                chart.renderlabels(data);       // draw the labels
-            }
+            draw(chart);
         });
     chart.panel.call(mousewheel)
         .on('mousedown.zoom', function () { // --- mouse options ---

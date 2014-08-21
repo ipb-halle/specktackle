@@ -15,57 +15,17 @@ st.data.set = function () {
     var set = data();
     
     /**
-     * Sets the title accessor.
-     *
-     * @param {string} x A title accessor
-     * @returns {object} the data object
-     */
-    set.title = function (x) {
-        this.opts.title = x;
-        return this;
-    };
-    
-    /**
      * Sets the x data accessor.
      *
      * @param {string} x A x data accessor
      * @returns {object} the data object
      */
     set.x = function (x) {
-        this.opts.x = x;
-        return this;
-    };
-    
-    /**
-     * Sets the y data accessor.
-     *
-     * @param {string} y A y data accessor
-     * @returns {object} the data object
-     */
-    set.y = function (y) {
-        this.opts.y = y;
-        return this;
-    };
-    
-    /**
-     * Sets the x domain limits.
-     *
-     * @param {number[]} limits A two element array of min and max limits
-     * @returns {object} the data object
-     */
-    set.xlimits = function (limits) {
-        set.opts.xlimits = limits;
-        return this;
-    };
-    
-    /**
-     * Sets the y domain limits.
-     *
-     * @param {number[]} limits A two element array of min and max limits
-     * @returns {object} the data object
-     */
-    set.ylimits = function (limits) {
-        set.opts.ylimits = limits;
+        if (x && typeof x === 'string') {
+            this.opts.x = x;
+        } else {
+            console.log('Invalid y accessor option.');
+        }
         return this;
     };
     

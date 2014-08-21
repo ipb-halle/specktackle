@@ -55,9 +55,18 @@ st.util.mol2svg = function (width, height) {
         } else {
             jqxhr = $.when(
                 $.get(molfile)
-            ).then(function(text) {
+            )
+            .fail(function() {
+                console.log('Request failed for: ' + molfile);
+            })
+            .then(function(text) {
                 cache.add(cacheKey, text);
-                parse(text, el);
+                try {
+                    parse(text, el);
+                } catch (err) {
+                    console.log('Mol2Svg Error:' + err);
+                    el.html('');
+                }
             });
         }
         return jqxhr;

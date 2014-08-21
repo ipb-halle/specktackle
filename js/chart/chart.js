@@ -50,7 +50,12 @@ function chart () {
          * @returns {object} the base chart
          */
         title: function (title) {
-            this.opts.title = title;
+            if (title && typeof title === 'string') {
+                this.opts.title = title;
+            } else {
+                console.log('Invalid title option.');
+            }
+            
             return this;
         },
         
@@ -61,7 +66,11 @@ function chart () {
          * @returns {object} the base chart
          */
         xlabel: function (xlabel) {
-            this.opts.xlabel = xlabel;
+            if (xlabel && typeof xlabel === 'string') {
+                this.opts.xlabel = xlabel;
+            } else {
+                console.log('Invalid x-axis label option.');
+            }
             return this;
         },
         
@@ -72,7 +81,11 @@ function chart () {
          * @returns {object} the base chart
          */
         ylabel: function (ylabel) {
-            this.opts.ylabel = ylabel;
+            if (ylabel && typeof ylabel === 'string') {
+                this.opts.ylabel = ylabel;
+            } else {
+                console.log('Invalid y-axis label option.');
+            }
             return this;
         },
         
@@ -83,7 +96,11 @@ function chart () {
          * @returns {object} the base chart
          */
         xreverse: function (reverse) {
-            this.opts.xreverse = reverse;
+            if (reverse && typeof reverse === 'boolean') {
+                this.opts.xreverse = reverse;
+            } else {
+                console.log('Invalid x-axis reverse option.');
+            }
             return this;
         },
         
@@ -94,7 +111,11 @@ function chart () {
          * @returns {object} the base chart
          */
         yreverse: function (reverse) {
-            this.opts.yreverse = reverse;
+            if (reverse && typeof reverse === 'boolean') {
+                this.opts.yreverse = reverse;
+            } else {
+                console.log('Invalid y-axis reverse option.');
+            }
             return this;
         },
         
@@ -105,7 +126,11 @@ function chart () {
          * @returns {object} the base chart
          */
         legend: function (display) {
-            this.opts.legend = display;
+            if (display && typeof display === 'boolean') {
+                this.opts.legend = display;
+            } else {
+                console.log('Invalid legend option.');
+            }
             return this;
         },
         
@@ -116,7 +141,11 @@ function chart () {
          * @returns {object} the base chart
          */
         labels: function (display) {
-            this.opts.labels = display;
+            if (display && typeof display === 'boolean') {
+                this.opts.labels = display;
+            } else {
+                console.log('Invalid labels option.');
+            }
             return this;
         },
         
@@ -127,7 +156,11 @@ function chart () {
          * @returns {object} the base chart
          */
         margins: function (margs) {
-            this.opts.margins = margs;
+            if (margs && margs instanceof Array && margs.length === 4) {
+               this.opts.margins = margs;
+            } else {
+                console.log('Invalid margins array.');
+            }
             return this;
         },
         
@@ -161,6 +194,15 @@ function chart () {
             // ...calculate width and height of the canvas inside the panel
             this.width = $(x).width() - margins[1] - margins[3];
             this.height = $(x).height() - margins[0] - margins[2];
+
+            // sanity check
+            if (this.width <= 0) {
+                console.log('Invalid chart width: ' + this.width);
+                return;
+            } else if (this.height <= 0) {
+                console.log('Invalid chart height: ' + this.height);
+                return;
+            }
         
             // self-reference for nested functions
             var chart = this;
@@ -270,17 +312,27 @@ function chart () {
             
             // draw the title
             if (this.opts.title && this.opts.title.length !== 0) {
-                this.panel.append('text')
-                    .attr('class', 'st-title')
-                    .attr('x', margins[3] + (this.width / 2))
-                    .attr('y', margins[0] * 0.75)
-                    .attr('text-anchor', 'middle')
-                    .attr('font-size', 'large')
-                    .text(this.opts.title)
+                if (margins[0] < 20) {
+                    console.log('Not enough space for chart title: ' + 
+                        'increase top margin (min 20)');
+                } else {
+                    this.panel.append('text')
+                        .attr('class', 'st-title')
+                        .attr('x', margins[3] + (this.width / 2))
+                        .attr('y', margins[0] * 0.75)
+                        .attr('text-anchor', 'middle')
+                        .attr('font-size', 'large')
+                        .text(this.opts.title)
+                }
             }
             
             // draw the options
             if (this.opts.labels) {
+                if (margins[1] < 60) {
+                    console.log('Not enough space for label option: ' + 
+                        'increase right margin (min 60)');
+                    return;
+                }
                 // create a new group element for the label option
                 var labels = this.canvas.append('g')
                     .attr('id', 'st-options');
@@ -315,11 +367,7 @@ function chart () {
                     } else {
                         label.style('stroke', 'none');
                     }
-                    // inefficient: store binned data?
-                    if (chart.data !== null) {
-                        var data = chart.renderdata();
-                        chart.renderlabels(data);
-                    }
+                    draw(chart);
                 })
             }
         },
@@ -705,11 +753,7 @@ function chart () {
                 this.canvas.select('.st-xaxis').call(this.xaxis);
                 this.canvas.select('.st-yaxis').call(this.yaxis);
                 // clean up: re-draw the data set
-                if (typeof this.renderdata == 'function' && 
-                    this.data !== null) {
-                    var data = this.renderdata();
-                    this.renderlabels(data);
-                }
+                draw(this);
             } else {
                 // hide the selection rectangle
                 selection.attr('display', 'none');
@@ -772,11 +816,8 @@ function chart () {
             this.canvas.select('.st-xaxis').call(this.xaxis);
             this.canvas.select('.st-yaxis').call(this.yaxis);
             // re-draw the data set
-            if (typeof this.renderdata == 'function') {
-                this.data.reset();
-                var data = this.renderdata();
-                this.renderlabels(data);
-            }
+            this.data.reset();
+            draw(this);
         },
         
         /**
@@ -876,6 +917,10 @@ function chart () {
                         // make the tooltip-mol sub-div visible
                         d3.selectAll('#tooltips-mol')
                             .style('display', 'inline');
+                    })
+                    .fail(function () {
+                        // hide the spinner
+                        spinner.css('display', 'none');
                     });
                 }, 500);
             } else {
@@ -998,25 +1043,39 @@ function chart () {
          * @param {object} data A data set
          */
         load: function (data) {
+            // sanity check
+            if (!data) {
+                console.log('Missing data object.');
+                return;
+            } else if (typeof data.push !== 'function' ||
+                typeof data.add !== 'function' ||
+                typeof data.remove !== 'function') {
+                console.log('Invalid data object.');
+                return;
+            }
+            
             var chart = this;       // self-reference for nested functions
             this.data = data;       // associate with the chart
             var oldadd = data.add;  // copy of the old function
             data.add = function() { // redefine
-                oldadd.apply(this, arguments);   // execute old copy
-                chart.data.push(function () {    // define callback
-                    chart.xscale();              // rescale x
-                    chart.yscale();              // rescale y
-                    chart.canvas.select('.st-xaxis')
-                        .call(chart.xaxis);     // draw the x-axis
-                    chart.canvas.select('.st-yaxis')
-                        .call(chart.yaxis);     // draw the y-axis
-                    var data = chart.renderdata();  // draw the data set
-                    chart.renderlabels(data);       // draw the labels
-                    chart.rendergroups();           // draw the anno groups
-                    if (chart.opts.legend) {
-                        chart.renderLegend();   // draw the legend
-                    }
-                });
+                try {
+                    oldadd.apply(this, arguments);   // execute old copy
+                    chart.data.push(function () {    // define callback
+                        chart.xscale();              // rescale x
+                        chart.yscale();              // rescale y
+                        chart.canvas.select('.st-xaxis')
+                            .call(chart.xaxis);     // draw the x-axis
+                        chart.canvas.select('.st-yaxis')
+                            .call(chart.yaxis);     // draw the y-axis
+                        draw(chart);
+                        chart.rendergroups();           // draw the anno groups
+                        if (chart.opts.legend) {
+                            chart.renderLegend();   // draw the legend
+                        }
+                    });
+                } catch (err) {
+                    console.log('Data load failed: ' + err);
+                }
             };
             var oldremove = data.remove;    // copy of the old function
             data.remove = function() {      // redefine
@@ -1035,3 +1094,23 @@ function chart () {
         }
     };
 };
+
+/**
+ * Draws the chart and signal labels.
+ *
+ * @param {object} chart A chart object
+ */
+function draw (chart) {
+    if (typeof chart.renderdata == 'function' && 
+        typeof chart.renderlabels == 'function' &&
+        chart.data !== null) {
+        try {
+            // inefficient: store binned data?
+            var data = chart.renderdata(); // draw the data set
+            chart.renderlabels(data);      // draw the labels
+        } catch (err) {
+            chart.data.remove();
+            console.log('Error rendering the data: ' + err);
+        }
+    }
+}
