@@ -3003,17 +3003,16 @@ function chart () {
          * Draws the chart legend in the top right corner.
          */
         renderLegend: function () {
-        
             // remove the current legend
             d3.select(this.target).select('.st-legend').remove();
             // build a new div container for the legend 
             var legend = d3.select(this.target).append('div')
                 .attr('class', 'st-legend')
-                .style('width', this.opts.margins[1] + 'px')
-                .style('height', (this.height / 2) + 'px')
                 .style('top', -(this.height + this.opts.margins[2]) + 'px')
                 .style('left', this.width + this.opts.margins[3] + 'px')
-                .style('position', 'relative'); 
+                .style('width', this.opts.margins[1] + 'px')
+                .style('height', (this.height / 2) - 30 + 'px')
+                .style('position', 'relative');                 
             // inner div with 'hidden' scroll bars        
             legend = legend.append('div')
                 .style('position', 'absolute')
@@ -3021,18 +3020,20 @@ function chart () {
                 .style('top', 0 + 'px')
                 .style('left', 0 + 'px')
                 .style('width', this.opts.margins[1] + 30 + 'px')
-                //.style('height', (this.height / 2) + 'px')
                 .style('bottom', -30 + 'px');
-                
+
             // self-reference for nested functions
             var colors = this.colors;
             // self-reference for nested functions
             var chart = this;
+            // get the length (no. of items) of the new legend
+            var length = this.data.raw.series.length;
             // create a svg container
-            var lg = legend.append('svg:svg');
+            var lg = legend.append('svg:svg')
+                .attr('height', length * 20 + 'px');
             
             // iterate over all data series
-            for (var i = 0; i < this.data.raw.series.length; i++) {
+            for (var i = 0; i < length; i++) {
                 // get the series identifier
                 var id = this.data.raw.series[i].id;
                 // get the series title
