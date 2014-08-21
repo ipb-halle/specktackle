@@ -4074,7 +4074,6 @@ st.chart.nmr = function () {
             this.canvas.select('.st-xaxis').call(this.xaxis);
             // clean up: re-draw the data set
             draw(this);
-            this.renderlabels(data);
         } else {
             // hide the selection rectangle
             selection.attr('display', 'none');
