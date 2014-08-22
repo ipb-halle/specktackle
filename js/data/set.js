@@ -15,21 +15,6 @@ st.data.set = function () {
     var set = data();
     
     /**
-     * Sets the x data accessor.
-     *
-     * @param {string} x A x data accessor
-     * @returns {object} the data object
-     */
-    set.x = function (x) {
-        if (x && typeof x === 'string') {
-            this.opts.x = x;
-        } else {
-            console.log('Invalid y accessor option.');
-        }
-        return this;
-    };
-    
-    /**
      * Gets the unbinned data array for the current chart.
      *
      * @param {number} width The chart width

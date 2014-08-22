@@ -19,10 +19,10 @@
         // demonstration of SpeckTackle charts
         var chart;
         
-        function ms () {                        // MS stub
-            $("#stgraph").empty();              // clear DOM child elements
-            $("#adddata").removeAttr("disabled")// enable 'Add Data' button
-                .attr("onclick","load(0)");     // point to data loader
+        function ms (x) {                          // MS stub
+            $("#stgraph").empty();                 // clear DOM child elements
+            $("#adddata").removeAttr("disabled")   // enable 'Add Data' button
+                .attr("onclick","load(" + x + ")");// point to data loader
                 
             chart = st.chart                    // create a new MS chart
                 .ms()                           // chart type
@@ -34,10 +34,10 @@
             chart.render("#stgraph");           // render chart to id 'stgraph'
         };
         
-        function nmr () {                       // NMR stub
+        function nmr (x) {                       // NMR stub
             $("#stgraph").empty();
             $("#adddata").removeAttr("disabled")
-                .attr("onclick","load(1)");
+                .attr("onclick","load(" + x + ")");
                 
             chart = st.chart
                 .nmr()
@@ -247,6 +247,23 @@
                         "resources/data3_inv.json"
                     ]);
                     break;
+                case 10:                            // PRIDE
+                    var array = st.data.array() 
+                        .xlimits(["mzRangeStart", "mzRangeStop"])
+                        .x("mzArray")             
+                        .y("intenArray")      
+                        .title("spectrumId");      
+                    
+                    // annotation structure
+                    array.annotationColumn(st.annotation.ANNOTATION, "Series");
+                    
+                    chart.load(array);               
+                    array.add([                      
+                        "resources/pride.json"
+                    ], [
+                        "resources/pride_anno.json"
+                    ]);
+                    break;
             };
             $("#adddata").attr('disabled','disabled');
         };
@@ -313,62 +330,6 @@
             }, 2000);
         };
         
-        function singlems () {             // single point ms stub
-            $("#stgraph").empty();              
-            $("#adddata").removeAttr("disabled")
-                .attr("onclick","load(6)");     
-                
-            chart = st.chart                    
-                .ms()                           
-                .legend(true)                   
-                .xlabel("m/z")
-                .ylabel("Abundance")
-                .margins([80, 80, 80, 120]);
-            chart.render("#stgraph");           
-        }; 
-
-        function singlenmr () {             // single point nmr stub
-            $("#stgraph").empty();
-            $("#adddata").removeAttr("disabled")
-                .attr("onclick","load(7)");
-                
-            chart = st.chart
-                .nmr()
-                .legend(true)
-                .title("NMR")
-                .xlabel("ppm")
-                .margins([80, 80, 80, 80]);
-            chart.render("#stgraph");
-        };
-
-        function diffchart () {             // difference chart
-            $("#stgraph").empty();              
-            $("#adddata").removeAttr("disabled")
-                .attr("onclick","load(8)");     
-                
-            chart = st.chart                    
-                .ms()                           
-                .legend(true)                   
-                .xlabel("m/z")
-                .ylabel("Abundance")
-                .margins([80, 80, 80, 120]);
-            chart.render("#stgraph");           
-        }; 
-        
-        function spectralmatch () {             // spectral match
-            $("#stgraph").empty();              
-            $("#adddata").removeAttr("disabled")
-                .attr("onclick","load(9)");     
-                
-            chart = st.chart                    
-                .ms()                           
-                .legend(true)                   
-                .xlabel("m/z")
-                .ylabel("Abundance")
-                .margins([80, 80, 80, 120]);
-            chart.render("#stgraph");           
-        }; 
-        
         function multiplecharts () {        // multiple charts stub
             $("#stgraph").css("display", "none");
             $("#stgraphm1").empty();
@@ -431,8 +392,8 @@
     <div id="wrap">
         <h2>SpeckTackle: Development</h2>
         <ul>
-            <li><button onclick="ms()">MS</button></li>
-            <li><button onclick="nmr()">NMR</button></li>
+            <li><button onclick="ms(0)">MS</button></li>
+            <li><button onclick="nmr(1)">NMR</button></li>
             <li><button onclick="nmr2d()">NMR2D</button></li>
             <li><button onclick="series()">Chromatogram</button></li>
             <li><button onclick="irjdx()">IR (JDX)</button></li>
@@ -446,14 +407,15 @@
             <li><button onclick="multiplecharts()">Multiple Charts</button></li>
             <li><button onclick="dynamicms()">Dynamic MS</button></li>
             <li><button onclick="dynamicnmr()">Dynamic NMR</button></li>
-            <li><button onclick="singlems()">Single Point MS</button></li>
-            <li><button onclick="singlenmr()">Single Point NMR</button></li>
+            <li><button onclick="ms(6)">Single Point MS</button></li>
+            <li><button onclick="nmr(7)">Single Point NMR</button></li>
             <li id="dynamicload"></li>
         </ul>
         <hr>
         <ul>
-            <li><button onclick="diffchart()">Difference Chart</button></li>
-            <li><button onclick="spectralmatch()">Spectral Match</button></li>
+            <li><button onclick="ms(8)">Difference Chart</button></li>
+            <li><button onclick="ms(9)">Spectral Match</button></li>
+            <li><button onclick="ms(10)">Peptide MS</button></li>
         </ul>
         <hr>
         <!-- Container for all charts: '#stgraph' -->

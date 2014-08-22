@@ -1022,6 +1022,21 @@ function data () {
         },
         
         /**
+         * Sets the x data accessor.
+         *
+         * @param {string} x A x data accessor
+         * @returns {object} the data object
+         */
+        x: function (x) {
+            if (x && typeof x === 'string') {
+                this.opts.x = x;
+            } else {
+                console.log('Invalid y accessor option.');
+            }
+            return this;
+        },
+        
+        /**
          * Sets the y accessor.
          *
          * @param {string} y A y data accessor
@@ -1426,21 +1441,6 @@ function fetch_limits (series, json, limits, acc) {
 st.data.set = function () {
     // base data structure to be extended
     var set = data();
-    
-    /**
-     * Sets the x data accessor.
-     *
-     * @param {string} x A x data accessor
-     * @returns {object} the data object
-     */
-    set.x = function (x) {
-        if (x && typeof x === 'string') {
-            this.opts.x = x;
-        } else {
-            console.log('Invalid y accessor option.');
-        }
-        return this;
-    };
     
     /**
      * Gets the unbinned data array for the current chart.

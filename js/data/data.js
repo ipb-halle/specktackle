@@ -52,6 +52,21 @@ function data () {
         },
         
         /**
+         * Sets the x data accessor.
+         *
+         * @param {string} x A x data accessor
+         * @returns {object} the data object
+         */
+        x: function (x) {
+            if (x && typeof x === 'string') {
+                this.opts.x = x;
+            } else {
+                console.log('Invalid y accessor option.');
+            }
+            return this;
+        },
+        
+        /**
          * Sets the y accessor.
          *
          * @param {string} y A y data accessor
