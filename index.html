@@ -248,17 +248,17 @@
                     ]);
                     break;
                 case 10:                            // PRIDE
-                    var array = st.data.array() 
+                    var set = st.data.set() 
                         .xlimits(["mzRangeStart", "mzRangeStop"])
                         .x("mzArray")             
                         .y("intenArray")      
                         .title("spectrumId");      
                     
                     // annotation structure
-                    array.annotationColumn(st.annotation.ANNOTATION, "Series");
+                    set.annotationColumn(st.annotation.ANNOTATION, "Series");
                     
-                    chart.load(array);               
-                    array.add([                      
+                    chart.load(set);               
+                    set.add([                      
                         "resources/pride.json"
                     ], [
                         "resources/pride_anno.json"

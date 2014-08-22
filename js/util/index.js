@@ -5,3 +5,4 @@ import "hashcode";
 import "domain";
 import "mol2svg";
 import "spinner";
+import "compare";

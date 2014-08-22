@@ -865,6 +865,27 @@ st.util.spinner = function (el) {
         
     return $('.st-spinner');
 };
+
+/**
+ * Builds a compare function to sort an array of objects.
+ *
+ * @author Stephan Beisken <beisken@ebi.ac.uk>
+ * @constructor
+ * @param {string} xacc An x value accessor
+ * @return {object} the compare function
+ */
+st.util.compare = function (xacc) {
+    var compare = function (a, b) {
+        if (a[xacc] < b[xacc]) {
+            return -1;
+        }
+        if (a[xacc] > b[xacc]) {
+            return 1;
+        }
+        return 0;
+    };
+    return compare;
+};
 /**
  * Enum for annotation types.
  * 
@@ -1017,21 +1038,6 @@ function data () {
                 this.opts.title = x;
             } else {
                 console.log('Invalid title option.');
-            }
-            return this;
-        },
-        
-        /**
-         * Sets the x data accessor.
-         *
-         * @param {string} x A x data accessor
-         * @returns {object} the data object
-         */
-        x: function (x) {
-            if (x && typeof x === 'string') {
-                this.opts.x = x;
-            } else {
-                console.log('Invalid y accessor option.');
             }
             return this;
         },
@@ -1443,6 +1449,21 @@ st.data.set = function () {
     var set = data();
     
     /**
+     * Sets the x data accessor.
+     *
+     * @param {string} x A x data accessor
+     * @returns {object} the data object
+     */
+    set.x = function (x) {
+        if (x && typeof x === 'string') {
+            this.opts.x = x;
+        } else {
+            console.log('Invalid y accessor option.');
+        }
+        return this;
+    };
+    
+    /**
      * Gets the unbinned data array for the current chart.
      *
      * @param {number} width The chart width
@@ -1640,7 +1661,20 @@ st.data.set = function () {
             yacc = yacc.substr(yacc.lastIndexOf('.') + 1)
         }
 
+        // coerce two arrays into an array of objects 
         var data = (acc === '') ? json : json[acc];
+        if (!(data instanceof Array)) {
+            var grouped = [];
+            for (var i in data[xacc]) {
+                var ob = {};
+                ob[xacc] = data[xacc][i];
+                ob[yacc] = data[yacc][i];
+                grouped.push(ob);
+            }
+            data = grouped;
+        }
+        
+        
         // resolve limits
         xlim = fetch_limits(data, json, this.opts.xlimits, xacc);
         ylim = fetch_limits(data, json, this.opts.ylimits, yacc);
@@ -1648,6 +1682,8 @@ st.data.set = function () {
         
         // assign annotations
         if (json2) {
+            // sort the data set
+            data.sort(st.util.compare(xacc));
             // define bisector for value lookup
             var bisector = d3.bisector(function (d) {
                 return d[xacc];

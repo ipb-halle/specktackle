@@ -1,3 +1,4 @@
+import "../util/compare";
 import "../util/domain";
 import "../util/hashcode";
 import "data";
@@ -13,6 +14,21 @@ import "data";
 st.data.set = function () {
     // base data structure to be extended
     var set = data();
+    
+    /**
+     * Sets the x data accessor.
+     *
+     * @param {string} x A x data accessor
+     * @returns {object} the data object
+     */
+    set.x = function (x) {
+        if (x && typeof x === 'string') {
+            this.opts.x = x;
+        } else {
+            console.log('Invalid y accessor option.');
+        }
+        return this;
+    };
     
     /**
      * Gets the unbinned data array for the current chart.
@@ -212,7 +228,20 @@ st.data.set = function () {
             yacc = yacc.substr(yacc.lastIndexOf('.') + 1)
         }
 
+        // coerce two arrays into an array of objects 
         var data = (acc === '') ? json : json[acc];
+        if (!(data instanceof Array)) {
+            var grouped = [];
+            for (var i in data[xacc]) {
+                var ob = {};
+                ob[xacc] = data[xacc][i];
+                ob[yacc] = data[yacc][i];
+                grouped.push(ob);
+            }
+            data = grouped;
+        }
+        
+        
         // resolve limits
         xlim = fetch_limits(data, json, this.opts.xlimits, xacc);
         ylim = fetch_limits(data, json, this.opts.ylimits, yacc);
@@ -220,6 +249,8 @@ st.data.set = function () {
         
         // assign annotations
         if (json2) {
+            // sort the data set
+            data.sort(st.util.compare(xacc));
             // define bisector for value lookup
             var bisector = d3.bisector(function (d) {
                 return d[xacc];
