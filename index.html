@@ -285,7 +285,8 @@
             chart.load(set);
             setTimeout(function iter() {
                 if (counter === 6) {
-                    counter = 0;
+                    $("#dynamicload").html('');
+                    return;
                 }
                 if (counter < 3) {
                     $("#dynamicload").html("Loading: " + data[counter]);
@@ -295,8 +296,8 @@
                     set.remove(0);
                 }
                 counter += 1;
-                setTimeout(iter, 2000);
-            }, 2000);
+                setTimeout(iter, 1000);
+            }, 1000);
         };
         
         function dynamicnmr () {            // dynamic NMR stub
@@ -316,7 +317,8 @@
             chart.load(array);
             setTimeout(function iter() {
                 if (counter === 6) {
-                    counter = 0;
+                    $("#dynamicload").html('');
+                    return;
                 }
                 if (counter < 3) {
                     $("#dynamicload").html("Loading: " + data[counter]);
@@ -326,8 +328,8 @@
                     array.remove(0);
                 }
                 counter += 1;
-                setTimeout(iter, 2000);
-            }, 2000);
+                setTimeout(iter, 1000);
+            }, 1000);
         };
         
         function multiplecharts () {        // multiple charts stub
