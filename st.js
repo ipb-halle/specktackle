@@ -493,7 +493,7 @@ st.util.mol2svg = function (width, height) {
         });
 
         // dimensions of molecule graph
-        var m = [10, 10, 10, 10];   // margins
+        var m = [20, 20, 20, 20];   // margins
         var wp = w - m[1] - m[3];   // width
         var hp = h - m[0] - m[2];   // height
 
@@ -567,7 +567,7 @@ st.util.mol2svg = function (width, height) {
                         [x2 - xOff, y2 - yOff]
                     ];
                     graph.append('svg:path')
-                        .style('fill', 'none')
+                        .style('fill', 'black')
                         .style('stroke-width', 1)
                         .attr('d', wedgeBond(xyData));
                 } else if (bonds[i].stereo === 6) {     // single hash bond
