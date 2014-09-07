@@ -4,6 +4,7 @@ Implemented charts exist for mass spectrometry, one- and two-dimensional NMR, UV
 
 ## Documentation
 Documentation and code examples can be found on the wiki pages of the BitBucket project website.
+
 * [Public BitBucket Wiki](https://bitbucket.org/sbeisken/specktackle/wiki/Home)
 
 ## Dependencies
