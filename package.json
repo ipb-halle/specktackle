@@ -19,11 +19,11 @@
     "main": "index.js",
     "browserify": "st.js",
     "dependencies": {
-        "jquery": "2.1.1"
+        "jquery": "^3.6.0"
     },
     "devDependencies": {
         "smash": "0.0.12",
-        "uglify-js": "1.3.5"
+        "uglify-js": "^3.13.1"
     },
     "licenses": [
         {

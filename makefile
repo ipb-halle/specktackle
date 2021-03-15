@@ -2,7 +2,8 @@ GENERATED_FILES = \
 	st.js \
 	st.min.js
 
-PREFIX = /cygdrive/c/Users/Stephan
+#PREFIX = /cygdrive/c/Users/Stephan
+PREFIX=.
 	
 all: $(GENERATED_FILES)
 
