@@ -1,25 +1,29 @@
+BUILDDIR = build
 GENERATED_FILES = \
-	st.js \
-	st.min.js
+	$(BUILDDIR)/st.js \
+	$(BUILDDIR)/st.min.js
 
 #PREFIX = /cygdrive/c/Users/Stephan
 PREFIX=.
 	
-all: $(GENERATED_FILES)
+all: builddir $(GENERATED_FILES)
 
-.PHONY: clean all
+.PHONY: clean builddir all
+
+builddir:
+	mkdir -p $(BUILDDIR)
 
 js/st-start.js: package.json libs/start.js
 	node libs/start.js > $@
 
-st.js: $(/bin/bash $(PREFIX)/node_modules/.bin/smash --ignore-missing --list js/st.js) package.json
+build/st.js: $(/bin/bash $(PREFIX)/node_modules/.bin/smash --ignore-missing --list js/st.js) package.json
 	@rm -f $@
 	$(PREFIX)/node_modules/.bin/smash js/st.js > $@
 	@chmod a-w $@
 
-st.min.js: st.js libs/uglify.js
+build/st.min.js: st.js libs/uglify.js
 	@rm -f $@
 	@node libs/uglify.js $< > $@
 
 clean:
-	rm -f -- $(GENERATED_FILES)
+	rm -rf $(BUILDDIR)
