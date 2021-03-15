@@ -6,24 +6,23 @@ GENERATED_FILES = \
 #PREFIX = /cygdrive/c/Users/Stephan
 PREFIX=.
 	
-all: builddir $(GENERATED_FILES)
+all: $(GENERATED_FILES)
 
 .PHONY: clean builddir all
 
-builddir:
-	mkdir -p $(BUILDDIR)
+$(BUILDDIR)/st.js: builddir js/st-start.js $(/bin/bash $(PREFIX)/node_modules/.bin/smash --ignore-missing --list js/st.js) package.json
+	@rm -f $@
+	npx smash js/st.js > $@
+	@chmod a-w $@
+
+$(BUILDDIR)/st.min.js: $(BUILDDIR)/st.js
+	npx uglify-js $< -m -c > $@
 
 js/st-start.js: package.json libs/start.js
 	node libs/start.js > $@
 
-build/st.js: $(/bin/bash $(PREFIX)/node_modules/.bin/smash --ignore-missing --list js/st.js) package.json
-	@rm -f $@
-	$(PREFIX)/node_modules/.bin/smash js/st.js > $@
-	@chmod a-w $@
-
-build/st.min.js: st.js libs/uglify.js
-	@rm -f $@
-	@node libs/uglify.js $< > $@
+builddir:
+	mkdir -p $(BUILDDIR)
 
 clean:
 	rm -rf $(BUILDDIR)

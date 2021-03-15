@@ -1,6 +1,6 @@
 {
     "name": "st",
-    "version": "0.0.1",
+    "version": "v0.0.5-IPB",
     "description": "A free JavaScript charting library for spectroscopy.",
     "keywords": [
         "visualization",
@@ -14,7 +14,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://bitbucket.org/sbeisken/specktackle"
+        "url": "https://github.com/ipb-halle/specktackle"
     },
     "main": "index.js",
     "browserify": "st.js",
