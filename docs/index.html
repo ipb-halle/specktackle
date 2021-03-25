@@ -142,12 +142,19 @@
                         .ylimits(["yMin", "yMax"])
                         .y("data")                  // one dimensional array
                         //.title("id");
+
+                    array.annotationColumn(st.annotation.ANNOTATION, "Peak");
+                    array.annotationColumn(st.annotation.TOOLTIP, "Info");
+
                     chart.load(array);   
                     array.add([
                         "resources/nmr1.json",
                         "resources/nmr2.json"
                         //"resources/nmr3.json"
                         //"resources/nmr4.json"
+                    ], [
+                        "resources/nmr1_anno.json", 
+                        ""
                     ]);
                     break;  
                 case 2:                             // NMR 2D
@@ -393,7 +400,7 @@
 <body>
     <div id="wrap">
         <h2>SpeckTackle: Development</h2>
-	<p>Please note: this is a forked version of SpeckTackle with only minor modifications. Please see <a href="https://bitbucket.org/sbeisken/specktackle">https://bitbucket.org/sbeisken/specktackle</a> for the original code.</p>
+        <p>Please note: this is a forked version of SpeckTackle with only minor modifications. Please see <a href="https://bitbucket.org/sbeisken/specktackle">https://bitbucket.org/sbeisken/specktackle</a> for the original code.</p>
         <ul>
             <li><button onclick="ms(0)">MS</button></li>
             <li><button onclick="nmr(1)">NMR</button></li>

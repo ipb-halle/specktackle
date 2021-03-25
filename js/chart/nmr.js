@@ -99,6 +99,9 @@ st.chart.nmr = function () {
         
         // define and render the x- and y-axis
         this.renderAxes();
+
+        // tooltip rendering currently does not work
+        // chart.renderTooltips();
         
         // draw the title
         if (this.opts.title && this.opts.title.length !== 0) {
@@ -419,19 +422,18 @@ st.chart.nmr = function () {
             // create a new group for SVG elements of this series
             var g = this.canvas.append('g')
                 .attr('class', id);
-            
+            var color = this.colors.get(id);
+
             // add a continuous line for each series
             g.append('svg:path')
                 .attr('clip-path', 'url(#clip-' + this.target + ')')
-                .style('stroke', this.colors.get(id))
+                .style('stroke', color)
                 .style('fill', 'none')
                 .style('stroke-width', 1)
                 .attr('d', line(series));
-            g.data(series).each(function(d) {      // address each point
-                    if (d.annos) {  // check for on-canvas annotations...
-                        if (!(group in d.annos)) {
-                            return;
-                        }
+            for (var d of series) {
+                if (d.annos) {  // check for on-canvas annotations...
+                    if (group in d.annos) {
                         g.append('text') // ...append a SVG text element
                             .attr('class', id + '.anno')
                             .attr('x', chart.scales.x(d[accs[0]]))
@@ -440,8 +442,14 @@ st.chart.nmr = function () {
                             .attr('font-size', 'small')
                             .attr('fill', color)
                             .text(d.annos[group].annotation);
+
+                        // .on('mouseover', function() { alert('Hallo'); });
+                        // does not work as expected
+                        // chart.panel.on('mouseover', chart.mouseOverAction(this, d, accs, group));
+
                     }
-                });
+                }
+            }
         }
         return data;
     };

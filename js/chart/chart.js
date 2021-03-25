@@ -276,32 +276,8 @@ function chart () {
                     .range([this.height, 0])
             }
             
-            // check if the tooltip div exists already...
-            if (!$('#st-tooltips').length) {
-                // add a hidden div that serves as tooltip
-                this.tooltips = d3.select('body').append('div')
-                    .attr('width', $(x).width())
-                    .attr('height', $(x).height())
-                    .style('pointer-events', 'none')
-                    .attr('id', 'st-tooltips')
-                    .style('position', 'absolute')
-                    .style('opacity', 0);
-                // split the tooltip div into a key-value pair section for
-                // annotations of type st.annotation.TOOLTIP...
-                this.tooltips.append('div')
-                    .attr('id', 'tooltips-meta')
-                    .style('height', '50%')
-                    .style('width', '100%');
-                // ...and a section for molecules resolved through URLs pointing
-                // to SDfiles for annotations of type st.annotation.TOOLTIP_MOL
-                this.tooltips.append('div')
-                    .attr('id', 'tooltips-mol')
-                    .style('height', '50%')
-                    .style('width', '100%');
-            } else { // ...reference the tooltip div if it exists
-                this.tooltips = d3.select('#st-tooltips');
-            }
-            
+            this.renderTooltips(x);
+
             // implement custom behavior if defined in the extension
             if (typeof this.behavior == 'function') {
                 this.behavior();
@@ -372,6 +348,34 @@ function chart () {
             }
         },
         
+        renderTooltips: function (x) {
+            // check if the tooltip div exists already...
+            if (!$('#st-tooltips').length) {
+                // add a hidden div that serves as tooltip
+                this.tooltips = d3.select('body').append('div')
+                    .attr('width', $(x).width())
+                    .attr('height', $(x).height())
+                    .style('pointer-events', 'none')
+                    .attr('id', 'st-tooltips')
+                    .style('position', 'absolute')
+                    .style('opacity', 0);
+                // split the tooltip div into a key-value pair section for
+                // annotations of type st.annotation.TOOLTIP...
+                this.tooltips.append('div')
+                    .attr('id', 'tooltips-meta')
+                    .style('height', '50%')
+                    .style('width', '100%');
+                // ...and a section for molecules resolved through URLs pointing
+                // to SDfiles for annotations of type st.annotation.TOOLTIP_MOL
+                this.tooltips.append('div')
+                    .attr('id', 'tooltips-mol')
+                    .style('height', '50%')
+                    .style('width', '100%');
+            } else { // ...reference the tooltip div if it exists
+                this.tooltips = d3.select('#st-tooltips');
+            }
+        },
+
         /**
          * Defines and renders the x- and y-axis (direction, tick marks, etc.).
          * Axes follow standard cartesian coordinate conventions.
