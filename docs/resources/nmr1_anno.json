@@ -1,6 +1,6 @@
 [
-    ["Peaks", 1610, "A", "Ring A", "ex1"  ],
-    ["Peaks", 3455, "D", "Ring D", "ex2"  ],
-    ["Peaks", 3810, "C", "Ring C", "ex3"  ],
-    ["Other",  955, "O", "",       "ex O1"]
+    ["Peaks", 23234, "A", "Ring A", "ex1"  ],
+    ["Peaks", 28250, "D", "Ring D", "ex2"  ],
+    ["Peaks", 32723, "C", "Ring C", "ex3"  ],
+    ["Other",  6609, "O", "",       "ex O1"]
 ]
