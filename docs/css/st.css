@@ -31,6 +31,17 @@
     pointer-events: all;
 }
 
+.st-group-ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.st-group-li {
+    display: inline;
+    padding: 5px;
+}
+
 .st-base {
     font-family: Verdana, sans-serif;
     color: #333333;

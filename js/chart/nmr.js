@@ -431,9 +431,12 @@ st.chart.nmr = function () {
                 .style('fill', 'none')
                 .style('stroke-width', 1)
                 .attr('d', line(series));
+
+            var listeners = this.opts.listeners;
             for (var d of series) {
                 if (d.annos) {  // check for on-canvas annotations...
                     if (group in d.annos) {
+                        const arg = d.annos[group].listener;
                         g.append('text') // ...append a SVG text element
                             .attr('class', id + '.anno')
                             .attr('x', chart.scales.x(d[accs[0]]))
@@ -441,11 +444,15 @@ st.chart.nmr = function () {
                             .attr('text-anchor', 'middle')
                             .attr('font-size', 'small')
                             .attr('fill', color)
-                            .text(d.annos[group].annotation);
+                            .text(d.annos[group].annotation)
+                            .on('mouseover', function() { 
+                                if (arg !== undefined) {
+                                    listeners['mouseover'](arg);
+                                }
+                            });
 
-                        // .on('mouseover', function() { alert('Hallo'); });
-                        // does not work as expected
-                        // chart.panel.on('mouseover', chart.mouseOverAction(this, d, accs, group));
+                        // tooltips don't work as expected
+                        // .on('mouseover', chart.mouseOverAction(this, d, accs, group));
 
                     }
                 }

@@ -29,6 +29,7 @@ function chart () {
             ylabel: '',         // chart y-axis label
             xreverse: false,    // whether to reverse the x-axis
             yreverse: false,    // whether to reverse the y-axis
+            listeners: {},      // external event listeners
             legend: false,      // whether to display the legend
             labels: false,      // whether to display signal labels
             margins: [80, 80, 80, 120]  // canvas margins: t, r, b, l
@@ -116,6 +117,17 @@ function chart () {
             } else {
                 console.log('Invalid y-axis reverse option.');
             }
+            return this;
+        },
+
+        /**
+         * add a listener
+         * @param {string} name of the event
+         * @param {function} function to be called if an event is fired
+         * @returns {object} the base chart
+         */
+        addListener: function (event, listener) {
+            this.opts.listeners[event] = listener;
             return this;
         },
         
@@ -613,9 +625,11 @@ function chart () {
                     }
                     // ...and add to the popup div
                     popup.append('ul')
+                        .attr('class', 'st-group-ul')
                         .selectAll('li').data(keys).enter()
                         .append('li')
                         .style('display', 'block')
+                        .attr('class', 'st-group-li')
                         .style('cursor', 'pointer')
                         .html(function(d) { 
                             if (chart.data.raw.annoGroups[d]) {

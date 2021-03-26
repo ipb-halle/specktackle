@@ -1,6 +1,6 @@
 {
     "name": "st",
-    "version": "v0.0.5-IPB",
+    "version": "v0.0.6-IPB",
     "description": "A free JavaScript charting library for spectroscopy.",
     "keywords": [
         "visualization",

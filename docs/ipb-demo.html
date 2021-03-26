@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>SpeckTackle Development</title>
+    <meta charset="UTF-8">
+    
+    <!-- Main page CSS -->
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <!-- SpeckTackle CSS containing chart stylings -->
+    <link rel="stylesheet" type="text/css" href="css/st.css">
+    
+    <!-- SpeckTackle library -->
+    <script type="text/javascript", src="https://github.com/ipb-halle/specktackle/releases/latest/download/st.min.js"></script>
+    <!-- SpeckTackle dependencies -->
+    <script type="text/javascript", src="libs/d3/d3.js"></script>
+    <script type="text/javascript", src="libs/jquery/jquery.js"></script>
+
+
+    <!-- MolPaintJS -->
+    <script type="text/javascript" src="https://github.com/ipb-halle/MolPaintJS/releases/latest/download/molpaint.js"></script>
+    <script type="text/javascript">
+
+        function listener (arg) {
+            molPaintJS.CollectionHandler("mol").highlight(arg)
+        }
+
+    </script>
+
+
+    <script type="text/javascript">
+        // demonstration of SpeckTackle charts
+        var chart;
+        
+        function ms (x) {                          // MS stub
+            $("#stgraph").empty();                 // clear DOM child elements
+            $("#adddata").removeAttr("disabled")   // enable 'Add Data' button
+                .attr("onclick","load(" + x + ")");// point to data loader
+                
+            chart = st.chart                    // create a new MS chart
+                .ms()                           // chart type
+                .legend(true)                   // options
+                .xlabel("m/z")
+                .ylabel("Abundance")
+                .labels(true)
+                .margins([80, 80, 80, 120]);
+            chart.render("#stgraph");           // render chart to id 'stgraph'
+        };
+        
+        function nmr (x) {                       // NMR stub
+            $("#stgraph").empty();
+            $("#adddata").removeAttr("disabled")
+                .attr("onclick","load(" + x + ")");
+                
+            chart = st.chart
+                .nmr()
+                .legend(true)
+                .title("NMR (beware: fabricated annotations)")
+                .xlabel("ppm")
+                .labels(true)
+                .margins([80, 80, 80, 80])
+                .addListener('mouseover', listener);
+            chart.render("#stgraph");
+        };
+        
+        
+        function load (x) {                        // load chart data
+            switch (x) {
+                case 0:                            // MS
+                    var set = st.data.set()        // data type (set)
+                        .ylimits([0, 1100])        // y-axis limits
+                        .x("peaks.mz")             // x-accessor
+                        .y("peaks.intensity")      // y-accessor
+                        .title("spectrumId");      // id-accessor
+                        
+                    // annotation structure
+                    set.annotationColumn(st.annotation.ANNOTATION, "Ticks");
+                    set.annotationColumn(st.annotation.TOOLTIP, "Origin");
+                    set.annotationColumn(st.annotation.TOOLTIP_MOL, "Ion");
+                    set.annotationColumn(st.annotation.TOOLTIP_MOL, "Frag");
+                    
+                    chart.load(set);               // bind the data set
+                    set.add([                      // input array
+                        "resources/data1.json",
+                        "resources/data2.json",
+                        "resources/data3.json"
+                    ], [                           // input annotation array
+                        "resources/data1_anno.json",    // NOTE: all fabricated data!
+                        "",
+                        ""
+                    ]);
+                    
+                    break;
+                case 1:                             // NMR
+                    var array = st.data.array()     // data type (array)
+                        .xlimits(["xMin", "xMax"])
+                        .ylimits(["yMin", "yMax"])
+                        .y("data")                  // one dimensional array
+                    //  .title("id");
+
+                    array.annotationColumn(st.annotation.ANNOTATION, "Peak");
+                    array.annotationColumn(st.annotation.LISTENER, "Param");
+                    array.annotationColumn(st.annotation.TOOLTIP, "Info");
+
+                    chart.load(array);   
+                    array.add([
+                        "resources/nmr1.json",
+                        "resources/nmr2.json"
+                    ], [
+                        "resources/nmr1_anno.json", 
+                        ""
+                    ]);
+                    break;  
+            };
+            $("#adddata").attr('disabled','disabled');
+        };
+        
+    </script>
+
+</head>
+<body>
+    <div id="widewrap">
+        <h1>SpeckTackle: Molecule Viewer Interaction</h1>
+        <p>Please note: this is a forked version of SpeckTackle. This page demonstrates the interaction between SpeckTackle and MolPaintJS. References are given at the bottom. Return to original <a href="index.html">demo page</a>.</p>
+<h2>References</h2>
+<ul>
+<li>Original repository: <a href="https://bitbucket.org/sbeisken/specktackle">https://bitbucket.org/sbeisken/specktackle</a></li>
+<li>Fork: <a href="https://github.com/ipb-halle/spectackle">https://github.com/ipb-halle/spectackle</a></li>
+<li>MolPaintJS: <a href="https://github.com/ipb-halle/MolPaintJS">https://github.com/ipb-halle/MolPaintJS</a></li>
+</ul>
+<h2>Demo</h2>
+    <ul class="demo">
+        <li><button onclick="ms(0)">MS</button></li>
+        <li><button onclick="nmr(1)">NMR</button></li>
+        <li>&nbsp;&rarr;&nbsp;</li>
+        <li><button id="adddata" onclick="load()" 
+                    disabled="disabled">Add Data</button></li>
+    </ul>
+    <hr>
+    <!-- Container for all charts: '#stgraph' -->
+    <div id="stgraph" class="stgraph"></div>
+
+    <div style="float:right">
+        <div id="mol"></div>
+        <script>
+            molPaintJS.newContext("mol", {iconSize: 32, sizeX:350, sizeY:350, viewer: 1}).init().setMolecule(
+'\n  MolPaint03122111302D\n\n  0  0  0     0  0              0 V3000\nM  V30 BEGIN CTAB\nM  V30 COUNTS 30 32 0 0 1\nM  V30 BEGIN ATOM\nM  V30 1 C -2.892959 -2.069151 0.000000 0\nM  V30 2 C -2.892959 -2.894151 0.000000 0\nM  V30 3 C -2.178488 -3.306651 0.000000 0\nM  V30 4 C -1.464017 -2.894151 0.000000 0\nM  V30 5 C -1.464017 -2.069151 0.000000 0\nM  V30 6 C -2.178488 -1.656651 0.000000 0\nM  V30 7 O -3.607430 -3.306651 0.000000 0\nM  V30 8 C -0.749546 -1.656651 0.000000 0\nM  V30 9 C -2.178488 -0.831651 0.000000 0\nM  V30 10 C -1.464017 -0.419151 0.000000 0\nM  V30 11 C -1.464017 0.405849 0.000000 0\nM  V30 12 C -0.749546 0.818349 0.000000 0\nM  V30 13 C -0.749546 1.643349 0.000000 0\nM  V30 14 C -1.464017 2.055849 0.000000 0\nM  V30 15 C -2.178488 1.643349 0.000000 0\nM  V30 16 C -2.178488 0.818349 0.000000 0\nM  V30 17 C 0.035075 0.563410 0.000000 0\nM  V30 18 C 0.519998 1.230849 0.000000 0\nM  V30 19 C 0.035075 1.898288 0.000000 0\nM  V30 20 C -0.749546 2.468349 0.000000 0\nM  V30 21 H -0.749546 -0.006651 0.000000 0\nM  V30 22 C 0.035075 2.723288 0.000000 0\nM  V30 23 C 0.749546 3.135788 0.000000 0\nM  V30 24 C 1.464017 2.723288 0.000000 0\nM  V30 25 C 2.178488 3.135788 0.000000 0\nM  V30 26 C 2.892959 2.723288 0.000000 0\nM  V30 27 C 3.607430 3.135788 0.000000 0\nM  V30 28 C 2.892959 1.898288 0.000000 0\nM  V30 29 C -0.548288 3.306651 0.000000 0\nM  V30 30 H 0.831964 2.111814 0.000000 0\nM  V30 END ATOM\nM  V30 BEGIN BOND\nM  V30 1 1 1 2\nM  V30 2 1 2 3\nM  V30 3 1 3 4\nM  V30 4 1 4 5\nM  V30 5 1 5 6\nM  V30 6 1 6 1\nM  V30 7 1 2 7 CFG=3\nM  V30 8 2 5 8\nM  V30 9 2 6 9\nM  V30 10 1 9 10\nM  V30 11 2 10 11\nM  V30 12 1 11 12\nM  V30 13 1 12 13\nM  V30 14 1 13 14\nM  V30 15 1 14 15\nM  V30 16 1 15 16\nM  V30 17 1 16 11\nM  V30 18 1 12 17\nM  V30 19 1 17 18\nM  V30 20 1 18 19\nM  V30 21 1 19 13\nM  V30 22 1 13 20 CFG=1\nM  V30 23 1 12 21 CFG=3\nM  V30 24 1 19 22\nM  V30 25 1 22 23\nM  V30 26 1 23 24\nM  V30 27 1 24 25\nM  V30 28 1 25 26\nM  V30 29 1 26 27\nM  V30 30 1 26 28\nM  V30 31 1 22 29 CFG=3\nM  V30 32 1 19 30 CFG=3\nM  V30 END BOND\nM  V30 BEGIN COLLECTION\nM  V30 MDLV30/STEABS ATOMS=(5 2 12 13 19 22)\nM  V30 "Ring A"  ATOMS=(6 1 2 3 4 5 6) BONDS=(6 1 2 3 4 5 6)\nM  V30 "Ring C"  ATOMS=(6 11 12 13 14 15 16) BONDS=(6 12 13 14 15 16 17)\nM  V30 "Ring D"  ATOMS=(5 12 13 17 18 19) BONDS=(5 13 18 19 20 21)\nM  V30 "all atoms and bonds"  ATOMS=(30 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16-\nM  V30  17 18 19 20 21 22 23 24 25 26 27 28 29 30) BONDS=(32 1 2 3 4 5 6 7 8 9-\nM  V30  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32)\nM  V30 END COLLECTION\nM  V30 END CTAB\nM  END\n');
+        </script>
+    </div>
+</div>
+</body>
+</html>

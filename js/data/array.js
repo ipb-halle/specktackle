@@ -249,6 +249,8 @@ st.data.array = function () {
                             var val = ref[k + 2];
                             if (reftype === st.annotation.ANNOTATION) {
                                 annosgroup.annotation = val;
+                            } else if (reftype === st.annotation.LISTENER) {
+                                annosgroup.listener = val;
                             } else if (reftype === st.annotation.TOOLTIP) {
                                 if (!annosgroup.tooltip) {
                                     annosgroup.tooltip = {};

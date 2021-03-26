@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" href="css/st.css">
     
     <!-- SpeckTackle library -->
-    <script type="text/javascript", src="https://github.com/ipb-halle/specktackle/releases/latest/download/st.js"></script>
+    <script type="text/javascript", src="https://github.com/ipb-halle/specktackle/releases/latest/download/st.min.js"></script>
     <!-- SpeckTackle dependencies -->
     <script type="text/javascript", src="libs/d3/d3.js"></script>
     <script type="text/javascript", src="libs/jquery/jquery.js"></script>
@@ -142,19 +142,12 @@
                         .ylimits(["yMin", "yMax"])
                         .y("data")                  // one dimensional array
                         //.title("id");
-
-                    array.annotationColumn(st.annotation.ANNOTATION, "Peak");
-                    array.annotationColumn(st.annotation.TOOLTIP, "Info");
-
                     chart.load(array);   
                     array.add([
                         "resources/nmr1.json",
                         "resources/nmr2.json"
                         //"resources/nmr3.json"
                         //"resources/nmr4.json"
-                    ], [
-                        "resources/nmr1_anno.json", 
-                        ""
                     ]);
                     break;  
                 case 2:                             // NMR 2D
@@ -400,32 +393,32 @@
 <body>
     <div id="wrap">
         <h2>SpeckTackle: Development</h2>
-        <p>Please note: this is a forked version of SpeckTackle with only minor modifications. Please see <a href="https://bitbucket.org/sbeisken/specktackle">https://bitbucket.org/sbeisken/specktackle</a> for the original code.</p>
-        <ul>
-            <li><button onclick="ms(0)">MS</button></li>
-            <li><button onclick="nmr(1)">NMR</button></li>
-            <li><button onclick="nmr2d()">NMR2D</button></li>
-            <li><button onclick="series()">Chromatogram</button></li>
-            <li><button onclick="irjdx()">IR (JDX)</button></li>
-            <li><button onclick="uvvisjdx()">UV/VIS (JDX)</button></li>
-            <li>&nbsp;&rarr;&nbsp;</li>
-            <li><button id="adddata" onclick="load()" 
+        <p>Please note: this is a forked version of SpeckTackle with some minor modifications. Please see <a href="https://github.com/ipb-halle/specktackle">https://github.com/ipb-halle/specktackle</a> for the modified source code and <a href="https://bitbucket.org/sbeisken/specktackle">https://bitbucket.org/sbeisken/specktackle</a> for the original. Some additional features are available on an additional <a href="ipb-demo.html">demo page</a></p>
+        <ul class="demo">
+            <li class="demo"><button onclick="ms(0)">MS</button></li>
+            <li class="demo"><button onclick="nmr(1)">NMR</button></li>
+            <li class="demo"><button onclick="nmr2d()">NMR2D</button></li>
+            <li class="demo"><button onclick="series()">Chromatogram</button></li>
+            <li class="demo"><button onclick="irjdx()">IR (JDX)</button></li>
+            <li class="demo"><button onclick="uvvisjdx()">UV/VIS (JDX)</button></li>
+            <li class="demo">&nbsp;&rarr;&nbsp;</li>
+            <li class="demo"><button id="adddata" onclick="load()" 
                         disabled="disabled">Add Data</button></li>
         </ul>
         <hr>
-        <ul>
-            <li><button onclick="multiplecharts()">Multiple Charts</button></li>
-            <li><button onclick="dynamicms()">Dynamic MS</button></li>
-            <li><button onclick="dynamicnmr()">Dynamic NMR</button></li>
-            <li><button onclick="ms(6)">Single Point MS</button></li>
-            <li><button onclick="nmr(7)">Single Point NMR</button></li>
+        <ul class="demo">
+            <li class="demo"><button onclick="multiplecharts()">Multiple Charts</button></li>
+            <li class="demo"><button onclick="dynamicms()">Dynamic MS</button></li>
+            <li class="demo"><button onclick="dynamicnmr()">Dynamic NMR</button></li>
+            <li class="demo"><button onclick="ms(6)">Single Point MS</button></li>
+            <li class="demo"><button onclick="nmr(7)">Single Point NMR</button></li>
             <li id="dynamicload"></li>
         </ul>
         <hr>
-        <ul>
-            <li><button onclick="ms(8)">Difference Chart</button></li>
-            <li><button onclick="ms(9)">Spectral Match</button></li>
-            <li><button onclick="ms(10)">Peptide MS</button></li>
+        <ul class="demo">
+            <li class="demo"><button onclick="ms(8)">Difference Chart</button></li>
+            <li class="demo"><button onclick="ms(9)">Spectral Match</button></li>
+            <li class="demo"><button onclick="ms(10)">Peptide MS</button></li>
         </ul>
         <hr>
         <!-- Container for all charts: '#stgraph' -->
